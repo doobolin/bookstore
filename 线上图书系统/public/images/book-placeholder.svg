@@ -1,0 +1,35 @@
+<svg width="200" height="280" viewBox="0 0 200 280" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1a0033;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#330066;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="textGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#00ffff;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#ff00ff;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#00ffff;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- 背景 -->
+  <rect width="200" height="280" fill="url(#bgGradient)" rx="8"/>
+  
+  <!-- 书本图标 -->
+  <g transform="translate(100, 120)">
+    <rect x="-40" y="-30" width="80" height="100" fill="none" stroke="url(#textGradient)" stroke-width="2" rx="4"/>
+    <rect x="-35" y="-25" width="70" height="90" fill="rgba(0,255,255,0.1)" rx="2"/>
+    <line x1="-25" y1="-15" x2="25" y2="-15" stroke="url(#textGradient)" stroke-width="1"/>
+    <line x1="-25" y1="-5" x2="25" y2="-5" stroke="url(#textGradient)" stroke-width="1"/>
+    <line x1="-25" y1="5" x2="25" y2="5" stroke="url(#textGradient)" stroke-width="1"/>
+    <line x1="-25" y1="15" x2="25" y2="15" stroke="url(#textGradient)" stroke-width="1"/>
+    <line x1="-25" y1="25" x2="25" y2="25" stroke="url(#textGradient)" stroke-width="1"/>
+    <line x1="-25" y1="35" x2="25" y2="35" stroke="url(#textGradient)" stroke-width="1"/>
+    <line x1="-25" y1="45" x2="25" y2="45" stroke="url(#textGradient)" stroke-width="1"/>
+    <line x1="-25" y1="55" x2="25" y2="55" stroke="url(#textGradient)" stroke-width="1"/>
+  </g>
+  
+  <!-- 技术书城文字 -->
+  <text x="100" y="250" text-anchor="middle" fill="url(#textGradient)" font-family="Arial, sans-serif" font-size="12" font-weight="bold">
+    技术书城
+  </text>
+</svg>

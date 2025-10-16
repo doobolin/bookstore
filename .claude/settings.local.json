@@ -1,0 +1,27 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(dir:*)",
+      "Bash(findstr:*)",
+      "Bash(python -m pip install:*)",
+      "Bash(pip install:*)",
+      "Bash(python:*)",
+      "Bash(npm run dev)",
+      "Bash(netstat -ano)",
+      "Bash(curl -s http://localhost:5000/api/books)",
+      "Bash(mysql -u root -p --password=\"\" -D bookstore_management_system -e \"SHOW TABLES;\")",
+      "Bash(mysql -u root -p -D bookstore_management_system -e \"SHOW TABLES;\")",
+      "Bash(curl -s -X POST http://localhost:5000/api/cart/add -H \"Content-Type: application/json\" -d \"{\"\"user_id\"\": 1, \"\"book_id\"\": 1, \"\"quantity\"\": 2}\")",
+      "Bash(curl -s \"http://localhost:5000/api/cart?user_id=1\")",
+      "Bash(curl -s -X POST http://localhost:5000/api/orders/create -H \"Content-Type: application/json\" -d \"{\"\"user_id\"\": 1, \"\"items\"\": [{\"\"book_id\"\": 1, \"\"quantity\"\": 2}], \"\"receiver_name\"\": \"\"张三\"\", \"\"receiver_phone\"\": \"\"13800138000\"\", \"\"receiver_address\"\": \"\"北京市朝阳区测试街道123号\"\"}\")",
+      "Bash(curl -s \"http://localhost:5000/api/orders\")",
+      "Bash(curl -s \"http://localhost:5000/api/orders/1\")",
+      "Bash(curl -s http://localhost:5000/api/categories)",
+      "Bash(git init)",
+      "Bash(git add .)",
+      "Bash(del \"线上图书系统\\nul\")"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
