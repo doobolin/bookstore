@@ -293,45 +293,127 @@ def delete_user(user_id):
             # 检查用户是否存在
             check_query = text("SELECT id FROM users WHERE id = :user_id")
             check_result = db.session.execute(check_query, {'user_id': user_id}).fetchone()
-            
+
             if not check_result:
                 return make_response(None, '用户不存在', 404)
-            
+
+            # 检查要删除的用户是否有关联的订单
+            orders_check_query = text("SELECT COUNT(*) FROM orders WHERE user_id = :user_id")
+            orders_count = db.session.execute(orders_check_query, {'user_id': user_id}).scalar()
+
+            if orders_count > 0:
+                return make_response(None, f'无法删除用户：该用户有{orders_count}个关联订单，请先处理这些订单', 400)
+
             # 删除用户
             delete_query = text("DELETE FROM users WHERE id = :user_id")
             db.session.execute(delete_query, {'user_id': user_id})
-            
-            # 查询剩余用户并按原始ID排序
+
+            # 检查剩余的所有用户是否都没有订单（以便安全地重新排列ID）
             remaining_users_query = text("SELECT id FROM users ORDER BY id ASC")
             remaining_users = db.session.execute(remaining_users_query).fetchall()
-            
-            # 从1开始重新排列所有用户的ID
-            # 首先将所有用户ID更新为临时值，避免主键冲突
-            temp_ids = []
-            for index, user in enumerate(remaining_users, start=1):
-                temp_id = 10000 + index  # 使用足够大的临时ID
-                db.session.execute(text("UPDATE users SET id = :temp_id WHERE id = :old_id"), 
-                                   {'temp_id': temp_id, 'old_id': user[0]})
-                temp_ids.append(temp_id)
-            
-            # 然后将临时ID更新为正确的连续ID
-            for index, temp_id in enumerate(temp_ids, start=1):
-                correct_id = index
-                db.session.execute(text("UPDATE users SET id = :correct_id WHERE id = :temp_id"), 
-                                   {'correct_id': correct_id, 'temp_id': temp_id})
-            
-            # 重置自增ID计数器，确保新添加用户时ID从下一个连续数字开始
-            next_id = len(remaining_users) + 1 if remaining_users else 1
-            reset_autoinc_query = text(f"ALTER TABLE users AUTO_INCREMENT = {next_id}")
-            db.session.execute(reset_autoinc_query)
-            
-            # 只在所有操作完成后提交事务
+
+            can_reorder = True
+            for user in remaining_users:
+                user_orders = db.session.execute(
+                    text("SELECT COUNT(*) FROM orders WHERE user_id = :user_id"),
+                    {'user_id': user[0]}
+                ).scalar()
+                if user_orders > 0:
+                    can_reorder = False
+                    break
+
+            # 如果所有用户都没有订单，重新排列ID
+            if can_reorder and remaining_users:
+                # 第一步：将所有用户ID更新为临时值
+                temp_ids = []
+                for index, user in enumerate(remaining_users, start=1):
+                    temp_id = 20000 + index
+                    db.session.execute(
+                        text("UPDATE users SET id = :temp_id WHERE id = :old_id"),
+                        {'temp_id': temp_id, 'old_id': user[0]}
+                    )
+                    temp_ids.append(temp_id)
+
+                # 第二步：将临时ID更新为正确的连续ID
+                for index, temp_id in enumerate(temp_ids, start=1):
+                    db.session.execute(
+                        text("UPDATE users SET id = :correct_id WHERE id = :temp_id"),
+                        {'correct_id': index, 'temp_id': temp_id}
+                    )
+
+                # 重置AUTO_INCREMENT
+                next_id = len(remaining_users) + 1
+                db.session.execute(text(f"ALTER TABLE users AUTO_INCREMENT = {next_id}"))
+            else:
+                # 不能重排ID，只重置AUTO_INCREMENT到下一个可用值
+                if remaining_users:
+                    max_id = max(user[0] for user in remaining_users)
+                    next_id = max_id + 1
+                else:
+                    next_id = 1
+                db.session.execute(text(f"ALTER TABLE users AUTO_INCREMENT = {next_id}"))
+
             db.session.commit()
-            
-            return make_response(None, '删除用户成功')
+
+            message = '删除用户成功'
+            if can_reorder and remaining_users:
+                message += '，ID已重新排列'
+
+            return make_response(None, message)
     except Exception as e:
         db.session.rollback()
         return make_response(None, f'删除用户失败: {str(e)}', 500)
+
+# 修复用户ID（临时维护端点）
+@app.route('/api/users/fix-ids', methods=['POST'])
+def fix_user_ids():
+    """修复用户ID，使其连续并重置AUTO_INCREMENT"""
+    try:
+        with app.app_context():
+            # 获取所有用户，按ID排序
+            users_query = text("SELECT id, username, email, password, role, status, created_at FROM users ORDER BY id ASC")
+            users = db.session.execute(users_query).fetchall()
+
+            if not users:
+                return make_response(None, '没有用户需要修复', 200)
+
+            # 检查是否有订单关联
+            for user in users:
+                orders_check = text("SELECT COUNT(*) FROM orders WHERE user_id = :user_id")
+                order_count = db.session.execute(orders_check, {'user_id': user[0]}).scalar()
+                if order_count > 0:
+                    return make_response(None, f'用户ID {user[0]}({user[1]}) 有{order_count}个关联订单，无法重新分配ID', 400)
+
+            # 先将所有用户ID改为临时值
+            temp_mapping = {}
+            for idx, user in enumerate(users, start=1):
+                temp_id = 20000 + idx
+                temp_mapping[temp_id] = (idx, user)
+                db.session.execute(
+                    text("UPDATE users SET id = :temp_id WHERE id = :old_id"),
+                    {'temp_id': temp_id, 'old_id': user[0]}
+                )
+
+            # 然后将临时ID改为正确的连续ID
+            for temp_id, (new_id, user) in temp_mapping.items():
+                db.session.execute(
+                    text("UPDATE users SET id = :new_id WHERE id = :temp_id"),
+                    {'new_id': new_id, 'temp_id': temp_id}
+                )
+
+            # 重置AUTO_INCREMENT
+            next_id = len(users) + 1
+            db.session.execute(text(f"ALTER TABLE users AUTO_INCREMENT = {next_id}"))
+
+            db.session.commit()
+
+            return make_response({
+                'fixed_count': len(users),
+                'next_id': next_id
+            }, f'成功修复{len(users)}个用户的ID')
+    except Exception as e:
+        db.session.rollback()
+        return make_response(None, f'修复用户ID失败: {str(e)}', 500)
 
 # 切换用户状态API
 @app.route('/api/users/<int:user_id>/status', methods=['PATCH'])
