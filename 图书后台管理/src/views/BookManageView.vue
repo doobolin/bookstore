@@ -143,7 +143,9 @@ import {
   getAllBooks,
   addBook,
   updateBook,
-  deleteBook as deleteBookApi
+  deleteBook as deleteBookApi,
+  getAllCategories,
+  type Category
 } from '../api/bookApi'
 import { eventBus, EventTypes } from '../utils/eventBus'
 
@@ -161,10 +163,7 @@ interface Book {
 }
 
 // 定义图书分类接口
-interface Category {
-  id: number
-  name: string
-}
+// 现在从 bookApi 导入 Category 接口
 
 // 状态变量
 const books = ref<Book[]>([])
@@ -223,21 +222,14 @@ const loadBooks = async () => {
 const loadCategories = async () => {
   loadingCategories.value = true
   try {
-    // 这里应该调用获取分类的API，暂时使用模拟数据
-    // 在实际项目中，应该从后端API获取分类数据
-    categories.value = [
-      { id: 1, name: '技术' },
-      { id: 2, name: '文学' },
-      { id: 3, name: '历史' },
-      { id: 4, name: '科学' },
-      { id: 5, name: '艺术' },
-      { id: 6, name: '生活' },
-      { id: 7, name: '经济' },
-      { id: 8, name: '教育' }
-    ]
+    // 从后端API获取分类数据
+    const data = await getAllCategories()
+    categories.value = data
   } catch (error) {
     ElMessage.error('加载图书分类失败')
     console.error('加载图书分类失败:', error)
+    // 失败时保持列表为空
+    categories.value = []
   } finally {
     loadingCategories.value = false
   }

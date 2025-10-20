@@ -1,5 +1,12 @@
 <template>
   <div class="home-container">
+    <!-- 欢迎屏幕 -->
+    <div v-if="showWelcome" class="welcome-screen">
+      <h1 class="welcome-text" :class="{ 'fly-out': welcomeAnimating }">
+        欢迎来到科技书城
+      </h1>
+    </div>
+
     <!-- 赛博朋克背景 -->
     <div class="cyber-background">
       <!-- 网格线背景 -->
@@ -22,18 +29,15 @@
           <span v-for="j in 8" :key="j" class="matrix-dot"></span>
         </div>
       </div>
-      
-      <!-- 扫描线 -->
-      <div class="scan-line"></div>
-      
+
       <!-- 故障效果 -->
       <div class="glitch-overlay"></div>
     </div>
     
     <!-- 导航栏 -->
-    <nav class="navbar">
+    <nav class="navbar" :class="{ 'fade-in': !showWelcome, 'fade-in-delay-1': !showWelcome }">
       <div class="nav-content">
-        <div class="logo">
+        <div class="logo" @click="refreshPage">
           <span class="logo-text">科技书城</span>
         </div>
         <div class="nav-search">
@@ -80,7 +84,7 @@
     </nav>
 
     <!-- 主要内容 -->
-    <div class="content-wrapper">
+    <div class="content-wrapper" :class="{ 'fade-in': !showWelcome, 'fade-in-delay-2': !showWelcome }">
       <!-- 英雄区域 -->
       <section class="hero-section">
         <div class="hero-content">
@@ -112,31 +116,32 @@
       </section>
 
       <!-- 书籍卡片区域 -->
-      <section class="books-section">
+      <section class="books-section" :class="{ 'fade-in': !showWelcome, 'fade-in-delay-3': !showWelcome }">
         <CardContainer />
       </section>
+    </div>
 
-      <!-- 购物车侧边栏 -->
-      <div class="cart-sidebar" :class="{ 'cart-open': isCartOpen }">
-        <div class="cart-toggle" @click="toggleCart">
-          <el-icon size="20"><ShoppingCartIcon /></el-icon>
-          <span class="cart-badge" v-if="cartItemCount > 0">{{ cartItemCount }}</span>
-        </div>
-        <div class="cart-content">
-          <ShoppingCart />
-        </div>
+    <!-- 购物车侧边栏 -->
+    <div class="cart-sidebar" :class="{ 'cart-open': isCartOpen, 'fade-in-fixed': !showWelcome }">
+      <div class="cart-toggle" @click="toggleCart">
+        <el-icon size="20"><ShoppingCartIcon /></el-icon>
+        <span class="cart-badge" v-if="cartItemCount > 0">{{ cartItemCount }}</span>
       </div>
+      <div class="cart-content">
+        <ShoppingCart />
+      </div>
+    </div>
 
-      <!-- 回到顶部按钮 - 赛博朋克风格 -->
-      <div 
-        class="back-to-top" 
-        :class="{ 'show': showBackToTop }"
-        @click="scrollToTop"
-        title="返回顶部"
-      >
-        <div class="back-to-top-icon">
-          <el-icon size="24"><ArrowUp /></el-icon>
-        </div>
+    <!-- 回到顶部按钮 - 赛博朋克风格 -->
+    <div
+      v-show="!showWelcome"
+      class="back-to-top"
+      :class="{ 'show': showBackToTop }"
+      @click="scrollToTop"
+      title="返回顶部"
+    >
+      <div class="back-to-top-icon">
+        <el-icon size="24"><ArrowUp /></el-icon>
       </div>
     </div>
 
@@ -164,6 +169,8 @@ const showBackToTop = ref(false)
 const searchQuery = ref('')
 const isLoggedIn = ref(false)
 const username = ref('')
+const showWelcome = ref(true)
+const welcomeAnimating = ref(false)
 
 // 检查登录状态
 const checkLoginStatus = () => {
@@ -182,6 +189,10 @@ const checkLoginStatus = () => {
 
 const goToLogin = () => {
   router.push('/login')
+}
+
+const refreshPage = () => {
+  window.location.reload()
 }
 
 const handleUserCommand = async (command: string) => {
@@ -288,6 +299,18 @@ onMounted(() => {
 
   // 初始检查登录状态
   checkLoginStatus()
+
+  // 欢迎动画时序控制
+  // 1. 显示欢迎文字 1秒
+  setTimeout(() => {
+    // 2. 开始向上飞出动画
+    welcomeAnimating.value = true
+  }, 1000)
+
+  // 3. 飞出动画完成后隐藏欢迎屏幕，主页内容开始淡入
+  setTimeout(() => {
+    showWelcome.value = false
+  }, 2000)
 })
 
 onUnmounted(() => {
@@ -304,6 +327,105 @@ onUnmounted(() => {
   background: linear-gradient(135deg, #0a0a0a 0%, #1a0033 50%, #330066 100%);
   position: relative;
   overflow-x: hidden;
+}
+
+/* 欢迎屏幕 */
+.welcome-screen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: linear-gradient(135deg, #0a0a0a 0%, #1a0033 50%, #330066 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  overflow: hidden;
+}
+
+.welcome-text {
+  font-size: 48px;
+  font-weight: 700;
+  background: linear-gradient(135deg, #00ffff, #ff00ff, #ffff00);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-shadow: 0 0 40px rgba(0, 255, 255, 0.5);
+  animation: welcome-fade-in 1s ease-out;
+}
+
+/* 欢迎文字淡入动画 */
+@keyframes welcome-fade-in {
+  0% {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* 文字向上飞出动画 */
+.welcome-text.fly-out {
+  animation: fly-out-up 1s ease-in forwards;
+}
+
+@keyframes fly-out-up {
+  0% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-100vh) scale(0.5);
+  }
+}
+
+/* 主页内容淡入动画 */
+.fade-in {
+  animation: fade-in-content 0.8s ease-out forwards;
+  opacity: 0;
+}
+
+@keyframes fade-in-content {
+  0% {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 依次淡入的延迟效果 */
+.fade-in-delay-1 {
+  animation-delay: 0.1s;
+}
+
+.fade-in-delay-2 {
+  animation-delay: 0.3s;
+}
+
+.fade-in-delay-3 {
+  animation-delay: 0.5s;
+}
+
+/* fixed元素的淡入动画（不使用transform以保持定位） */
+.fade-in-fixed {
+  animation: fade-in-fixed-content 0.8s ease-out 0.5s forwards;
+  opacity: 0;
+}
+
+@keyframes fade-in-fixed-content {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
 }
 
 /* 赛博朋克背景 */
@@ -337,24 +459,12 @@ onUnmounted(() => {
 .grid-line.horizontal {
   width: 100%;
   height: 1px;
-  animation: scan-horizontal 3s linear infinite;
 }
 
 .grid-line.vertical {
   width: 1px;
   height: 100%;
   background: linear-gradient(180deg, transparent, #ff00ff, transparent);
-  animation: scan-vertical 4s linear infinite;
-}
-
-@keyframes scan-horizontal {
-  0% { transform: translateY(-100vh); }
-  100% { transform: translateY(100vh); }
-}
-
-@keyframes scan-vertical {
-  0% { transform: translateX(-100vw); }
-  100% { transform: translateX(100vw); }
 }
 
 /* 霓虹灯效果 */
@@ -454,22 +564,6 @@ onUnmounted(() => {
   50% { opacity: 0.8; }
 }
 
-/* 扫描线 */
-.scan-line {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 2px;
-  background: linear-gradient(90deg, transparent, #00ffff, transparent);
-  animation: scan 2s linear infinite;
-}
-
-@keyframes scan {
-  0% { transform: translateY(-100vh); }
-  100% { transform: translateY(100vh); }
-}
-
 /* 故障效果 */
 .glitch-overlay {
   position: absolute;
@@ -511,6 +605,15 @@ onUnmounted(() => {
   justify-content: space-between;
   align-items: center;
   padding: 1rem 2rem;
+}
+
+.logo {
+  cursor: pointer;
+  transition: transform 0.3s ease;
+}
+
+.logo:hover {
+  transform: scale(1.05);
 }
 
 .logo-text {

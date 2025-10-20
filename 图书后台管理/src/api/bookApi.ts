@@ -18,6 +18,13 @@ export interface Book {
   description?: string
 }
 
+// 定义类别接口
+export interface Category {
+  id: number
+  name: string
+  description?: string
+}
+
 // 获取所有图书
 export const getAllBooks = async (): Promise<Book[]> => {
   try {
@@ -112,6 +119,21 @@ export const getLowStockBooks = async (): Promise<LowStockResponse> => {
     return response.data
   } catch (error) {
     console.error('获取低库存图书失败:', error)
+    throw error
+  }
+}
+
+// 获取所有图书类别
+export const getAllCategories = async (): Promise<Category[]> => {
+  try {
+    const response = await axiosInstance.get('/categories')
+    // 检查响应格式并返回类别数据
+    if (response && response.data && Array.isArray(response.data.categories)) {
+      return response.data.categories
+    }
+    return []
+  } catch (error) {
+    console.error('获取图书类别失败:', error)
     throw error
   }
 }

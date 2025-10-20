@@ -4,19 +4,6 @@
       <h3 class="section-title">精选图书大全</h3>
       <p class="section-subtitle">涵盖各类知识的图书海洋</p>
     </div>
-    
-    <!-- 分类筛选 -->
-    <div class="category-filter">
-      <button 
-        v-for="category in categories" 
-        :key="category"
-        class="filter-btn"
-        :class="{ active: selectedCategory === category }"
-        @click="selectCategory(category)"
-      >
-        {{ category }}
-      </button>
-    </div>
 
     <!-- 加载状态 -->
     <div v-if="loading" class="loading-state">
@@ -271,73 +258,6 @@ const addToCart = (book: Book) => {
   color: rgba(255, 255, 255, 0.7);
   margin: 0;
   font-weight: 300;
-}
-
-/* 分类筛选 */
-.category-filter {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 15px;
-  justify-content: center;
-  margin-bottom: 40px;
-}
-
-.filter-btn {
-  position: relative;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(0, 255, 255, 0.3);
-  color: rgba(255, 255, 255, 0.8);
-  padding: 12px 24px;
-  border-radius: 25px;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  backdrop-filter: blur(10px);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.filter-btn:hover {
-  background: rgba(0, 255, 255, 0.2);
-  border-color: rgba(0, 255, 255, 0.5);
-  color: white;
-  transform: translateY(-2px);
-  box-shadow: 
-    0 0 10px rgba(0, 255, 255, 0.4);
-}
-
-.filter-btn.active {
-  background: rgba(0, 255, 255, 0.3);
-  border-color: rgba(0, 255, 255, 0.6);
-  color: white;
-  transform: translateY(-2px);
-  box-shadow: 
-    0 0 15px rgba(0, 255, 255, 0.5);
-}
-
-.filter-btn:active {
-  transform: translateY(-1px);
-}
-
-@media (max-width: 768px) {
-  .filter-btn {
-    padding: 10px 20px;
-    font-size: 12px;
-    letter-spacing: 0.3px;
-  }
-}
-
-@media (max-width: 480px) {
-  .filter-btn {
-    padding: 8px 16px;
-    font-size: 11px;
-    margin: 2px;
-  }
-
-  .category-filter {
-    gap: 8px;
-  }
 }
 
 /* 加载状态样式 */
@@ -619,22 +539,13 @@ const addToCart = (book: Book) => {
     grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
     gap: 20px;
   }
-  
+
   .section-title {
     font-size: 28px;
   }
-  
+
   .section-subtitle {
     font-size: 16px;
-  }
-  
-  .category-filter {
-    gap: 8px;
-  }
-  
-  .filter-btn {
-    font-size: 12px;
-    padding: 6px 12px;
   }
 }
 
@@ -643,23 +554,13 @@ const addToCart = (book: Book) => {
     grid-template-columns: 1fr;
     gap: 15px;
   }
-  
+
   .section-title {
     font-size: 24px;
   }
-  
+
   .book-card {
     margin: 0 10px;
-  }
-  
-  .category-filter {
-    justify-content: flex-start;
-    overflow-x: auto;
-    padding: 0 10px;
-  }
-  
-  .filter-btn {
-    white-space: nowrap;
   }
 }
 </style>

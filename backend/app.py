@@ -612,17 +612,18 @@ def get_all_books():
         with app.app_context():
             # 直接使用表连接查询，避免依赖视图
             result = db.session.execute(text("""
-                SELECT 
-                    b.id, 
-                    b.title, 
-                    b.author, 
-                    c.name AS category, 
-                    b.description, 
-                    b.price, 
-                    b.stock, 
-                    b.rating, 
-                    b.image, 
-                    b.status 
+                SELECT
+                    b.id,
+                    b.title,
+                    b.author,
+                    c.name AS category,
+                    b.category_id,
+                    b.description,
+                    b.price,
+                    b.stock,
+                    b.rating,
+                    b.image,
+                    b.status
                 FROM books b
                 LEFT JOIN categories c ON b.category_id = c.id
             """))
@@ -633,12 +634,13 @@ def get_all_books():
                     'title': row[1],
                     'author': row[2],
                     'category': row[3],
-                    'description': row[4],
-                    'price': float(row[5]),
-                    'stock': row[6],
-                    'rating': float(row[7]) if row[7] else 0.0,
-                    'image': row[8],
-                    'status': row[9]
+                    'category_id': row[4],
+                    'description': row[5],
+                    'price': float(row[6]),
+                    'stock': row[7],
+                    'rating': float(row[8]) if row[8] else 0.0,
+                    'image': row[9],
+                    'status': row[10]
                 })
             return make_response({'books': books}, '获取图书列表成功')
     except Exception as e:
