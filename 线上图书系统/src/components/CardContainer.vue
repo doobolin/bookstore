@@ -2,7 +2,7 @@
   <div class="card-container">
     <div class="container-header">
       <h3 class="section-title">精选图书大全</h3>
-      <p class="section-subtitle">涵盖各类知识的图书海洋</p>
+      <p class="section-subtitle">探索知识的无限可能</p>
     </div>
 
     <!-- 加载状态 -->
@@ -15,56 +15,56 @@
       <p>暂无图书数据</p>
     </div>
 
-    <div v-else class="books-grid">
-      <div 
-        v-for="book in filteredBooks" 
+    <!-- 瀑布流网格布局 -->
+    <div v-else class="masonry-grid">
+      <div
+        v-for="(book, index) in filteredBooks"
         :key="book.id"
-        class="book-card"
+        class="masonry-item"
+        :class="getCardSizeClass(index)"
         @click="handleCardClick(book)"
       >
-        <div class="card-image">
-          <img :src="book.image" :alt="book.title" @error="handleImageError" />
-          <div class="card-overlay">
-            <span class="view-details">查看详情</span>
+        <!-- 图书封面 -->
+        <div class="book-cover" :style="{ background: getBookColor(index) }">
+          <div class="cover-overlay">
+            <div class="overlay-content">
+              <div class="quick-actions">
+                <button class="action-btn view-btn" @click.stop="handleCardClick(book)">
+                  <el-icon><View /></el-icon>
+                </button>
+                <button class="action-btn cart-btn" @click.stop="addToCart(book)">
+                  <el-icon><ShoppingCart /></el-icon>
+                </button>
+              </div>
+            </div>
+          </div>
+          <!-- 分类标签 -->
+          <div class="category-badge">{{ book.category }}</div>
+          <!-- 评分角标 -->
+          <div class="rating-badge">
+            <el-icon class="star-icon"><Star /></el-icon>
+            <span>{{ book.rating.toFixed(1) }}</span>
           </div>
         </div>
-        
-        <div class="card-content">
-          <div class="book-category">
-            <span class="category-tag" :class="getCategoryClass(book.category)">{{ book.category }}</span>
-          </div>
-          
+
+        <!-- 图书信息 -->
+        <div class="book-info">
           <h4 class="book-title">{{ book.title }}</h4>
-          <p class="book-author">{{ book.author }}</p>
+          <p class="book-author">
+            <el-icon class="author-icon"><User /></el-icon>
+            {{ book.author }}
+          </p>
           <p class="book-description">{{ book.description }}</p>
-          
-          <div class="card-footer">
-            <div class="book-rating">
-              <el-rate
-                v-model="book.rating"
-                disabled
-                :max="5"
-                :colors="['#10b981', '#10b981', '#10b981']"
-                :void-color="'rgba(255,255,255,0.2)'"
-              />
-              <span class="rating-text">{{ book.rating.toFixed(1) }}</span>
-            </div>
-            
-            <div class="book-price">
+
+          <!-- 底部信息栏 -->
+          <div class="info-footer">
+            <div class="price-tag">
               <span class="price-symbol">¥</span>
-              <span class="price-number">{{ book.price }}</span>
+              <span class="price-value">{{ book.price }}</span>
             </div>
-          </div>
-          
-          <div class="card-actions">
-            <el-button 
-              type="primary" 
-              class="add-to-cart-btn"
-              @click.stop="addToCart(book)"
-            >
-              <el-icon><ShoppingCart /></el-icon>
-              加入购物车
-            </el-button>
+            <button class="buy-now-btn" @click.stop="addToCart(book)">
+              立即购买
+            </button>
           </div>
         </div>
       </div>
@@ -75,7 +75,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
-import { ShoppingCart } from '@element-plus/icons-vue'
+import { ShoppingCart, View, Star, User } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import { getAllBooks, getAllCategories, searchBooks, type Book, type SearchBooksParams } from '../api/bookApi'
 
@@ -227,49 +227,66 @@ const addToCart = (book: Book) => {
     detail: { book }
   }))
 }
+
+// 根据索引返回不同的卡片尺寸类（创建不规则网格效果）
+const getCardSizeClass = (index: number) => {
+  const patterns = ['small', 'medium', 'large', 'medium', 'small', 'large']
+  return patterns[index % patterns.length]
+}
+
+// 根据索引返回不同的纯色背景 - 改为纯黑色
+const getBookColor = (index: number) => {
+  return '#000000'  // 纯黑色
+}
 </script>
 
 <style scoped>
 .card-container {
-  max-width: 1200px;
+  max-width: 1400px;
   margin: 0 auto;
   padding: 20px;
 }
 
 .container-header {
   text-align: center;
-  margin-bottom: 40px;
+  margin-bottom: 50px;
+  padding: 20px 0;
 }
 
 .section-title {
-  font-size: 36px;
-  font-weight: 800;
-  color: #10b981;
-  margin: 0 0 10px 0;
-  text-shadow: 0 0 20px rgba(16, 185, 129, 0.3);
+  font-size: 48px;
+  font-weight: 900;
+  background: linear-gradient(135deg, #10b981, #34d399, #6ee7b7);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin: 0 0 15px 0;
+  text-shadow: 0 0 30px rgba(16, 185, 129, 0.3);
+  letter-spacing: 2px;
 }
 
 .section-subtitle {
-  font-size: 18px;
-  color: rgba(255, 255, 255, 0.7);
+  font-size: 20px;
+  color: rgba(255, 255, 255, 0.6);
   margin: 0;
   font-weight: 300;
+  letter-spacing: 1px;
 }
 
 /* 加载状态样式 */
 .loading-state {
   text-align: center;
-  padding: 80px 20px;
+  padding: 100px 20px;
   color: rgba(255, 255, 255, 0.8);
 }
 
 .loading-spinner {
-  width: 50px;
-  height: 50px;
-  border: 4px solid rgba(16, 185, 129, 0.2);
+  width: 60px;
+  height: 60px;
+  border: 5px solid rgba(16, 185, 129, 0.2);
   border-top-color: #10b981;
   border-radius: 50%;
-  margin: 0 auto 20px;
+  margin: 0 auto 25px;
   animation: spin 1s linear infinite;
 }
 
@@ -281,308 +298,330 @@ const addToCart = (book: Book) => {
 .loading-state p {
   font-size: 18px;
   font-weight: 500;
+  color: #10b981;
 }
 
 /* 空状态样式 */
 .empty-state {
   text-align: center;
-  padding: 80px 20px;
-  color: rgba(255, 255, 255, 0.6);
-  font-size: 18px;
+  padding: 100px 20px;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 20px;
 }
 
-.books-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 30px;
+/* 瀑布流网格布局 */
+.masonry-grid {
+  column-count: 4;
+  column-gap: 20px;
   margin-top: 40px;
 }
 
-.book-card {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(16, 185, 129, 0.2);
-  border-radius: 15px;
+.masonry-item {
+  break-inside: avoid;
+  margin-bottom: 20px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(16, 185, 129, 0.15);
+  border-radius: 20px;
   overflow: hidden;
-  transition: all 0.3s ease;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   cursor: pointer;
-  backdrop-filter: blur(10px);
-}
-
-.book-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 10px 30px rgba(16, 185, 129, 0.2);
-  border-color: rgba(16, 185, 129, 0.4);
-}
-
-.card-image {
+  backdrop-filter: blur(20px);
   position: relative;
-  width: 100%;
-  height: 200px;
-  overflow: hidden;
-  background: linear-gradient(135deg, #0a0a0a, #1a1a1a);
-  border-bottom: 2px solid rgba(16, 185, 129, 0.2);
 }
 
-.card-image::before {
+.masonry-item::before {
   content: '';
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background: linear-gradient(
-    135deg,
-    transparent 0%,
-    rgba(16, 185, 129, 0.1) 50%,
-    transparent 100%
-  );
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.05), transparent);
   opacity: 0;
   transition: opacity 0.4s ease;
-  z-index: 2;
   pointer-events: none;
-}
-
-.book-card:hover .card-image::before {
-  opacity: 1;
-}
-
-.card-image img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  transition: all 0.4s ease;
-  position: relative;
   z-index: 1;
 }
 
-.book-card:hover .card-image img {
-  transform: scale(1.08);
-  filter: brightness(1.1);
+.masonry-item:hover::before {
+  opacity: 1;
 }
 
-.card-overlay {
+.masonry-item:hover {
+  transform: translateY(-8px) scale(1.02);
+  box-shadow:
+    0 20px 40px rgba(16, 185, 129, 0.2),
+    0 0 0 1px rgba(16, 185, 129, 0.3);
+  border-color: rgba(16, 185, 129, 0.4);
+}
+
+/* 不同尺寸的卡片 */
+.masonry-item.small .book-cover {
+  height: 200px;
+}
+
+.masonry-item.medium .book-cover {
+  height: 280px;
+}
+
+.masonry-item.large .book-cover {
+  height: 360px;
+}
+
+/* 图书封面 */
+.book-cover {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.masonry-item:hover .book-cover {
+  filter: brightness(1.15) saturate(1.2);
+}
+
+/* 封面遮罩层 */
+.cover-overlay {
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
   background: linear-gradient(
-    to top,
-    rgba(0, 0, 0, 0.9) 0%,
-    rgba(0, 0, 0, 0.6) 50%,
-    transparent 100%
+    to bottom,
+    rgba(0, 0, 0, 0.3) 0%,
+    rgba(0, 0, 0, 0.7) 100%
   );
   display: flex;
   align-items: center;
   justify-content: center;
   opacity: 0;
-  transition: opacity 0.3s ease;
-  z-index: 3;
+  transition: all 0.4s ease;
+  z-index: 2;
 }
 
-.book-card:hover .card-overlay {
+.masonry-item:hover .cover-overlay {
   opacity: 1;
+  backdrop-filter: blur(5px);
 }
 
-.view-details {
+.overlay-content {
+  transform: translateY(20px);
+  transition: transform 0.4s ease;
+}
+
+.masonry-item:hover .overlay-content {
+  transform: translateY(0);
+}
+
+/* 快捷操作按钮 */
+.quick-actions {
+  display: flex;
+  gap: 15px;
+}
+
+.action-btn {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  border: 2px solid #10b981;
+  background: rgba(0, 0, 0, 0.6);
   color: #10b981;
-  font-size: 14px;
-  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+  font-size: 20px;
+}
+
+.action-btn:hover {
+  background: #10b981;
+  color: #000;
+  transform: scale(1.15) rotate(10deg);
+  box-shadow: 0 0 20px rgba(16, 185, 129, 0.6);
+}
+
+.action-btn .el-icon {
+  font-size: 20px;
+}
+
+/* 分类角标 */
+.category-badge {
+  position: absolute;
+  top: 15px;
+  left: 15px;
+  padding: 6px 14px;
+  background: rgba(16, 185, 129, 0.9);
+  color: #000;
+  font-size: 11px;
+  font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 1px;
-  padding: 8px 16px;
-  border: 2px solid #10b981;
-  border-radius: 8px;
-  background: rgba(0, 0, 0, 0.5);
+  border-radius: 20px;
   backdrop-filter: blur(10px);
+  z-index: 3;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
   transition: all 0.3s ease;
-  text-shadow: 0 0 10px rgba(16, 185, 129, 0.5);
 }
 
-.book-card:hover .view-details {
-  background: rgba(16, 185, 129, 0.2);
-  box-shadow: 0 0 20px rgba(16, 185, 129, 0.4);
-  transform: scale(1.05);
+.masonry-item:hover .category-badge {
+  transform: scale(1.1);
+  box-shadow: 0 6px 20px rgba(16, 185, 129, 0.6);
 }
 
-.card-content {
+/* 评分角标 */
+.rating-badge {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  padding: 6px 12px;
+  background: rgba(0, 0, 0, 0.8);
+  color: #10b981;
+  font-size: 13px;
+  font-weight: 700;
+  border-radius: 20px;
+  backdrop-filter: blur(10px);
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  transition: all 0.3s ease;
+}
+
+.rating-badge .star-icon {
+  color: #fbbf24;
+  font-size: 14px;
+}
+
+.masonry-item:hover .rating-badge {
+  transform: scale(1.1);
+  border-color: rgba(16, 185, 129, 0.6);
+  box-shadow: 0 0 15px rgba(16, 185, 129, 0.4);
+}
+
+/* 图书信息区域 */
+.book-info {
   padding: 20px;
-}
-
-.book-category {
-  margin-bottom: 10px;
-}
-
-.category-tag {
-  padding: 4px 12px;
-  border-radius: 12px;
-  font-size: 12px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.category-tag.tech {
-  background: linear-gradient(135deg, #00ffff, #0080ff);
-  color: white;
-}
-
-.category-tag.literature {
-  background: linear-gradient(135deg, #ff6b6b, #ff8e53);
-  color: white;
-}
-
-.category-tag.history {
-  background: linear-gradient(135deg, #ffa726, #ffcc02);
-  color: white;
-}
-
-.category-tag.science {
-  background: linear-gradient(135deg, #66bb6a, #43a047);
-  color: white;
-}
-
-.category-tag.art {
-  background: linear-gradient(135deg, #ab47bc, #8e24aa);
-  color: white;
-}
-
-.category-tag.philosophy {
-  background: linear-gradient(135deg, #5c6bc0, #3f51b5);
-  color: white;
-}
-
-.category-tag.psychology {
-  background: linear-gradient(135deg, #ec407a, #d81b60);
-  color: white;
-}
-
-.category-tag.economy {
-  background: linear-gradient(135deg, #26c6da, #00acc1);
-  color: white;
-}
-
-.category-tag.management {
-  background: linear-gradient(135deg, #ff7043, #e64a19);
-  color: white;
-}
-
-.category-tag.lifestyle {
-  background: linear-gradient(135deg, #9ccc65, #689f38);
-  color: white;
+  position: relative;
+  z-index: 2;
 }
 
 .book-title {
   font-size: 18px;
-  font-weight: 700;
-  color: white;
-  margin: 0 0 8px 0;
-  line-height: 1.3;
-}
-
-.book-author {
-  font-size: 14px;
-  color: rgba(255, 255, 255, 0.8);
-  margin: 0 0 10px 0;
-  font-weight: 500;
-}
-
-.book-description {
-  font-size: 13px;
-  color: rgba(255, 255, 255, 0.6);
-  margin: 0 0 15px 0;
+  font-weight: 800;
+  color: #fff;
+  margin: 0 0 12px 0;
   line-height: 1.4;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+  transition: color 0.3s ease;
 }
 
-.card-footer {
+.masonry-item:hover .book-title {
+  color: #10b981;
+}
+
+.book-author {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.7);
+  margin: 0 0 12px 0;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.author-icon {
+  font-size: 14px;
+  color: #10b981;
+}
+
+.book-description {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.5);
+  margin: 0 0 16px 0;
+  line-height: 1.6;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* 底部信息栏 */
+.info-footer {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 15px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(16, 185, 129, 0.1);
 }
 
-.book-rating {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.rating-text {
-  font-size: 14px;
-  color: #10b981;
-  font-weight: 600;
-}
-
-.book-price {
+.price-tag {
   display: flex;
   align-items: baseline;
   gap: 2px;
 }
 
 .price-symbol {
-  font-size: 14px;
+  font-size: 16px;
   color: #10b981;
-  font-weight: 600;
-}
-
-.price-number {
-  font-size: 20px;
-  font-weight: 800;
-  color: white;
-}
-
-.card-actions {
-  margin-top: 15px;
-}
-
-.add-to-cart-btn {
-  position: relative;
-  width: 100%;
-  background: rgba(16, 185, 129, 0.2);
-  border: 1px solid rgba(16, 185, 129, 0.3);
-  border-radius: 8px;
-  color: white;
   font-weight: 700;
-  font-size: 14px;
+}
+
+.price-value {
+  font-size: 24px;
+  font-weight: 900;
+  color: #10b981;
+  text-shadow: 0 0 10px rgba(16, 185, 129, 0.3);
+}
+
+.buy-now-btn {
+  padding: 8px 20px;
+  background: linear-gradient(135deg, #10b981, #059669);
+  border: none;
+  border-radius: 20px;
+  color: #000;
+  font-weight: 700;
+  font-size: 12px;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 1px;
+  cursor: pointer;
   transition: all 0.3s ease;
-  backdrop-filter: blur(10px);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
 }
 
-.add-to-cart-btn:hover {
-  background: #10b981;
-  border-color: #10b981;
+.buy-now-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+  box-shadow: 0 6px 20px rgba(16, 185, 129, 0.5);
+  background: linear-gradient(135deg, #34d399, #10b981);
 }
 
-.add-to-cart-btn:active {
-  transform: translateY(-1px);
-}
-
-.add-to-cart-btn .el-icon {
-  margin-right: 4px;
-  transition: all 0.3s ease;
-}
-
-.add-to-cart-btn:hover .el-icon {
-  filter: drop-shadow(0 0 3px rgba(255, 255, 255, 0.6));
+.buy-now-btn:active {
+  transform: translateY(0);
 }
 
 /* 响应式设计 */
-@media (max-width: 768px) {
-  .books-grid {
-    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-    gap: 20px;
+@media (max-width: 1200px) {
+  .masonry-grid {
+    column-count: 3;
+  }
+}
+
+@media (max-width: 900px) {
+  .masonry-grid {
+    column-count: 2;
   }
 
   .section-title {
-    font-size: 28px;
+    font-size: 36px;
   }
 
   .section-subtitle {
@@ -590,18 +629,32 @@ const addToCart = (book: Book) => {
   }
 }
 
-@media (max-width: 480px) {
-  .books-grid {
-    grid-template-columns: 1fr;
-    gap: 15px;
+@media (max-width: 600px) {
+  .masonry-grid {
+    column-count: 1;
+    column-gap: 0;
+  }
+
+  .masonry-item {
+    margin-bottom: 15px;
   }
 
   .section-title {
-    font-size: 24px;
+    font-size: 28px;
   }
 
-  .book-card {
-    margin: 0 10px;
+  .section-subtitle {
+    font-size: 14px;
+  }
+
+  .book-info {
+    padding: 15px;
+  }
+
+  .masonry-item.small .book-cover,
+  .masonry-item.medium .book-cover,
+  .masonry-item.large .book-cover {
+    height: 250px;
   }
 }
 </style>

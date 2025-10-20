@@ -142,7 +142,7 @@ onMounted(() => {
 <style scoped>
 .order-detail {
   background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(0, 255, 255, 0.2);
+  border: 1px solid rgba(16, 185, 129, 0.2);
   border-radius: 15px;
   padding: 20px;
   backdrop-filter: blur(10px);
@@ -169,7 +169,7 @@ onMounted(() => {
   align-items: flex-start;
   margin-bottom: 30px;
   padding-bottom: 15px;
-  border-bottom: 2px solid rgba(0, 255, 255, 0.2);
+  border-bottom: 2px solid rgba(16, 185, 129, 0.2);
 }
 
 .header-left {
@@ -179,15 +179,16 @@ onMounted(() => {
 .order-title {
   font-size: 24px;
   font-weight: 800;
-  background: linear-gradient(135deg, #00ffff, #ff00ff);
+  background: linear-gradient(135deg, #10b981, #059669);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
   margin: 0 0 10px 0;
+  text-shadow: 0 0 20px rgba(16, 185, 129, 0.3);
 }
 
 .order-number {
-  color: #00ffff;
+  color: #10b981;
   font-size: 14px;
   font-weight: 600;
 }
@@ -196,14 +197,14 @@ onMounted(() => {
   margin-bottom: 25px;
   padding: 15px;
   background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(0, 255, 255, 0.1);
+  border: 1px solid rgba(16, 185, 129, 0.1);
   border-radius: 10px;
 }
 
 .section-title {
   font-size: 16px;
   font-weight: 700;
-  color: #00ffff;
+  color: #10b981;
   margin: 0 0 15px 0;
   padding-bottom: 10px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
@@ -250,7 +251,7 @@ onMounted(() => {
 
 .order-item:hover {
   background: rgba(255, 255, 255, 0.05);
-  border-color: rgba(0, 255, 255, 0.2);
+  border-color: rgba(16, 185, 129, 0.2);
 }
 
 .item-image {
@@ -302,14 +303,14 @@ onMounted(() => {
 .subtotal {
   font-size: 16px;
   font-weight: 700;
-  color: #00ffff;
+  color: #10b981;
 }
 
 .order-summary {
   margin: 30px 0;
   padding: 20px;
-  background: rgba(0, 255, 255, 0.05);
-  border: 1px solid rgba(0, 255, 255, 0.2);
+  background: rgba(16, 185, 129, 0.05);
+  border: 1px solid rgba(16, 185, 129, 0.2);
   border-radius: 10px;
 }
 
@@ -328,7 +329,8 @@ onMounted(() => {
 .summary-amount {
   font-size: 24px;
   font-weight: 800;
-  color: #00ffff;
+  color: #10b981;
+  text-shadow: 0 0 20px rgba(16, 185, 129, 0.3);
 }
 
 .order-actions {

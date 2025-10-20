@@ -17,13 +17,13 @@
     </div>
     
     <div v-else class="cart-items">
-      <div 
-        v-for="item in cartItems" 
+      <div
+        v-for="(item, index) in cartItems"
         :key="item.id"
         class="cart-item"
       >
-        <div class="item-image">
-          <img :src="item.image" :alt="item.title" @error="handleImageError" />
+        <div class="item-image" :style="{ background: getCartItemColor(index) }">
+          <!-- 纯色背景，不显示图片 -->
         </div>
         
         <div class="item-details">
@@ -221,6 +221,19 @@ const decreaseQuantity = async (item: CartItem) => {
   }
 }
 
+// 根据索引返回不同的纯色背景
+const getCartItemColor = (index: number) => {
+  const colors = [
+    'linear-gradient(135deg, #10b981, #059669)',
+    'linear-gradient(135deg, #34d399, #10b981)',
+    'linear-gradient(135deg, #6ee7b7, #34d399)',
+    'linear-gradient(135deg, #059669, #047857)',
+    'linear-gradient(135deg, #047857, #065f46)',
+    'linear-gradient(135deg, #10b981, #34d399)',
+  ]
+  return colors[index % colors.length]
+}
+
 const checkout = async () => {
   if (cartItems.value.length === 0) {
     ElMessage.warning('购物车为空')
@@ -304,7 +317,7 @@ onUnmounted(() => {
 <style scoped>
 .shopping-cart {
   background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(0, 255, 255, 0.2);
+  border: 1px solid rgba(16, 185, 129, 0.2);
   border-radius: 15px;
   padding: 20px;
   backdrop-filter: blur(10px);
@@ -318,17 +331,18 @@ onUnmounted(() => {
   align-items: center;
   margin-bottom: 20px;
   padding-bottom: 15px;
-  border-bottom: 1px solid rgba(0, 255, 255, 0.2);
+  border-bottom: 1px solid rgba(16, 185, 129, 0.2);
 }
 
 .cart-title {
   font-size: 24px;
   font-weight: 800;
-  background: linear-gradient(135deg, #00ffff, #ff00ff);
+  background: linear-gradient(135deg, #10b981, #059669);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
   margin: 0;
+  text-shadow: 0 0 20px rgba(16, 185, 129, 0.3);
 }
 
 .cart-count {
@@ -338,7 +352,7 @@ onUnmounted(() => {
 }
 
 .count-number {
-  color: #00ffff;
+  color: #10b981;
   font-weight: 700;
   font-size: 18px;
 }
@@ -354,7 +368,7 @@ onUnmounted(() => {
 }
 
 .empty-icon {
-  color: rgba(255, 255, 255, 0.5);
+  color: rgba(16, 185, 129, 0.5);
   margin-bottom: 15px;
 }
 
@@ -391,13 +405,11 @@ onUnmounted(() => {
   width: 60px;
   height: 80px;
   flex-shrink: 0;
-}
-
-.item-image img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
   border-radius: 8px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .item-details {
@@ -422,7 +434,7 @@ onUnmounted(() => {
 .item-price {
   font-size: 16px;
   font-weight: 700;
-  color: #00ffff;
+  color: #10b981;
 }
 
 .item-actions {
@@ -443,7 +455,7 @@ onUnmounted(() => {
 
 .cart-summary {
   padding-top: 15px;
-  border-top: 1px solid rgba(0, 255, 255, 0.2);
+  border-top: 1px solid rgba(16, 185, 129, 0.2);
 }
 
 .summary-row {
@@ -462,12 +474,13 @@ onUnmounted(() => {
 .summary-total {
   font-size: 20px;
   font-weight: 800;
-  color: #00ffff;
+  color: #10b981;
+  text-shadow: 0 0 20px rgba(16, 185, 129, 0.3);
 }
 
 .checkout-btn {
   width: 100%;
-  background: linear-gradient(135deg, #00ffff, #ff00ff);
+  background: linear-gradient(135deg, #10b981, #059669);
   border: none;
   border-radius: 8px;
   color: white;
@@ -475,11 +488,12 @@ onUnmounted(() => {
   font-size: 16px;
   padding: 12px;
   transition: all 0.3s ease;
+  box-shadow: 0 0 20px rgba(16, 185, 129, 0.2);
 }
 
 .checkout-btn:hover {
   transform: translateY(-1px);
-  box-shadow: 0 4px 15px rgba(0, 255, 255, 0.3);
+  box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
 }
 
 .checkout-btn:disabled {
@@ -500,21 +514,21 @@ onUnmounted(() => {
   min-width: 30px;
   text-align: center;
   font-weight: bold;
-  color: #00ffff;
+  color: #10b981;
 }
 
 .quantity-btn {
   padding: 4px 8px;
   height: 28px;
   width: 28px;
-  background: rgba(0, 255, 255, 0.1);
-  border: 1px solid rgba(0, 255, 255, 0.3);
-  color: #00ffff;
+  background: rgba(16, 185, 129, 0.1);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  color: #10b981;
 }
 
 .quantity-btn:hover {
-  background: rgba(0, 255, 255, 0.2);
-  border-color: #00ffff;
+  background: rgba(16, 185, 129, 0.2);
+  border-color: #10b981;
 }
 
 .quantity-btn:disabled {

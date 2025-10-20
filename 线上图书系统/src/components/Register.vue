@@ -1,8 +1,8 @@
 <template>
   <div class="login-container">
-    <!-- TRAE 风格像素矩阵背景 -->
-    <div class="trae-background">
-      <canvas ref="pixelCanvas" class="pixel-matrix"></canvas>
+    <!-- 动态粒子背景 -->
+    <div class="dynamic-bg">
+      <div ref="canvasContainer" class="canvas-container"></div>
     </div>
 
     <!-- 注册卡片 -->
@@ -107,13 +107,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { registerUser } from '../api/userApi'
 
 const router = useRouter()
-const pixelCanvas = ref<HTMLCanvasElement | null>(null)
 
 // 表单数据
 const formData = ref({
@@ -124,6 +123,7 @@ const formData = ref({
 })
 
 const loading = ref(false)
+const canvasContainer = ref<HTMLDivElement | null>(null)
 
 // 处理注册
 const handleRegister = async () => {
@@ -197,83 +197,117 @@ const goToLogin = () => {
   router.push('/login')
 }
 
-// 初始化像素矩阵动画
-const initPixelMatrix = () => {
-  if (!pixelCanvas.value) return
+// 动态粒子背景（与Login.vue相同的实现）
+let animationId: number | null = null
+let particles: Array<any> = []
+let mousePosition = { x: 0, y: 0 }
+let prevMousePosition = { x: 0, y: 0 }
+let mouseVelocity = { x: 0, y: 0 }
 
-  const canvas = pixelCanvas.value
-  const ctx = canvas.getContext('2d')
-  if (!ctx) return
+class Particle {
+  x: number; y: number; size: number; baseSize: number; speedX: number; speedY: number
+  color: string; canvas: HTMLCanvasElement; ctx: CanvasRenderingContext2D
+  opacity: number; maxOpacity: number; minOpacity: number
+  isInteracting: boolean; forceFactor: number; maxSizeMultiplier: number
 
-  const resizeCanvas = () => {
-    canvas.width = window.innerWidth
-    canvas.height = window.innerHeight
-  }
-  resizeCanvas()
-  window.addEventListener('resize', resizeCanvas)
-
-  const pixelSize = 4
-  const spacing = 15
-  const cols = Math.ceil(canvas.width / spacing)
-  const rows = Math.ceil(canvas.height / spacing)
-
-  interface Pixel {
-    x: number
-    y: number
-    opacity: number
-    speed: number
-    color: string
-    phase: number
+  constructor(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D) {
+    this.canvas = canvas; this.ctx = ctx
+    this.x = Math.random() * canvas.width; this.y = Math.random() * canvas.height
+    this.size = Math.random() * 3 + 1.5; this.baseSize = this.size
+    this.speedX = (Math.random() - 0.5) * 0.3; this.speedY = (Math.random() - 0.5) * 0.3
+    const colors = ['#10b981', '#34d399', '#6ee7b7', '#059669']
+    this.color = colors[Math.floor(Math.random() * colors.length)]
+    this.opacity = Math.random() * 0.7 + 0.3; this.maxOpacity = 1; this.minOpacity = 0.2
+    this.isInteracting = false; this.forceFactor = 0.02; this.maxSizeMultiplier = 1.8
   }
 
-  const pixels: Pixel[] = []
-  for (let i = 0; i < cols; i++) {
-    for (let j = 0; j < rows; j++) {
-      if (Math.random() > 0.3) {
-        const colors = ['#10b981', '#34d399', '#6ee7b7', '#059669', '#047857', '#666666', '#888888', '#999999']
-        pixels.push({
-          x: i * spacing,
-          y: j * spacing,
-          opacity: Math.random() * 0.5 + 0.1,
-          speed: Math.random() * 0.02 + 0.005,
-          color: colors[Math.floor(Math.random() * colors.length)],
-          phase: Math.random() * Math.PI * 2
-        })
+  update() {
+    const dx = this.x - mousePosition.x, dy = this.y - mousePosition.y
+    const distanceToMouse = Math.sqrt(dx * dx + dy * dy)
+    if (distanceToMouse < 150) {
+      this.isInteracting = true
+      this.opacity = this.maxOpacity * (1 - distanceToMouse / 150)
+      const sizeMultiplier = 1 + (this.maxSizeMultiplier - 1) * (1 - distanceToMouse / 150)
+      this.size = this.baseSize * sizeMultiplier
+      const angle = Math.atan2(dy, dx), force = (1 - distanceToMouse / 150) * this.forceFactor
+      this.speedX += Math.cos(angle) * force; this.speedY += Math.sin(angle) * force
+      if (Math.abs(mouseVelocity.x) > 0.1 || Math.abs(mouseVelocity.y) > 0.1) {
+        this.speedX += mouseVelocity.x * 0.001; this.speedY += mouseVelocity.y * 0.001
       }
+    } else {
+      if (this.isInteracting) this.isInteracting = false
+      if (this.opacity > this.minOpacity) this.opacity -= 0.02
+      else this.opacity = this.minOpacity
+      if (this.size > this.baseSize) this.size = Math.max(this.baseSize, this.size - 0.05)
     }
+    const maxSpeed = 0.8, speed = Math.sqrt(this.speedX * this.speedX + this.speedY * this.speedY)
+    if (speed > maxSpeed) { this.speedX = (this.speedX / speed) * maxSpeed; this.speedY = (this.speedY / speed) * maxSpeed }
+    this.x += this.speedX; this.y += this.speedY
+    if (this.x < 0 || this.x > this.canvas.width) { this.speedX *= -0.8; this.x = Math.max(0, Math.min(this.canvas.width, this.x)) }
+    if (this.y < 0 || this.y > this.canvas.height) { this.speedY *= -0.8; this.y = Math.max(0, Math.min(this.canvas.height, this.y)) }
+    this.draw()
   }
 
-  let animationId: number
-  const animate = () => {
-    ctx.fillStyle = '#000000'
-    ctx.fillRect(0, 0, canvas.width, canvas.height)
-
-    pixels.forEach(pixel => {
-      pixel.phase += pixel.speed
-      pixel.opacity = Math.sin(pixel.phase) * 0.4 + 0.4
-
-      ctx.fillStyle = pixel.color
-      ctx.globalAlpha = pixel.opacity
-      ctx.fillRect(pixel.x, pixel.y, pixelSize, pixelSize)
-    })
-
-    ctx.globalAlpha = 1
-    animationId = requestAnimationFrame(animate)
-  }
-
-  animate()
-
-  return () => {
-    window.removeEventListener('resize', resizeCanvas)
-    cancelAnimationFrame(animationId)
+  draw() {
+    this.ctx.fillStyle = this.color; this.ctx.globalAlpha = this.opacity
+    this.ctx.beginPath(); this.ctx.arc(this.x, this.y, this.size / 2, 0, Math.PI * 2)
+    this.ctx.fill(); this.ctx.globalAlpha = 1
   }
 }
 
-onMounted(() => {
-  const cleanup = initPixelMatrix()
-  return () => {
-    if (cleanup) cleanup()
+function connectParticles(ctx: CanvasRenderingContext2D) {
+  const maxDistance = 150
+  for (let a = 0; a < particles.length; a++) {
+    for (let b = a; b < particles.length; b++) {
+      const dx = particles[a].x - particles[b].x, dy = particles[a].y - particles[b].y
+      const distance = Math.sqrt(dx * dx + dy * dy)
+      if (distance < maxDistance) {
+        const opacity = 1 - distance / maxDistance
+        ctx.strokeStyle = `rgba(16, 185, 129, ${opacity * 0.5})`; ctx.lineWidth = 0.7
+        ctx.beginPath(); ctx.moveTo(particles[a].x, particles[a].y); ctx.lineTo(particles[b].x, particles[b].y); ctx.stroke()
+      }
+    }
   }
+}
+
+function initCanvas() {
+  if (!canvasContainer.value) return
+  canvasContainer.value.innerHTML = ''
+  const canvas = document.createElement('canvas'), ctx = canvas.getContext('2d')
+  if (!ctx) return
+  canvas.width = window.innerWidth; canvas.height = window.innerHeight
+  canvas.className = 'dynamic-bg-canvas'; canvasContainer.value.appendChild(canvas)
+  canvas.addEventListener('mousemove', (e) => {
+    mouseVelocity.x = e.clientX - prevMousePosition.x; mouseVelocity.y = e.clientY - prevMousePosition.y
+    prevMousePosition.x = mousePosition.x; prevMousePosition.y = mousePosition.y
+    mousePosition.x = e.clientX; mousePosition.y = e.clientY
+  })
+  mousePosition.x = canvas.width / 2; mousePosition.y = canvas.height / 2
+  particles = []
+  const particleCount = Math.floor((window.innerWidth * window.innerHeight) / 5000)
+  for (let i = 0; i < particleCount; i++) particles.push(new Particle(canvas, ctx))
+  function animate() {
+    if (!ctx) return
+    ctx.clearRect(0, 0, canvas.width, canvas.height)
+    particles.forEach(particle => particle.update()); connectParticles(ctx)
+    animationId = requestAnimationFrame(animate)
+  }
+  animate()
+}
+
+function handleResize() {
+  if (animationId) cancelAnimationFrame(animationId)
+  initCanvas()
+}
+
+onMounted(() => {
+  initCanvas()
+  window.addEventListener('resize', handleResize)
+})
+
+onUnmounted(() => {
+  if (animationId) cancelAnimationFrame(animationId)
+  window.removeEventListener('resize', handleResize)
 })
 </script>
 
@@ -299,22 +333,27 @@ export default {
   background: #000000;
 }
 
-/* TRAE 风格背景 */
-.trae-background {
+/* 动态粒子背景 */
+.dynamic-bg {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
   background: #000000;
-  overflow: hidden;
   z-index: 0;
+  overflow: hidden;
 }
 
-.pixel-matrix {
+.canvas-container {
   width: 100%;
   height: 100%;
+}
+
+.dynamic-bg-canvas {
   display: block;
+  width: 100%;
+  height: 100%;
 }
 
 /* 登录卡片样式 */

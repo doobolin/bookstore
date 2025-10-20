@@ -143,7 +143,7 @@ onMounted(() => {
 <style scoped>
 .order-list {
   background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(0, 255, 255, 0.2);
+  border: 1px solid rgba(16, 185, 129, 0.2);
   border-radius: 15px;
   padding: 20px;
   backdrop-filter: blur(10px);
@@ -154,17 +154,18 @@ onMounted(() => {
 .order-header {
   margin-bottom: 20px;
   padding-bottom: 15px;
-  border-bottom: 1px solid rgba(0, 255, 255, 0.2);
+  border-bottom: 1px solid rgba(16, 185, 129, 0.2);
 }
 
 .order-title {
   font-size: 24px;
   font-weight: 800;
-  background: linear-gradient(135deg, #00ffff, #ff00ff);
+  background: linear-gradient(135deg, #10b981, #059669);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
   margin: 0;
+  text-shadow: 0 0 20px rgba(16, 185, 129, 0.3);
 }
 
 .loading-container {
@@ -209,7 +210,7 @@ onMounted(() => {
 
 .order-card {
   background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(0, 255, 255, 0.15);
+  border: 1px solid rgba(16, 185, 129, 0.15);
   border-radius: 10px;
   padding: 15px;
   transition: all 0.3s ease;
@@ -217,9 +218,9 @@ onMounted(() => {
 
 .order-card:hover {
   background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(0, 255, 255, 0.3);
+  border-color: rgba(16, 185, 129, 0.3);
   transform: translateY(-2px);
-  box-shadow: 0 4px 15px rgba(0, 255, 255, 0.2);
+  box-shadow: 0 4px 15px rgba(16, 185, 129, 0.2);
 }
 
 .order-card-header {
@@ -243,7 +244,7 @@ onMounted(() => {
 }
 
 .order-number .value {
-  color: #00ffff;
+  color: #10b981;
   font-weight: 600;
   font-size: 14px;
 }
@@ -291,7 +292,8 @@ onMounted(() => {
 .total-amount {
   font-size: 18px;
   font-weight: 800;
-  color: #00ffff;
+  color: #10b981;
+  text-shadow: 0 0 20px rgba(16, 185, 129, 0.3);
 }
 
 .order-card-footer {
