@@ -19,7 +19,10 @@
       "Bash(curl -s http://localhost:5000/api/categories)",
       "Bash(git init)",
       "Bash(git add .)",
-      "Bash(del \"线上图书系统\\nul\")"
+      "Bash(del \"线上图书系统\\nul\")",
+      "Bash(git add backend/app.py)",
+      "Bash(git add .claude/settings.local.json \"答辩材料.md\" \"论文-系统设计与数据库部分.md\")",
+      "Bash(git commit -m \"$(cat <<''EOF''\n添加答辩材料和论文文档，更新Claude Code配置\n\n- 添加答辩材料文档\n- 添加论文系统设计与数据库部分\n- 更新Claude Code设置，添加git命令权限\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")"
     ],
     "deny": [],
     "ask": []
