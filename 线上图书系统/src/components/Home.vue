@@ -7,31 +7,10 @@
       </h1>
     </div>
 
-    <!-- 赛博朋克背景 -->
-    <div class="cyber-background">
-      <!-- 网格线背景 -->
-      <div class="grid-lines">
-        <div class="grid-line horizontal" v-for="i in 20" :key="`h-${i}`"></div>
-        <div class="grid-line vertical" v-for="i in 20" :key="`v-${i}`"></div>
-      </div>
-      
-      <!-- 霓虹光效 -->
-      <div class="neon-lights">
-        <div class="neon neon-1"></div>
-        <div class="neon neon-2"></div>
-        <div class="neon neon-3"></div>
-        <div class="neon neon-4"></div>
-      </div>
-      
-      <!-- 简化的数字雨 -->
-      <div class="matrix-rain-simple">
-        <div v-for="i in 15" :key="i" class="rain-column-simple" :style="{ left: `${i * 6.66}%`, animationDelay: `${i * 0.3}s` }">
-          <span v-for="j in 8" :key="j" class="matrix-dot"></span>
-        </div>
-      </div>
-
-      <!-- 故障效果 -->
-      <div class="glitch-overlay"></div>
+    <!-- TRAE 风格像素矩阵背景 -->
+    <div class="trae-background">
+      <!-- 像素矩阵容器 -->
+      <canvas ref="pixelCanvas" class="pixel-matrix"></canvas>
     </div>
     
     <!-- 导航栏 -->
@@ -171,6 +150,7 @@ const isLoggedIn = ref(false)
 const username = ref('')
 const showWelcome = ref(true)
 const welcomeAnimating = ref(false)
+const pixelCanvas = ref<HTMLCanvasElement | null>(null)
 
 // 检查登录状态
 const checkLoginStatus = () => {
@@ -291,6 +271,86 @@ const handleLoginSuccess = () => {
   checkLoginStatus()
 }
 
+// 初始化像素矩阵动画
+const initPixelMatrix = () => {
+  if (!pixelCanvas.value) return
+
+  const canvas = pixelCanvas.value
+  const ctx = canvas.getContext('2d')
+  if (!ctx) return
+
+  // 设置 canvas 尺寸
+  const resizeCanvas = () => {
+    canvas.width = window.innerWidth
+    canvas.height = window.innerHeight
+  }
+  resizeCanvas()
+  window.addEventListener('resize', resizeCanvas)
+
+  // 像素矩阵参数
+  const pixelSize = 4
+  const spacing = 15
+  const cols = Math.ceil(canvas.width / spacing)
+  const rows = Math.ceil(canvas.height / spacing)
+
+  // 创建像素点数组
+  interface Pixel {
+    x: number
+    y: number
+    opacity: number
+    speed: number
+    color: string
+    phase: number
+  }
+
+  const pixels: Pixel[] = []
+  for (let i = 0; i < cols; i++) {
+    for (let j = 0; j < rows; j++) {
+      // 随机决定是否创建像素点（密度控制）
+      if (Math.random() > 0.3) {
+        const colors = ['#10b981', '#34d399', '#6ee7b7', '#059669', '#047857', '#666666', '#888888', '#999999']
+        pixels.push({
+          x: i * spacing,
+          y: j * spacing,
+          opacity: Math.random() * 0.5 + 0.1,
+          speed: Math.random() * 0.02 + 0.005,
+          color: colors[Math.floor(Math.random() * colors.length)],
+          phase: Math.random() * Math.PI * 2
+        })
+      }
+    }
+  }
+
+  // 动画循环
+  let animationId: number
+  const animate = () => {
+    ctx.fillStyle = '#000000'
+    ctx.fillRect(0, 0, canvas.width, canvas.height)
+
+    pixels.forEach(pixel => {
+      // 更新透明度（呼吸效果）
+      pixel.phase += pixel.speed
+      pixel.opacity = Math.sin(pixel.phase) * 0.4 + 0.4
+
+      // 绘制像素点
+      ctx.fillStyle = pixel.color
+      ctx.globalAlpha = pixel.opacity
+      ctx.fillRect(pixel.x, pixel.y, pixelSize, pixelSize)
+    })
+
+    ctx.globalAlpha = 1
+    animationId = requestAnimationFrame(animate)
+  }
+
+  animate()
+
+  // 清理函数
+  return () => {
+    window.removeEventListener('resize', resizeCanvas)
+    cancelAnimationFrame(animationId)
+  }
+}
+
 onMounted(() => {
   window.addEventListener('cart-updated', updateCartCount as EventListener)
   window.addEventListener('add-to-cart', handleAddToCart as EventListener)
@@ -300,17 +360,32 @@ onMounted(() => {
   // 初始检查登录状态
   checkLoginStatus()
 
-  // 欢迎动画时序控制
-  // 1. 显示欢迎文字 1秒
-  setTimeout(() => {
-    // 2. 开始向上飞出动画
-    welcomeAnimating.value = true
-  }, 1000)
+  // 初始化像素矩阵背景
+  const cleanupPixelMatrix = initPixelMatrix()
 
-  // 3. 飞出动画完成后隐藏欢迎屏幕，主页内容开始淡入
-  setTimeout(() => {
+  // 检查是否已登录，已登录则跳过欢迎动画
+  const loginStatus = localStorage.getItem('isLoggedIn')
+  if (loginStatus === 'true') {
+    // 已登录，直接显示主页内容
     showWelcome.value = false
-  }, 2000)
+  } else {
+    // 未登录，显示欢迎动画
+    // 1. 显示欢迎文字 1秒
+    setTimeout(() => {
+      // 2. 开始向上飞出动画
+      welcomeAnimating.value = true
+    }, 1000)
+
+    // 3. 飞出动画完成后隐藏欢迎屏幕，主页内容开始淡入
+    setTimeout(() => {
+      showWelcome.value = false
+    }, 2000)
+  }
+
+  // 返回清理函数
+  return () => {
+    if (cleanupPixelMatrix) cleanupPixelMatrix()
+  }
 })
 
 onUnmounted(() => {
@@ -324,7 +399,7 @@ onUnmounted(() => {
 <style scoped>
 .home-container {
   min-height: 100vh;
-  background: linear-gradient(135deg, #0a0a0a 0%, #1a0033 50%, #330066 100%);
+  background: #000000;
   position: relative;
   overflow-x: hidden;
 }
@@ -336,7 +411,7 @@ onUnmounted(() => {
   left: 0;
   width: 100vw;
   height: 100vh;
-  background: linear-gradient(135deg, #0a0a0a 0%, #1a0033 50%, #330066 100%);
+  background: #000000;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -347,11 +422,8 @@ onUnmounted(() => {
 .welcome-text {
   font-size: 48px;
   font-weight: 700;
-  background: linear-gradient(135deg, #00ffff, #ff00ff, #ffff00);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  text-shadow: 0 0 40px rgba(0, 255, 255, 0.5);
+  color: #10b981;
+  text-shadow: 0 0 40px rgba(16, 185, 129, 0.5);
   animation: welcome-fade-in 1s ease-out;
 }
 
@@ -428,174 +500,32 @@ onUnmounted(() => {
   }
 }
 
-/* 赛博朋克背景 */
-.cyber-background {
+/* TRAE 风格背景 */
+.trae-background {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background: linear-gradient(135deg, #0a0a0a 0%, #1a0033 50%, #330066 100%);
+  background: #000000;
   overflow: hidden;
   z-index: 0;
   pointer-events: none;
 }
 
-/* 网格线背景 */
-.grid-lines {
-  position: absolute;
-  top: 0;
-  left: 0;
+.pixel-matrix {
   width: 100%;
   height: 100%;
-  opacity: 0.3;
-}
-
-.grid-line {
-  position: absolute;
-  background: linear-gradient(90deg, transparent, #00ffff, transparent);
-}
-
-.grid-line.horizontal {
-  width: 100%;
-  height: 1px;
-}
-
-.grid-line.vertical {
-  width: 1px;
-  height: 100%;
-  background: linear-gradient(180deg, transparent, #ff00ff, transparent);
-}
-
-/* 霓虹灯效果 */
-.neon-lights {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-}
-
-.neon {
-  position: absolute;
-  border-radius: 50%;
-  filter: blur(40px);
-  opacity: 0.6;
-  animation: neon-pulse 4s ease-in-out infinite;
-}
-
-.neon-1 {
-  width: 300px;
-  height: 300px;
-  background: #00ffff;
-  top: 10%;
-  left: 20%;
-  animation-delay: 0s;
-}
-
-.neon-2 {
-  width: 250px;
-  height: 250px;
-  background: #ff00ff;
-  top: 60%;
-  right: 15%;
-  animation-delay: 1s;
-}
-
-.neon-3 {
-  width: 200px;
-  height: 200px;
-  background: #ffff00;
-  bottom: 20%;
-  left: 40%;
-  animation-delay: 2s;
-}
-
-.neon-4 {
-  width: 350px;
-  height: 350px;
-  background: #ff0066;
-  top: 30%;
-  right: 30%;
-  animation-delay: 3s;
-}
-
-@keyframes neon-pulse {
-  0%, 100% { opacity: 0.3; transform: scale(1); }
-  50% { opacity: 0.8; transform: scale(1.1); }
-}
-
-/* 简化的数字雨 */
-.matrix-rain-simple {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  opacity: 0.3;
-}
-
-.rain-column-simple {
-  position: absolute;
-  top: 0;
-  width: 10px;
-  height: 100%;
-  animation: matrix-fall-simple 12s linear infinite;
-}
-
-.matrix-dot {
   display: block;
-  width: 2px;
-  height: 2px;
-  background: #00ff00;
-  margin: 8px 0;
-  border-radius: 50%;
-  opacity: 0.6;
-  animation: dot-glow 2s ease-in-out infinite;
-}
-
-@keyframes matrix-fall-simple {
-  0% { transform: translateY(-100vh); }
-  100% { transform: translateY(100vh); }
-}
-
-@keyframes dot-glow {
-  0%, 100% { opacity: 0.3; }
-  50% { opacity: 0.8; }
-}
-
-/* 故障效果 */
-.glitch-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: repeating-linear-gradient(
-    0deg,
-    transparent,
-    transparent 2px,
-    rgba(0, 255, 255, 0.03) 2px,
-    rgba(0, 255, 255, 0.03) 4px
-  );
-  animation: glitch 0.5s infinite;
-}
-
-@keyframes glitch {
-  0%, 100% { transform: translateX(0); }
-  20% { transform: translateX(-2px); }
-  40% { transform: translateX(2px); }
-  60% { transform: translateX(-1px); }
-  80% { transform: translateX(1px); }
 }
 
 /* 导航栏 */
 .navbar {
   position: relative;
   z-index: 100;
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(0, 0, 0, 0.8);
   backdrop-filter: blur(20px);
-  border-bottom: 1px solid rgba(0, 255, 255, 0.2);
+  border-bottom: 1px solid rgba(16, 185, 129, 0.1);
 }
 
 .nav-content {
@@ -619,17 +549,8 @@ onUnmounted(() => {
 .logo-text {
   font-size: 28px;
   font-weight: 900;
-  background: linear-gradient(135deg, #00ffff, #ff00ff, #00ffff);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  text-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
-  animation: logo-glow 2s ease-in-out infinite alternate;
-}
-
-@keyframes logo-glow {
-  0% { text-shadow: 0 0 20px rgba(0, 255, 255, 0.5); }
-  100% { text-shadow: 0 0 30px rgba(255, 0, 255, 0.7); }
+  color: #10b981;
+  text-shadow: 0 0 20px rgba(16, 185, 129, 0.5);
 }
 
 .nav-search {
@@ -644,30 +565,24 @@ onUnmounted(() => {
 
 .search-input {
   flex: 1;
-  background: rgba(0, 0, 0, 0.4);
-  border: 1px solid rgba(0, 255, 255, 0.3);
-  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(16, 185, 129, 0.2);
+  border-radius: 8px;
   padding: 0 1rem;
   height: 38px;
   color: #fff;
   font-size: 14px;
-  backdrop-filter: blur(15px);
   transition: all 0.3s ease;
-  box-shadow: 
-    0 0 5px rgba(0, 255, 255, 0.1);
 }
 
 .search-input:hover {
-  box-shadow: 
-    0 0 8px rgba(0, 255, 255, 0.2);
+  border-color: rgba(16, 185, 129, 0.4);
   transform: translateY(-0.5px);
 }
 
 .search-input:focus-within {
-  box-shadow: 
-    0 0 12px rgba(0, 255, 255, 0.3);
-  transform: translateY(-1px);
-  border-color: rgba(0, 255, 255, 0.6);
+  border-color: #10b981;
+  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.1);
 }
 
 .search-input :deep(.el-input__wrapper) {
@@ -685,77 +600,51 @@ onUnmounted(() => {
 }
 
 .search-input :deep(.el-input__inner::placeholder) {
-  color: rgba(255, 255, 255, 0.5);
+  color: rgba(255, 255, 255, 0.4);
   font-size: 13px;
 }
 
 .search-input :deep(.el-input__prefix) {
-  color: rgba(0, 255, 255, 0.7);
+  color: rgba(16, 185, 129, 0.7);
   margin-right: 0.4rem;
   font-size: 14px;
 }
 
-
-
 .search-btn {
-  background: rgba(0, 255, 255, 0.15);
-  border: 1px solid rgba(0, 255, 255, 0.4);
-  border-radius: 20px;
+  background: #10b981;
+  border: none;
+  border-radius: 8px;
   padding: 0.5rem 1.2rem;
   color: #fff;
   font-weight: 600;
   font-size: 14px;
   transition: all 0.3s ease;
-  box-shadow: 
-    0 0 5px rgba(0, 255, 255, 0.2);
-  position: relative;
 }
 
-
-
 .search-btn:hover {
-  transform: translateY(-1px) scale(1.03);
-  box-shadow: 
-    0 4px 10px rgba(0, 255, 255, 0.3);
-  background: rgba(0, 255, 255, 0.25);
+  background: #059669;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
 }
 
 .search-btn:active {
   transform: translateY(0);
-  box-shadow: 
-    0 2px 5px rgba(0, 255, 255, 0.2);
 }
-
-
-
-@keyframes neon-pulse {
-  0%, 100% { 
-    box-shadow: 
-      0 0 20px rgba(0, 255, 255, 0.5),
-      inset 0 0 20px rgba(255, 255, 255, 0.2);
-  }
-  50% { 
-    box-shadow: 
-      0 0 40px rgba(255, 0, 255, 0.8),
-      inset 0 0 30px rgba(255, 255, 255, 0.4);
-  }
-}
-
-
 
 .login-btn {
-  background: linear-gradient(135deg, #00ffff, #ff00ff);
+  background: #10b981;
   border: none;
   color: white;
   font-weight: 600;
   padding: 0.5rem 1.5rem;
-  border-radius: 25px;
+  border-radius: 8px;
   transition: all 0.3s ease;
 }
 
 .login-btn:hover {
+  background: #059669;
   transform: translateY(-2px);
-  box-shadow: 0 5px 15px rgba(0, 255, 255, 0.3);
+  box-shadow: 0 5px 15px rgba(16, 185, 129, 0.3);
 }
 
 /* 用户信息样式 */
@@ -769,23 +658,22 @@ onUnmounted(() => {
   align-items: center;
   gap: 8px;
   padding: 0.5rem 1rem;
-  background: rgba(0, 255, 255, 0.1);
-  border: 1px solid rgba(0, 255, 255, 0.3);
-  border-radius: 25px;
+  background: rgba(16, 185, 129, 0.1);
+  border: 1px solid rgba(16, 185, 129, 0.2);
+  border-radius: 8px;
   color: white;
   cursor: pointer;
   transition: all 0.3s ease;
 }
 
 .user-dropdown:hover {
-  background: rgba(0, 255, 255, 0.2);
-  border-color: rgba(0, 255, 255, 0.5);
+  background: rgba(16, 185, 129, 0.2);
+  border-color: #10b981;
   transform: translateY(-1px);
-  box-shadow: 0 3px 10px rgba(0, 255, 255, 0.2);
 }
 
 .user-icon {
-  color: #00ffff;
+  color: #10b981;
   font-size: 18px;
 }
 
@@ -829,25 +717,15 @@ onUnmounted(() => {
   color: white;
   margin: 0 0 1rem 0;
   line-height: 1.2;
-  text-shadow: 0 0 20px rgba(0, 255, 255, 0.3);
 }
 
 .hero-subtitle {
-  background: linear-gradient(135deg, #00ffff, #ff00ff, #00ffff);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  animation: subtitle-breathe 3s ease-in-out infinite;
-}
-
-@keyframes subtitle-breathe {
-  0%, 100% { opacity: 0.8; }
-  50% { opacity: 1; }
+  color: #10b981;
 }
 
 .hero-description {
   font-size: 20px;
-  color: rgba(255, 255, 255, 0.8);
+  color: rgba(255, 255, 255, 0.7);
   margin: 1.5rem 0;
   line-height: 1.6;
 }
@@ -867,17 +745,13 @@ onUnmounted(() => {
   display: block;
   font-size: 32px;
   font-weight: 800;
-  background: linear-gradient(135deg, #00ffff, #ff00ff);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  text-shadow: 0 0 15px rgba(0, 255, 255, 0.3);
+  color: #10b981;
 }
 
 .stat-label {
   display: block;
   font-size: 14px;
-  color: rgba(255, 255, 255, 0.7);
+  color: rgba(255, 255, 255, 0.6);
   margin-top: 0.5rem;
 }
 
@@ -894,8 +768,8 @@ onUnmounted(() => {
   transform: translateY(-50%);
   width: 350px;
   height: 600px;
-  background: rgba(0, 0, 0, 0.9);
-  border: 1px solid rgba(0, 255, 255, 0.3);
+  background: rgba(0, 0, 0, 0.95);
+  border: 1px solid rgba(16, 185, 129, 0.2);
   border-radius: 15px 0 0 15px;
   transition: right 0.3s ease;
   z-index: 1000;
@@ -912,7 +786,7 @@ onUnmounted(() => {
   transform: translateY(-50%);
   width: 50px;
   height: 50px;
-  background: linear-gradient(135deg, #00ffff, #ff00ff);
+  background: #10b981;
   border: none;
   border-radius: 15px 0 0 15px;
   display: flex;
@@ -924,15 +798,15 @@ onUnmounted(() => {
 }
 
 .cart-toggle:hover {
+  background: #059669;
   transform: translateY(-50%) scale(1.05);
-  box-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
 }
 
 .cart-badge {
   position: absolute;
   top: -5px;
   right: -5px;
-  background: #ff00ff;
+  background: #ef4444;
   color: white;
   border-radius: 50%;
   width: 20px;
@@ -954,16 +828,64 @@ onUnmounted(() => {
 .footer {
   position: relative;
   z-index: 10;
-  background: rgba(0, 0, 0, 0.3);
-  backdrop-filter: blur(10px);
-  border-top: 1px solid rgba(0, 255, 255, 0.2);
+  background: rgba(0, 0, 0, 0.8);
+  border-top: 1px solid rgba(16, 185, 129, 0.1);
   margin-top: 4rem;
 }
 
 .footer-content {
   text-align: center;
   padding: 2rem;
-  color: rgba(255, 255, 255, 0.7);
+  color: rgba(255, 255, 255, 0.5);
+}
+
+/* 回到顶部按钮 */
+.back-to-top {
+  position: fixed;
+  bottom: 100px;
+  right: 30px;
+  width: 56px;
+  height: 56px;
+  background: #10b981;
+  border: 2px solid #10b981;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 99999;
+  color: white;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+  transition: all 0.3s ease;
+  opacity: 0;
+  transform: translateY(30px);
+  pointer-events: none;
+}
+
+.back-to-top.show {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+.back-to-top:hover {
+  background: #059669;
+  transform: translateY(-8px);
+  box-shadow: 0 8px 20px rgba(16, 185, 129, 0.4);
+}
+
+.back-to-top:active {
+  transform: translateY(-4px);
+}
+
+.back-to-top-icon {
+  font-size: 24px;
+  color: #ffffff;
+  transition: all 0.3s ease;
+}
+
+.back-to-top:hover .back-to-top-icon {
+  transform: translateY(-2px);
 }
 
 /* 响应式设计 */
@@ -999,20 +921,20 @@ onUnmounted(() => {
   .search-input :deep(.el-input__prefix) {
     font-size: 13px;
   }
-  
+
   .hero-title {
     font-size: 36px;
   }
-  
+
   .hero-description {
     font-size: 16px;
   }
-  
+
   .hero-stats {
     flex-direction: column;
     gap: 1.5rem;
   }
-  
+
   .cart-sidebar {
     width: 100%;
     right: -100%;
@@ -1021,16 +943,27 @@ onUnmounted(() => {
     transform: none;
     border-radius: 0;
   }
-  
+
   .cart-sidebar.cart-open {
     right: 0;
   }
-  
+
   .cart-toggle {
     left: -50px;
     top: 20px;
     transform: none;
     border-radius: 15px;
+  }
+
+  .back-to-top {
+    bottom: 80px;
+    right: 20px;
+    width: 48px;
+    height: 48px;
+  }
+
+  .back-to-top-icon {
+    font-size: 20px;
   }
 }
 
@@ -1038,157 +971,18 @@ onUnmounted(() => {
   .hero-title {
     font-size: 28px;
   }
-  
+
   .logo-text {
     font-size: 24px;
   }
-  
-  .nav-links {
-    font-size: 14px;
-  }
-}
 
-/* 回到顶部按钮 - 赛博朋克风格升级版 */
-.back-to-top {
-  position: fixed;
-  bottom: 100px;
-  right: 30px;
-  width: 56px;
-  height: 56px;
-  background: linear-gradient(135deg, #00ffff, #ff00ff, #00ffff);
-  border: 2px solid rgba(0, 255, 255, 0.6);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  z-index: 99999;
-  color: white;
-  box-shadow: 
-    0 0 20px rgba(0, 255, 255, 0.4),
-    0 0 40px rgba(255, 0, 255, 0.2),
-    inset 0 0 20px rgba(0, 255, 255, 0.1);
-  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  opacity: 0;
-  transform: translateY(30px) rotate(180deg);
-  pointer-events: none;
-  overflow: hidden;
-}
-
-.back-to-top::before {
-  content: '';
-  position: absolute;
-  top: -50%;
-  left: -50%;
-  width: 200%;
-  height: 200%;
-  background: linear-gradient(
-    45deg,
-    transparent,
-    rgba(255, 255, 255, 0.1),
-    transparent
-  );
-  transform: rotate(45deg);
-  transition: all 0.6s ease;
-  opacity: 0;
-}
-
-.back-to-top:hover::before {
-  opacity: 1;
-  transform: rotate(45deg) translateX(100%);
-}
-
-.back-to-top.show {
-  opacity: 1;
-  transform: translateY(0) rotate(0deg);
-  pointer-events: auto;
-}
-
-.back-to-top:hover {
-  transform: translateY(-8px) scale(1.15);
-  box-shadow: 
-    0 0 30px rgba(0, 255, 255, 0.8),
-    0 0 60px rgba(255, 0, 255, 0.4),
-    inset 0 0 30px rgba(0, 255, 255, 0.2);
-  border-color: rgba(0, 255, 255, 1);
-}
-
-.back-to-top:active {
-  transform: translateY(-4px) scale(1.05);
-}
-
-.back-to-top-icon {
-  font-size: 24px;
-  color: #ffffff;
-  filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.8));
-  transition: all 0.3s ease;
-}
-
-.back-to-top:hover .back-to-top-icon {
-  transform: translateY(-2px);
-  filter: drop-shadow(0 0 10px rgba(255, 255, 255, 1));
-}
-
-/* 脉冲动画效果 */
-.back-to-top.show {
-  animation: cyber-pulse 2s ease-in-out infinite;
-}
-
-@keyframes cyber-pulse {
-  0%, 100% {
-    box-shadow: 
-      0 0 20px rgba(0, 255, 255, 0.4),
-      0 0 40px rgba(255, 0, 255, 0.2),
-      inset 0 0 20px rgba(0, 255, 255, 0.1);
-  }
-  50% {
-    box-shadow: 
-      0 0 30px rgba(0, 255, 255, 0.6),
-      0 0 60px rgba(255, 0, 255, 0.4),
-      inset 0 0 30px rgba(0, 255, 255, 0.2);
-  }
-}
-
-/* 数字雨效果 */
-.back-to-top::after {
-  content: '↑';
-  position: absolute;
-  font-size: 12px;
-  color: rgba(0, 255, 255, 0.6);
-  top: -10px;
-  left: 50%;
-  transform: translateX(-50%);
-  opacity: 0;
-  transition: all 0.3s ease;
-}
-
-.back-to-top:hover::after {
-  opacity: 1;
-  top: -15px;
-}
-
-/* 移动端适配 */
-@media (max-width: 768px) {
-  .back-to-top {
-    bottom: 80px;
-    right: 20px;
-    width: 48px;
-    height: 48px;
-  }
-  
-  .back-to-top-icon {
-    font-size: 20px;
-  }
-}
-
-@media (max-width: 480px) {
   .back-to-top {
     bottom: 70px;
     right: 15px;
     width: 44px;
     height: 44px;
   }
-  
+
   .back-to-top-icon {
     font-size: 18px;
   }

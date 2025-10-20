@@ -40,11 +40,11 @@
           
           <div class="card-footer">
             <div class="book-rating">
-              <el-rate 
-                v-model="book.rating" 
-                disabled 
-                :max="5" 
-                :colors="['#00ffff', '#00ffff', '#00ffff']"
+              <el-rate
+                v-model="book.rating"
+                disabled
+                :max="5"
+                :colors="['#10b981', '#10b981', '#10b981']"
                 :void-color="'rgba(255,255,255,0.2)'"
               />
               <span class="rating-text">{{ book.rating.toFixed(1) }}</span>
@@ -244,13 +244,9 @@ const addToCart = (book: Book) => {
 .section-title {
   font-size: 36px;
   font-weight: 800;
-  background: linear-gradient(135deg, #00ffff, #ff00ff, #00ffff);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: #10b981;
   margin: 0 0 10px 0;
-  text-shadow: 0 0 20px rgba(0, 255, 255, 0.3);
-  animation: title-pulse 3s ease-in-out infinite;
+  text-shadow: 0 0 20px rgba(16, 185, 129, 0.3);
 }
 
 .section-subtitle {
@@ -270,8 +266,8 @@ const addToCart = (book: Book) => {
 .loading-spinner {
   width: 50px;
   height: 50px;
-  border: 4px solid rgba(0, 255, 255, 0.2);
-  border-top-color: #00ffff;
+  border: 4px solid rgba(16, 185, 129, 0.2);
+  border-top-color: #10b981;
   border-radius: 50%;
   margin: 0 auto 20px;
   animation: spin 1s linear infinite;
@@ -303,8 +299,8 @@ const addToCart = (book: Book) => {
 }
 
 .book-card {
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(0, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(16, 185, 129, 0.2);
   border-radius: 15px;
   overflow: hidden;
   transition: all 0.3s ease;
@@ -314,8 +310,8 @@ const addToCart = (book: Book) => {
 
 .book-card:hover {
   transform: translateY(-5px);
-  box-shadow: 0 10px 30px rgba(0, 255, 255, 0.2);
-  border-color: rgba(0, 255, 255, 0.4);
+  box-shadow: 0 10px 30px rgba(16, 185, 129, 0.2);
+  border-color: rgba(16, 185, 129, 0.4);
 }
 
 .card-image {
@@ -323,18 +319,45 @@ const addToCart = (book: Book) => {
   width: 100%;
   height: 200px;
   overflow: hidden;
-  background: linear-gradient(135deg, #1a0033, #330066);
+  background: linear-gradient(135deg, #0a0a0a, #1a1a1a);
+  border-bottom: 2px solid rgba(16, 185, 129, 0.2);
+}
+
+.card-image::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    135deg,
+    transparent 0%,
+    rgba(16, 185, 129, 0.1) 50%,
+    transparent 100%
+  );
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.book-card:hover .card-image::before {
+  opacity: 1;
 }
 
 .card-image img {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: transform 0.3s ease;
+  transition: all 0.4s ease;
+  position: relative;
+  z-index: 1;
 }
 
 .book-card:hover .card-image img {
-  transform: scale(1.05);
+  transform: scale(1.08);
+  filter: brightness(1.1);
 }
 
 .card-overlay {
@@ -343,12 +366,18 @@ const addToCart = (book: Book) => {
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0, 0, 0, 0.6);
+  background: linear-gradient(
+    to top,
+    rgba(0, 0, 0, 0.9) 0%,
+    rgba(0, 0, 0, 0.6) 50%,
+    transparent 100%
+  );
   display: flex;
   align-items: center;
   justify-content: center;
   opacity: 0;
   transition: opacity 0.3s ease;
+  z-index: 3;
 }
 
 .book-card:hover .card-overlay {
@@ -356,11 +385,24 @@ const addToCart = (book: Book) => {
 }
 
 .view-details {
-  color: #00ffff;
+  color: #10b981;
   font-size: 14px;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 1px;
+  padding: 8px 16px;
+  border: 2px solid #10b981;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(10px);
+  transition: all 0.3s ease;
+  text-shadow: 0 0 10px rgba(16, 185, 129, 0.5);
+}
+
+.book-card:hover .view-details {
+  background: rgba(16, 185, 129, 0.2);
+  box-shadow: 0 0 20px rgba(16, 185, 129, 0.4);
+  transform: scale(1.05);
 }
 
 .card-content {
@@ -471,7 +513,7 @@ const addToCart = (book: Book) => {
 
 .rating-text {
   font-size: 14px;
-  color: #00ffff;
+  color: #10b981;
   font-weight: 600;
 }
 
@@ -483,7 +525,7 @@ const addToCart = (book: Book) => {
 
 .price-symbol {
   font-size: 14px;
-  color: #00ffff;
+  color: #10b981;
   font-weight: 600;
 }
 
@@ -500,9 +542,9 @@ const addToCart = (book: Book) => {
 .add-to-cart-btn {
   position: relative;
   width: 100%;
-  background: rgba(0, 255, 255, 0.2);
-  border: 1px solid rgba(0, 255, 255, 0.3);
-  border-radius: 25px;
+  background: rgba(16, 185, 129, 0.2);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  border-radius: 8px;
   color: white;
   font-weight: 700;
   font-size: 14px;
@@ -513,11 +555,10 @@ const addToCart = (book: Book) => {
 }
 
 .add-to-cart-btn:hover {
-  background: rgba(0, 255, 255, 0.3);
-  border-color: rgba(0, 255, 255, 0.5);
+  background: #10b981;
+  border-color: #10b981;
   transform: translateY(-2px);
-  box-shadow: 
-    0 0 10px rgba(0, 255, 255, 0.4);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
 }
 
 .add-to-cart-btn:active {

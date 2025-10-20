@@ -3,7 +3,10 @@
     "allow": [
       "Bash(timeout /t 2)",
       "Bash(exit)",
-      "Bash(git add .claude/settings.local.json backend/app.py \"图书后台管理/src/api/bookApi.ts\" \"图书后台管理/src/views/BookManageView.vue\" \"线上图书系统/src/components/CardContainer.vue\" \"线上图书系统/src/components/Home.vue\")"
+      "Bash(git add .claude/settings.local.json backend/app.py \"图书后台管理/src/api/bookApi.ts\" \"图书后台管理/src/views/BookManageView.vue\" \"线上图书系统/src/components/CardContainer.vue\" \"线上图书系统/src/components/Home.vue\")",
+      "Bash(git commit -m \"$(cat <<''EOF''\n优化书店系统UI和功能\n\n- 修复图书类别显示问题，添加category_id到API返回数据\n- 后台管理系统改为从数据库获取真实类别数据\n- 添加欢迎启动动画效果\n- 移除扫描线和小动物装饰效果\n- 移除书店首页分类筛选功能\n- 修复购物车和回到顶部按钮定位问题\n- 清理Claude Code权限配置\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")",
+      "Bash(git push origin main)",
+      "WebFetch(domain:www.trae.cn)"
     ],
     "deny": [],
     "ask": []

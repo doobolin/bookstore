@@ -1,33 +1,8 @@
 <template>
   <div class="login-container">
-    <!-- 赛博朋克背景 -->
-    <div class="cyber-background">
-      <!-- 网格线背景 -->
-      <div class="grid-lines">
-        <div class="grid-line horizontal" v-for="i in 20" :key="`h-${i}`"></div>
-        <div class="grid-line vertical" v-for="i in 20" :key="`v-${i}`"></div>
-      </div>
-      
-      <!-- 霓虹光效 -->
-      <div class="neon-lights">
-        <div class="neon neon-1"></div>
-        <div class="neon neon-2"></div>
-        <div class="neon neon-3"></div>
-        <div class="neon neon-4"></div>
-      </div>
-      
-      <!-- 简化的数字雨 -->
-      <div class="matrix-rain-simple">
-        <div v-for="i in 15" :key="i" class="rain-column-simple" :style="{ left: `${i * 6.66}%`, animationDelay: `${i * 0.3}s` }">
-          <span v-for="j in 8" :key="j" class="matrix-dot"></span>
-        </div>
-      </div>
-      
-      <!-- 扫描线 -->
-      <div class="scan-line"></div>
-      
-      <!-- 故障效果 -->
-      <div class="glitch-overlay"></div>
+    <!-- TRAE 风格像素矩阵背景 -->
+    <div class="trae-background">
+      <canvas ref="pixelCanvas" class="pixel-matrix"></canvas>
     </div>
 
     <!-- 注册卡片 -->
@@ -132,12 +107,13 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { registerUser } from '../api/userApi'
 
 const router = useRouter()
+const pixelCanvas = ref<HTMLCanvasElement | null>(null)
 
 // 表单数据
 const formData = ref({
@@ -220,6 +196,85 @@ const handleRegister = async () => {
 const goToLogin = () => {
   router.push('/login')
 }
+
+// 初始化像素矩阵动画
+const initPixelMatrix = () => {
+  if (!pixelCanvas.value) return
+
+  const canvas = pixelCanvas.value
+  const ctx = canvas.getContext('2d')
+  if (!ctx) return
+
+  const resizeCanvas = () => {
+    canvas.width = window.innerWidth
+    canvas.height = window.innerHeight
+  }
+  resizeCanvas()
+  window.addEventListener('resize', resizeCanvas)
+
+  const pixelSize = 4
+  const spacing = 15
+  const cols = Math.ceil(canvas.width / spacing)
+  const rows = Math.ceil(canvas.height / spacing)
+
+  interface Pixel {
+    x: number
+    y: number
+    opacity: number
+    speed: number
+    color: string
+    phase: number
+  }
+
+  const pixels: Pixel[] = []
+  for (let i = 0; i < cols; i++) {
+    for (let j = 0; j < rows; j++) {
+      if (Math.random() > 0.3) {
+        const colors = ['#10b981', '#34d399', '#6ee7b7', '#059669', '#047857', '#666666', '#888888', '#999999']
+        pixels.push({
+          x: i * spacing,
+          y: j * spacing,
+          opacity: Math.random() * 0.5 + 0.1,
+          speed: Math.random() * 0.02 + 0.005,
+          color: colors[Math.floor(Math.random() * colors.length)],
+          phase: Math.random() * Math.PI * 2
+        })
+      }
+    }
+  }
+
+  let animationId: number
+  const animate = () => {
+    ctx.fillStyle = '#000000'
+    ctx.fillRect(0, 0, canvas.width, canvas.height)
+
+    pixels.forEach(pixel => {
+      pixel.phase += pixel.speed
+      pixel.opacity = Math.sin(pixel.phase) * 0.4 + 0.4
+
+      ctx.fillStyle = pixel.color
+      ctx.globalAlpha = pixel.opacity
+      ctx.fillRect(pixel.x, pixel.y, pixelSize, pixelSize)
+    })
+
+    ctx.globalAlpha = 1
+    animationId = requestAnimationFrame(animate)
+  }
+
+  animate()
+
+  return () => {
+    window.removeEventListener('resize', resizeCanvas)
+    cancelAnimationFrame(animationId)
+  }
+}
+
+onMounted(() => {
+  const cleanup = initPixelMatrix()
+  return () => {
+    if (cleanup) cleanup()
+  }
+})
 </script>
 
 <script lang="ts">
@@ -241,206 +296,37 @@ export default {
   min-height: 100vh;
   position: relative;
   overflow: hidden;
+  background: #000000;
 }
 
-/* 赛博朋克背景 */
-.cyber-background {
+/* TRAE 风格背景 */
+.trae-background {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background: linear-gradient(135deg, #0a0a0a 0%, #1a0033 50%, #330066 100%);
+  background: #000000;
   overflow: hidden;
-  z-index: -1;
+  z-index: 0;
 }
 
-/* 网格线背景 */
-.grid-lines {
-  position: absolute;
-  top: 0;
-  left: 0;
+.pixel-matrix {
   width: 100%;
   height: 100%;
-  opacity: 0.3;
-}
-
-.grid-line {
-  position: absolute;
-  background: linear-gradient(90deg, transparent, #00ffff, transparent);
-}
-
-.grid-line.horizontal {
-  width: 100%;
-  height: 1px;
-  animation: scan-horizontal 3s linear infinite;
-}
-
-.grid-line.vertical {
-  width: 1px;
-  height: 100%;
-  background: linear-gradient(180deg, transparent, #ff00ff, transparent);
-  animation: scan-vertical 4s linear infinite;
-}
-
-@keyframes scan-horizontal {
-  0% { transform: translateY(-100vh); }
-  100% { transform: translateY(100vh); }
-}
-
-@keyframes scan-vertical {
-  0% { transform: translateX(-100vw); }
-  100% { transform: translateX(100vw); }
-}
-
-/* 霓虹灯效果 */
-.neon-lights {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-}
-
-.neon {
-  position: absolute;
-  border-radius: 50%;
-  filter: blur(40px);
-  opacity: 0.6;
-  animation: neon-pulse 4s ease-in-out infinite;
-}
-
-.neon-1 {
-  width: 300px;
-  height: 300px;
-  background: #00ffff;
-  top: 10%;
-  left: 20%;
-  animation-delay: 0s;
-}
-
-.neon-2 {
-  width: 250px;
-  height: 250px;
-  background: #ff00ff;
-  top: 60%;
-  right: 15%;
-  animation-delay: 1s;
-}
-
-.neon-3 {
-  width: 200px;
-  height: 200px;
-  background: #ffff00;
-  bottom: 20%;
-  left: 40%;
-  animation-delay: 2s;
-}
-
-.neon-4 {
-  width: 350px;
-  height: 350px;
-  background: #ff0066;
-  top: 30%;
-  right: 30%;
-  animation-delay: 3s;
-}
-
-@keyframes neon-pulse {
-  0%, 100% { opacity: 0.3; transform: scale(1); }
-  50% { opacity: 0.8; transform: scale(1.1); }
-}
-
-/* 简化的数字雨 */
-.matrix-rain-simple {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  opacity: 0.3;
-}
-
-.rain-column-simple {
-  position: absolute;
-  top: 0;
-  width: 10px;
-  height: 100%;
-  animation: matrix-fall-simple 12s linear infinite;
-}
-
-.matrix-dot {
   display: block;
-  width: 2px;
-  height: 2px;
-  background: #00ff00;
-  margin: 8px 0;
-  border-radius: 50%;
-  opacity: 0.6;
-  animation: dot-glow 2s ease-in-out infinite;
-}
-
-@keyframes matrix-fall-simple {
-  0% { transform: translateY(-100vh); }
-  100% { transform: translateY(100vh); }
-}
-
-@keyframes dot-glow {
-  0%, 100% { opacity: 0.3; }
-  50% { opacity: 0.8; }
-}
-
-/* 扫描线 */
-.scan-line {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 2px;
-  background: linear-gradient(90deg, transparent, #00ffff, transparent);
-  animation: scan 2s linear infinite;
-}
-
-@keyframes scan {
-  0% { transform: translateY(-100vh); }
-  100% { transform: translateY(100vh); }
-}
-
-/* 故障效果 */
-.glitch-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: repeating-linear-gradient(
-    0deg,
-    transparent,
-    transparent 2px,
-    rgba(0, 255, 255, 0.03) 2px,
-    rgba(0, 255, 255, 0.03) 4px
-  );
-  animation: glitch 0.5s infinite;
-}
-
-@keyframes glitch {
-  0%, 100% { transform: translateX(0); }
-  20% { transform: translateX(-2px); }
-  40% { transform: translateX(2px); }
-  60% { transform: translateX(-1px); }
-  80% { transform: translateX(1px); }
 }
 
 /* 登录卡片样式 */
 .login-card {
   width: 100%;
   max-width: 420px;
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(0, 0, 0, 0.8);
   backdrop-filter: blur(20px);
   border-radius: 20px;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
   padding: 45px 40px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(16, 185, 129, 0.2);
   z-index: 10;
   position: relative;
 }
@@ -452,19 +338,15 @@ export default {
 
 .login-header h2 {
   margin: 0 0 10px 0;
-  color: white;
+  color: #10b981;
   font-size: 32px;
   font-weight: 700;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-  background: linear-gradient(135deg, #00ffff, #ff00ff);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  text-shadow: 0 0 20px rgba(16, 185, 129, 0.3);
 }
 
 .login-subtitle {
   margin: 0;
-  color: rgba(255, 255, 255, 0.8);
+  color: rgba(255, 255, 255, 0.7);
   font-size: 16px;
   font-weight: 300;
 }
@@ -484,13 +366,12 @@ export default {
   font-size: 16px;
   font-weight: 600;
   margin-bottom: 10px;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
 }
 
 .input-icon {
   margin-right: 8px;
   font-size: 18px;
-  color: #00ffff;
+  color: #10b981;
 }
 
 .cyber-input-wrapper {
@@ -502,22 +383,21 @@ export default {
 }
 
 .cyber-input :deep(.el-input__wrapper) {
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(0, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(16, 185, 129, 0.2);
   border-radius: 12px;
-  box-shadow: 0 0 0 1px rgba(0, 255, 255, 0.1);
+  box-shadow: none;
   transition: all 0.3s ease;
   padding: 0;
 }
 
 .cyber-input :deep(.el-input__wrapper):hover {
-  border-color: rgba(0, 255, 255, 0.5);
-  box-shadow: 0 0 0 2px rgba(0, 255, 255, 0.2);
+  border-color: rgba(16, 185, 129, 0.4);
 }
 
 .cyber-input :deep(.el-input__wrapper).is-focus {
-  border-color: #00ffff;
-  box-shadow: 0 0 0 3px rgba(0, 255, 255, 0.3);
+  border-color: #10b981;
+  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.1);
 }
 
 .cyber-input :deep(.el-input__inner) {
@@ -530,11 +410,11 @@ export default {
 }
 
 .cyber-input :deep(.el-input__inner::placeholder) {
-  color: rgba(255, 255, 255, 0.6);
+  color: rgba(255, 255, 255, 0.4);
 }
 
 .cyber-input :deep(.el-input__prefix) {
-  color: #00ffff;
+  color: #10b981;
 }
 
 .input-glow {
@@ -544,7 +424,7 @@ export default {
   right: 0;
   bottom: 0;
   border-radius: 12px;
-  background: linear-gradient(135deg, rgba(0, 255, 255, 0.1), rgba(255, 0, 255, 0.1));
+  background: rgba(16, 185, 129, 0.1);
   opacity: 0;
   transition: opacity 0.3s ease;
   pointer-events: none;
@@ -557,12 +437,6 @@ export default {
 
 .cyber-input :deep(.el-input__wrapper).is-focus + .input-glow {
   opacity: 0.5;
-  animation: pulse-glow 2s ease-in-out infinite;
-}
-
-@keyframes pulse-glow {
-  0%, 100% { opacity: 0.3; }
-  50% { opacity: 0.6; }
 }
 
 .button-wrapper {
@@ -583,7 +457,7 @@ export default {
   flex: 1;
   padding: 16px 28px;
   border: none;
-  border-radius: 50px;
+  border-radius: 12px;
   font-size: 16px;
   font-weight: 600;
   cursor: pointer;
@@ -599,28 +473,29 @@ export default {
 }
 
 .primary-btn {
-  background: linear-gradient(135deg, #00ffff, #0080ff);
+  background: #10b981;
   color: white;
-  box-shadow: 0 4px 15px rgba(0, 255, 255, 0.3);
+  box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
 }
 
 .primary-btn:hover {
+  background: #059669;
   transform: translateY(-2px);
-  box-shadow: 0 6px 25px rgba(0, 255, 255, 0.5);
+  box-shadow: 0 6px 25px rgba(16, 185, 129, 0.5);
 }
 
 .secondary-btn {
   background: transparent;
-  color: #00ffff;
-  border: 2px solid #00ffff;
-  box-shadow: 0 4px 15px rgba(0, 255, 255, 0.15);
+  color: #10b981;
+  border: 2px solid #10b981;
+  box-shadow: 0 4px 15px rgba(16, 185, 129, 0.15);
 }
 
 .secondary-btn:hover {
-  background: linear-gradient(135deg, rgba(0, 255, 255, 0.1), rgba(0, 128, 255, 0.1));
+  background: rgba(16, 185, 129, 0.1);
   color: white;
   transform: translateY(-2px);
-  box-shadow: 0 6px 25px rgba(0, 255, 255, 0.3);
+  box-shadow: 0 6px 25px rgba(16, 185, 129, 0.3);
 }
 
 .btn-text {
@@ -648,27 +523,27 @@ export default {
     margin: 15px;
     max-width: none;
   }
-  
+
   .login-header h2 {
     font-size: 28px;
   }
-  
+
   .login-subtitle {
     font-size: 14px;
   }
-  
+
   .form-buttons {
     flex-direction: column;
     gap: 15px;
   }
-  
+
   .login-btn {
     min-width: 100%;
     max-width: none;
     padding: 14px 24px;
     font-size: 16px;
   }
-  
+
   .input-label {
     font-size: 15px;
   }
