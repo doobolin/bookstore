@@ -1338,11 +1338,12 @@ def get_orders():
 def get_order_detail(order_id):
     try:
         with app.app_context():
-            # 获取订单基本信息
+            # 获取订单基本信息（关联users表获取用户名）
             order = db.session.execute(text("""
-                SELECT id, order_number, user_id, total_amount, created_at
-                FROM orders
-                WHERE id = :order_id
+                SELECT o.id, o.order_number, o.user_id, o.total_amount, o.created_at, u.username
+                FROM orders o
+                LEFT JOIN users u ON o.user_id = u.id
+                WHERE o.id = :order_id
             """), {'order_id': order_id}).fetchone()
 
             if not order:
@@ -1375,6 +1376,7 @@ def get_order_detail(order_id):
                 'id': order[0],
                 'order_number': order[1],
                 'user_id': order[2],
+                'username': order[5],  # 添加用户名
                 'total_amount': float(order[3]),
                 'created_at': order[4].strftime('%Y-%m-%d %H:%M:%S') if order[4] else None,
                 'items': order_items

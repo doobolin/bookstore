@@ -1,8 +1,8 @@
 <template>
   <div class="book-detail-container">
-    <!-- TRAE 风格像素矩阵背景 -->
-    <div class="trae-background">
-      <canvas ref="pixelCanvas" class="pixel-matrix"></canvas>
+    <!-- 粒子背景 -->
+    <div class="particle-background">
+      <canvas ref="particleCanvas" class="particle-canvas"></canvas>
     </div>
 
     <!-- 详情内容 -->
@@ -111,7 +111,7 @@ const route = useRoute()
 
 const book = ref<Book | null>(null)
 const loading = ref(false)
-const pixelCanvas = ref<HTMLCanvasElement | null>(null)
+const particleCanvas = ref<HTMLCanvasElement | null>(null)
 
 // 从后端加载图书详情
 const loadBookDetail = async (bookId: number) => {
@@ -139,8 +139,8 @@ const loadBookDetail = async (bookId: number) => {
 }
 
 onMounted(() => {
-  // 初始化像素矩阵背景
-  const cleanupPixelMatrix = initPixelMatrix()
+  // 初始化粒子背景
+  const cleanupParticles = initParticleBackground()
 
   // 获取路由参数中的图书ID
   const bookId = Number(route.params.id)
@@ -153,7 +153,7 @@ onMounted(() => {
 
   // 返回清理函数
   return () => {
-    if (cleanupPixelMatrix) cleanupPixelMatrix()
+    if (cleanupParticles) cleanupParticles()
   }
 })
 
@@ -182,11 +182,91 @@ const getCategoryClass = (category: string) => {
   return classMap[category] || 'default'
 }
 
-// 初始化像素矩阵动画
-const initPixelMatrix = () => {
-  if (!pixelCanvas.value) return
+// 粒子背景初始化
+let mousePosition = { x: 0, y: 0 }
 
-  const canvas = pixelCanvas.value
+class Particle {
+  x: number
+  y: number
+  size: number
+  baseSize: number
+  speedX: number
+  speedY: number
+  color: string
+  canvas: HTMLCanvasElement
+  ctx: CanvasRenderingContext2D
+  opacity: number
+  maxOpacity: number
+  minOpacity: number
+  isInteracting: boolean
+  forceFactor: number
+  maxSizeMultiplier: number
+
+  constructor(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D) {
+    this.canvas = canvas
+    this.ctx = ctx
+    this.x = Math.random() * canvas.width
+    this.y = Math.random() * canvas.height
+    this.size = Math.random() * 3 + 1.5
+    this.baseSize = this.size
+    this.speedX = (Math.random() - 0.5) * 0.3
+    this.speedY = (Math.random() - 0.5) * 0.3
+    const colors = ['#10b981', '#34d399', '#6ee7b7', '#059669']
+    this.color = colors[Math.floor(Math.random() * colors.length)]
+    this.opacity = Math.random() * 0.7 + 0.3
+    this.maxOpacity = 1
+    this.minOpacity = 0.2
+    this.isInteracting = false
+    this.forceFactor = 0.02
+    this.maxSizeMultiplier = 1.8
+  }
+
+  update() {
+    const dx = this.x - mousePosition.x
+    const dy = this.y - mousePosition.y
+    const distanceToMouse = Math.sqrt(dx * dx + dy * dy)
+
+    if (distanceToMouse < 150) {
+      this.isInteracting = true
+      this.opacity = this.maxOpacity * (1 - distanceToMouse / 150)
+      const sizeMultiplier = 1 + (this.maxSizeMultiplier - 1) * (1 - distanceToMouse / 150)
+      this.size = this.baseSize * sizeMultiplier
+
+      const angle = Math.atan2(dy, dx)
+      const force = (1 - distanceToMouse / 150) * this.forceFactor
+      this.speedX += Math.cos(angle) * force
+      this.speedY += Math.sin(angle) * force
+    } else {
+      if (this.isInteracting) {
+        this.isInteracting = false
+      }
+      this.size += (this.baseSize - this.size) * 0.05
+      this.opacity += (this.minOpacity - this.opacity) * 0.05
+    }
+
+    this.x += this.speedX
+    this.y += this.speedY
+
+    if (this.x < 0 || this.x > this.canvas.width) this.speedX *= -1
+    if (this.y < 0 || this.y > this.canvas.height) this.speedY *= -1
+
+    this.x = Math.max(0, Math.min(this.canvas.width, this.x))
+    this.y = Math.max(0, Math.min(this.canvas.height, this.y))
+  }
+
+  draw() {
+    this.ctx.fillStyle = this.color
+    this.ctx.globalAlpha = this.opacity
+    this.ctx.beginPath()
+    this.ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2)
+    this.ctx.fill()
+  }
+}
+
+const initParticleBackground = () => {
+  if (!particleCanvas.value) return
+
+  const canvas = particleCanvas.value
   const ctx = canvas.getContext('2d')
   if (!ctx) return
 
@@ -197,50 +277,45 @@ const initPixelMatrix = () => {
   resizeCanvas()
   window.addEventListener('resize', resizeCanvas)
 
-  const pixelSize = 4
-  const spacing = 15
-  const cols = Math.ceil(canvas.width / spacing)
-  const rows = Math.ceil(canvas.height / spacing)
-
-  interface Pixel {
-    x: number
-    y: number
-    opacity: number
-    speed: number
-    color: string
-    phase: number
+  const particleCount = Math.floor((canvas.width * canvas.height) / 5000)
+  const particles: Particle[] = []
+  for (let i = 0; i < particleCount; i++) {
+    particles.push(new Particle(canvas, ctx))
   }
 
-  const pixels: Pixel[] = []
-  for (let i = 0; i < cols; i++) {
-    for (let j = 0; j < rows; j++) {
-      if (Math.random() > 0.3) {
-        const colors = ['#10b981', '#34d399', '#6ee7b7', '#059669', '#047857', '#666666', '#888888', '#999999']
-        pixels.push({
-          x: i * spacing,
-          y: j * spacing,
-          opacity: Math.random() * 0.5 + 0.1,
-          speed: Math.random() * 0.02 + 0.005,
-          color: colors[Math.floor(Math.random() * colors.length)],
-          phase: Math.random() * Math.PI * 2
-        })
-      }
-    }
+  const handleMouseMove = (e: MouseEvent) => {
+    mousePosition.x = e.clientX
+    mousePosition.y = e.clientY
   }
+  window.addEventListener('mousemove', handleMouseMove)
 
   let animationId: number
   const animate = () => {
-    ctx.fillStyle = '#000000'
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.1)'
     ctx.fillRect(0, 0, canvas.width, canvas.height)
 
-    pixels.forEach(pixel => {
-      pixel.phase += pixel.speed
-      pixel.opacity = Math.sin(pixel.phase) * 0.4 + 0.4
-
-      ctx.fillStyle = pixel.color
-      ctx.globalAlpha = pixel.opacity
-      ctx.fillRect(pixel.x, pixel.y, pixelSize, pixelSize)
+    particles.forEach(particle => {
+      particle.update()
+      particle.draw()
     })
+
+    for (let i = 0; i < particles.length; i++) {
+      for (let j = i + 1; j < particles.length; j++) {
+        const dx = particles[i].x - particles[j].x
+        const dy = particles[i].y - particles[j].y
+        const distance = Math.sqrt(dx * dx + dy * dy)
+
+        if (distance < 150) {
+          ctx.strokeStyle = '#10b981'
+          ctx.globalAlpha = 0.15 * (1 - distance / 150)
+          ctx.lineWidth = 1
+          ctx.beginPath()
+          ctx.moveTo(particles[i].x, particles[i].y)
+          ctx.lineTo(particles[j].x, particles[j].y)
+          ctx.stroke()
+        }
+      }
+    }
 
     ctx.globalAlpha = 1
     animationId = requestAnimationFrame(animate)
@@ -250,6 +325,7 @@ const initPixelMatrix = () => {
 
   return () => {
     window.removeEventListener('resize', resizeCanvas)
+    window.removeEventListener('mousemove', handleMouseMove)
     cancelAnimationFrame(animationId)
   }
 }
@@ -275,8 +351,8 @@ const initPixelMatrix = () => {
   }
 }
 
-/* TRAE 风格背景 */
-.trae-background {
+/* 粒子背景 */
+.particle-background {
   position: fixed;
   top: 0;
   left: 0;
@@ -287,7 +363,7 @@ const initPixelMatrix = () => {
   z-index: 0;
 }
 
-.pixel-matrix {
+.particle-canvas {
   width: 100%;
   height: 100%;
   display: block;

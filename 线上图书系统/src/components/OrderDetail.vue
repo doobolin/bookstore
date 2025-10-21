@@ -15,7 +15,10 @@
       <div class="order-header">
         <div class="header-left">
           <h3 class="order-title">订单详情</h3>
-          <div class="order-number">订单号：{{ order.order_number }}</div>
+          <div class="order-info">
+            <div class="order-number">订单号：{{ order.order_number }}</div>
+            <div class="order-username">用户：{{ order.username || '未知用户' }}</div>
+          </div>
         </div>
         <div class="header-right">
           <div class="order-time">{{ order.created_at }}</div>
@@ -187,10 +190,21 @@ onMounted(() => {
   text-shadow: 0 0 20px rgba(16, 185, 129, 0.3);
 }
 
-.order-number {
+.order-info {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.order-number,
+.order-username {
   color: #10b981;
   font-size: 14px;
   font-weight: 600;
+}
+
+.order-username {
+  color: rgba(255, 255, 255, 0.8);
 }
 
 .order-section {
