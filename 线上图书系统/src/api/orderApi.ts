@@ -12,7 +12,7 @@ export interface OrderItem {
   subtotal?: number
 }
 
-// 定义订单接口（简化版）
+// 定义订单接口
 export interface Order {
   id: number
   order_number: string
@@ -22,7 +22,7 @@ export interface Order {
   items?: OrderItem[]
 }
 
-// 定义创建订单请求接口（简化版）
+// 定义创建订单请求接口
 export interface CreateOrderRequest {
   user_id: number
   items: Array<{
