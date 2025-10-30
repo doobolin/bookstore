@@ -646,6 +646,61 @@ def get_all_books():
     except Exception as e:
         return make_response(None, f'获取图书列表失败: {str(e)}', 500)
 
+# 获取单个图书详情API
+@app.route('/api/books/<int:book_id>', methods=['GET'])
+def get_book_by_id(book_id):
+    try:
+        with app.app_context():
+            # 查询指定ID的图书，关联分类表获取分类名称
+            result = db.session.execute(text("""
+                SELECT
+                    b.id,
+                    b.isbn,
+                    b.title,
+                    b.author,
+                    c.name AS category,
+                    b.category_id,
+                    b.description,
+                    b.price,
+                    b.stock,
+                    b.rating,
+                    b.image,
+                    b.status,
+                    b.created_at,
+                    b.updated_at
+                FROM books b
+                LEFT JOIN categories c ON b.category_id = c.id
+                WHERE b.id = :book_id
+            """), {'book_id': book_id})
+
+            book_row = result.fetchone()
+
+            # 如果图书不存在，返回404
+            if not book_row:
+                return make_response(None, '图书不存在', 404)
+
+            # 构建图书详情数据
+            book_data = {
+                'id': book_row[0],
+                'isbn': book_row[1],
+                'title': book_row[2],
+                'author': book_row[3],
+                'category': book_row[4],
+                'category_id': book_row[5],
+                'description': book_row[6],
+                'price': float(book_row[7]),
+                'stock': book_row[8],
+                'rating': float(book_row[9]) if book_row[9] else 0.0,
+                'image': book_row[10],
+                'status': book_row[11],
+                'created_at': book_row[12].strftime('%Y-%m-%d %H:%M:%S') if book_row[12] else None,
+                'updated_at': book_row[13].strftime('%Y-%m-%d %H:%M:%S') if book_row[13] else None
+            }
+
+            return make_response(book_data, '获取图书详情成功')
+    except Exception as e:
+        return make_response(None, f'获取图书详情失败: {str(e)}', 500)
+
 # 获取所有分类API
 @app.route('/api/categories', methods=['GET'])
 def get_all_categories():

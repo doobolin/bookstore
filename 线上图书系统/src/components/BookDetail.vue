@@ -1,8 +1,8 @@
 <template>
   <div class="book-detail-container">
-    <!-- 粒子背景 -->
-    <div class="particle-background">
-      <canvas ref="particleCanvas" class="particle-canvas"></canvas>
+    <!-- 动态粒子背景 -->
+    <div class="dynamic-bg">
+      <canvas ref="particleCanvas" class="dynamic-bg-canvas"></canvas>
     </div>
 
     <!-- 详情内容 -->
@@ -182,9 +182,14 @@ const getCategoryClass = (category: string) => {
   return classMap[category] || 'default'
 }
 
-// 粒子背景初始化
+// 动态粒子背景相关逻辑 - 与Home.vue完全相同
+let animationId: number | null = null
+let particles: Array<any> = []
 let mousePosition = { x: 0, y: 0 }
+let prevMousePosition = { x: 0, y: 0 }
+let mouseVelocity = { x: 0, y: 0 }
 
+// Particle类定义 - 翠绿色主题
 class Particle {
   x: number
   y: number
@@ -211,6 +216,7 @@ class Particle {
     this.baseSize = this.size
     this.speedX = (Math.random() - 0.5) * 0.3
     this.speedY = (Math.random() - 0.5) * 0.3
+    // 使用翠绿色系
     const colors = ['#10b981', '#34d399', '#6ee7b7', '#059669']
     this.color = colors[Math.floor(Math.random() * colors.length)]
     this.opacity = Math.random() * 0.7 + 0.3
@@ -236,30 +242,79 @@ class Particle {
       const force = (1 - distanceToMouse / 150) * this.forceFactor
       this.speedX += Math.cos(angle) * force
       this.speedY += Math.sin(angle) * force
+
+      if (Math.abs(mouseVelocity.x) > 0.1 || Math.abs(mouseVelocity.y) > 0.1) {
+        this.speedX += mouseVelocity.x * 0.001
+        this.speedY += mouseVelocity.y * 0.001
+      }
     } else {
       if (this.isInteracting) {
         this.isInteracting = false
       }
-      this.size += (this.baseSize - this.size) * 0.05
-      this.opacity += (this.minOpacity - this.opacity) * 0.05
+
+      if (this.opacity > this.minOpacity) {
+        this.opacity -= 0.02
+      } else {
+        this.opacity = this.minOpacity
+      }
+
+      if (this.size > this.baseSize) {
+        this.size = Math.max(this.baseSize, this.size - 0.05)
+      }
+    }
+
+    const maxSpeed = 0.8
+    const speed = Math.sqrt(this.speedX * this.speedX + this.speedY * this.speedY)
+    if (speed > maxSpeed) {
+      this.speedX = (this.speedX / speed) * maxSpeed
+      this.speedY = (this.speedY / speed) * maxSpeed
     }
 
     this.x += this.speedX
     this.y += this.speedY
 
-    if (this.x < 0 || this.x > this.canvas.width) this.speedX *= -1
-    if (this.y < 0 || this.y > this.canvas.height) this.speedY *= -1
+    if (this.x < 0 || this.x > this.canvas.width) {
+      this.speedX *= -0.8
+      this.x = Math.max(0, Math.min(this.canvas.width, this.x))
+    }
+    if (this.y < 0 || this.y > this.canvas.height) {
+      this.speedY *= -0.8
+      this.y = Math.max(0, Math.min(this.canvas.height, this.y))
+    }
 
-    this.x = Math.max(0, Math.min(this.canvas.width, this.x))
-    this.y = Math.max(0, Math.min(this.canvas.height, this.y))
+    this.draw()
   }
 
   draw() {
     this.ctx.fillStyle = this.color
     this.ctx.globalAlpha = this.opacity
     this.ctx.beginPath()
-    this.ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2)
+    this.ctx.arc(this.x, this.y, this.size / 2, 0, Math.PI * 2)
     this.ctx.fill()
+    this.ctx.globalAlpha = 1
+  }
+}
+
+// 连接靠近的粒子，创建网格效果
+function connectParticles(ctx: CanvasRenderingContext2D) {
+  const maxDistance = 150
+
+  for (let a = 0; a < particles.length; a++) {
+    for (let b = a; b < particles.length; b++) {
+      const dx = particles[a].x - particles[b].x
+      const dy = particles[a].y - particles[b].y
+      const distance = Math.sqrt(dx * dx + dy * dy)
+
+      if (distance < maxDistance) {
+        const opacity = 1 - distance / maxDistance
+        ctx.strokeStyle = `rgba(16, 185, 129, ${opacity * 0.5})`
+        ctx.lineWidth = 0.7
+        ctx.beginPath()
+        ctx.moveTo(particles[a].x, particles[a].y)
+        ctx.lineTo(particles[b].x, particles[b].y)
+        ctx.stroke()
+      }
+    }
   }
 }
 
@@ -270,63 +325,61 @@ const initParticleBackground = () => {
   const ctx = canvas.getContext('2d')
   if (!ctx) return
 
-  const resizeCanvas = () => {
-    canvas.width = window.innerWidth
-    canvas.height = window.innerHeight
-  }
-  resizeCanvas()
-  window.addEventListener('resize', resizeCanvas)
+  canvas.width = window.innerWidth
+  canvas.height = window.innerHeight
 
-  const particleCount = Math.floor((canvas.width * canvas.height) / 5000)
-  const particles: Particle[] = []
+  canvas.addEventListener('mousemove', (e) => {
+    mouseVelocity.x = e.clientX - prevMousePosition.x
+    mouseVelocity.y = e.clientY - prevMousePosition.y
+
+    prevMousePosition.x = mousePosition.x
+    prevMousePosition.y = mousePosition.y
+    mousePosition.x = e.clientX
+    mousePosition.y = e.clientY
+  })
+
+  mousePosition.x = canvas.width / 2
+  mousePosition.y = canvas.height / 2
+
+  particles = []
+  const particleCount = Math.floor((window.innerWidth * window.innerHeight) / 5000)
   for (let i = 0; i < particleCount; i++) {
     particles.push(new Particle(canvas, ctx))
   }
 
-  const handleMouseMove = (e: MouseEvent) => {
-    mousePosition.x = e.clientX
-    mousePosition.y = e.clientY
-  }
-  window.addEventListener('mousemove', handleMouseMove)
+  function animate() {
+    if (!ctx) return
+    ctx.clearRect(0, 0, canvas.width, canvas.height)
 
-  let animationId: number
-  const animate = () => {
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.1)'
-    ctx.fillRect(0, 0, canvas.width, canvas.height)
+    particles.forEach(particle => particle.update())
+    connectParticles(ctx)
 
-    particles.forEach(particle => {
-      particle.update()
-      particle.draw()
-    })
-
-    for (let i = 0; i < particles.length; i++) {
-      for (let j = i + 1; j < particles.length; j++) {
-        const dx = particles[i].x - particles[j].x
-        const dy = particles[i].y - particles[j].y
-        const distance = Math.sqrt(dx * dx + dy * dy)
-
-        if (distance < 150) {
-          ctx.strokeStyle = '#10b981'
-          ctx.globalAlpha = 0.15 * (1 - distance / 150)
-          ctx.lineWidth = 1
-          ctx.beginPath()
-          ctx.moveTo(particles[i].x, particles[i].y)
-          ctx.lineTo(particles[j].x, particles[j].y)
-          ctx.stroke()
-        }
-      }
-    }
-
-    ctx.globalAlpha = 1
     animationId = requestAnimationFrame(animate)
   }
 
   animate()
 
+  const handleResize = () => {
+    if (animationId) {
+      cancelAnimationFrame(animationId)
+    }
+    canvas.width = window.innerWidth
+    canvas.height = window.innerHeight
+    particles = []
+    const newParticleCount = Math.floor((window.innerWidth * window.innerHeight) / 5000)
+    for (let i = 0; i < newParticleCount; i++) {
+      particles.push(new Particle(canvas, ctx))
+    }
+    animate()
+  }
+
+  window.addEventListener('resize', handleResize)
+
   return () => {
-    window.removeEventListener('resize', resizeCanvas)
-    window.removeEventListener('mousemove', handleMouseMove)
-    cancelAnimationFrame(animationId)
+    window.removeEventListener('resize', handleResize)
+    if (animationId) {
+      cancelAnimationFrame(animationId)
+    }
   }
 }
 </script>
@@ -351,22 +404,22 @@ const initParticleBackground = () => {
   }
 }
 
-/* 粒子背景 */
-.particle-background {
+/* 动态粒子背景 */
+.dynamic-bg {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
   background: #000000;
-  overflow: hidden;
   z-index: 0;
+  overflow: hidden;
 }
 
-.particle-canvas {
+.dynamic-bg-canvas {
+  display: block;
   width: 100%;
   height: 100%;
-  display: block;
 }
 
 /* 详情内容 */
@@ -461,6 +514,7 @@ const initParticleBackground = () => {
   border: 2px solid rgba(16, 185, 129, 0.3);
   transition: all 0.5s ease;
   box-shadow: 0 0 30px rgba(16, 185, 129, 0.2);
+  background: #000000;
 }
 
 .book-cover:hover {
@@ -472,9 +526,10 @@ const initParticleBackground = () => {
 .book-cover img {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
   z-index: 1;
   position: relative;
+  background: #000000;
 }
 
 .image-glow {
