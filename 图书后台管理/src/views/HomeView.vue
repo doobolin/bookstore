@@ -55,8 +55,10 @@
         </div>
       </header>
       
-      <!-- 首页概览内容 - 仅在根路径时显示 -->
-      <div v-if="isHomePage" class="dashboard-content">
+      <!-- 页面内容切换 -->
+      <transition name="slide-fade" mode="out-in">
+        <!-- 首页概览内容 - 仅在根路径时显示 -->
+        <div v-if="isHomePage" key="dashboard" class="dashboard-content">
         <!-- 统计卡片区域 -->
         <div class="stats-cards">
           <div class="stat-card">
@@ -144,14 +146,13 @@
             </div>
           </div>
         </div>
-      </div>
-      
-      <!-- 路由视图内容 -->
-      <div v-else class="content-wrapper">
-        <transition name="slide-fade" mode="out-in">
+        </div>
+
+        <!-- 路由视图内容 -->
+        <div v-else :key="$route.fullPath" class="content-wrapper">
           <router-view />
-        </transition>
-      </div>
+        </div>
+      </transition>
     </main>
   </div>
 </template>

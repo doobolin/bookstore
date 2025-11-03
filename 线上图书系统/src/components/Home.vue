@@ -13,7 +13,7 @@
     </div>
 
     <!-- 导航栏 -->
-    <nav class="navbar" :class="{ 'fade-in': !showWelcome, 'fade-in-delay-1': !showWelcome }">
+    <nav class="navbar" :class="{ 'fade-in': !showWelcome, 'fade-in-delay-1': !showWelcome, 'navbar-fixed': isNavbarFixed, 'navbar-slide-down': showNavbarAnimation }">
       <div class="nav-content">
         <div class="logo" @click="refreshPage">
           <span class="logo-text">科技书城</span>
@@ -60,6 +60,9 @@
         </div>
       </div>
     </nav>
+
+    <!-- 导航栏占位符，防止内容跳动 -->
+    <div v-if="isNavbarFixed" class="navbar-placeholder"></div>
 
     <!-- 主要内容 -->
     <div class="content-wrapper" :class="{ 'fade-in': !showWelcome, 'fade-in-delay-2': !showWelcome }">
@@ -144,6 +147,9 @@ const router = useRouter()
 const isCartOpen = ref(false)
 const cartItemCount = ref(0)
 const showBackToTop = ref(false)
+const isNavbarFixed = ref(false)
+const showNavbarAnimation = ref(false)
+const lastScrollY = ref(0)
 const searchQuery = ref('')
 const isLoggedIn = ref(false)
 const username = ref('')
@@ -262,7 +268,25 @@ const handleSearch = () => {
 }
 
 const handleScroll = () => {
-  showBackToTop.value = window.scrollY > 300
+  const currentScrollY = window.scrollY
+  showBackToTop.value = currentScrollY > 300
+
+  // 判断滚动方向
+  const isScrollingDown = currentScrollY > lastScrollY.value
+
+  // 滚动超过100px时固定导航栏
+  if (currentScrollY > 100) {
+    // 如果是从未固定状态变为固定状态，且是向下滚动，显示动画
+    if (!isNavbarFixed.value && isScrollingDown) {
+      showNavbarAnimation.value = true
+    }
+    isNavbarFixed.value = true
+  } else {
+    isNavbarFixed.value = false
+    showNavbarAnimation.value = false
+  }
+
+  lastScrollY.value = currentScrollY
 }
 
 // 监听登录事件
@@ -637,6 +661,40 @@ onUnmounted(() => {
   background: rgba(0, 0, 0, 0.8);
   backdrop-filter: blur(20px);
   border-bottom: 1px solid rgba(16, 185, 129, 0.1);
+  transition: all 0.3s ease;
+}
+
+/* 固定导航栏 */
+.navbar-fixed {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  background: rgba(0, 0, 0, 0.95);
+  backdrop-filter: blur(30px);
+  box-shadow: 0 4px 20px rgba(16, 185, 129, 0.2);
+}
+
+/* 导航栏下滑动画 */
+.navbar-slide-down {
+  animation: slideDown 0.3s ease forwards;
+}
+
+@keyframes slideDown {
+  from {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* 导航栏占位符 */
+.navbar-placeholder {
+  height: 80px;
+  width: 100%;
 }
 
 .nav-content {

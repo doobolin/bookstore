@@ -20,8 +20,9 @@
       <div
         v-for="(book, index) in filteredBooks"
         :key="book.id"
+        :ref="el => setCardRef(el, index)"
         class="masonry-item"
-        :class="getCardSizeClass(index)"
+        :class="[getCardSizeClass(index), cardAnimations[index] ? 'animate__animated' : '', cardAnimations[index]]"
         @click="handleCardClick(book)"
       >
         <!-- 图书封面 -->
@@ -87,6 +88,24 @@ const searchQuery = ref('')
 const loading = ref(false)
 
 const books = ref<Book[]>([])
+const cardRefs = ref<(HTMLElement | null)[]>([])
+const cardAnimations = ref<string[]>([])
+const observers = ref<IntersectionObserver[]>([])
+
+// 左右方向随机
+const bounceInDirections = ['animate__bounceInLeft', 'animate__bounceInRight']
+
+// 随机选择左或右方向
+const getRandomDirection = () => {
+  return bounceInDirections[Math.floor(Math.random() * bounceInDirections.length)]
+}
+
+// 设置卡片引用
+const setCardRef = (el: any, index: number) => {
+  if (el) {
+    cardRefs.value[index] = el as HTMLElement
+  }
+}
 
 // 从后端加载分类数据
 const loadCategories = async () => {
@@ -168,6 +187,58 @@ const performSearch = async () => {
   }
 }
 
+// 初始化滚动动画观察器
+const initScrollAnimations = () => {
+  // 清除旧的观察器
+  observers.value.forEach(observer => observer.disconnect())
+  observers.value = []
+
+  // 为每个卡片创建观察器
+  cardRefs.value.forEach((card, index) => {
+    if (!card) return
+
+    // 初始化为空动画
+    cardAnimations.value[index] = ''
+
+    // 标记是否正在播放动画
+    let isAnimating = false
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting && !isAnimating) {
+            // 进入视口且未在播放动画 - 随机左右 bounceIn
+            isAnimating = true
+            const direction = getRandomDirection()
+            cardAnimations.value[index] = direction
+
+            // 动画结束后移除动画类并重置标记
+            setTimeout(() => {
+              cardAnimations.value[index] = ''
+              isAnimating = false
+            }, 1000)
+          }
+        })
+      },
+      {
+        threshold: 0.2,
+        rootMargin: '0px'
+      }
+    )
+
+    observer.observe(card)
+    observers.value.push(observer)
+  })
+}
+
+// 监听图书数据变化，重新初始化动画
+watch(() => books.value.length, () => {
+  // 等待 DOM 更新后初始化动画
+  setTimeout(() => {
+    initScrollAnimations()
+  }, 100)
+})
+
 // 页面加载时获取分类和图书
 onMounted(() => {
   loadCategories()
@@ -177,6 +248,8 @@ onMounted(() => {
 
 onUnmounted(() => {
   window.removeEventListener('book-search', handleSearch as EventListener)
+  // 清除所有观察器
+  observers.value.forEach(observer => observer.disconnect())
 })
 
 // 由于现在使用后端搜索，不再需要前端过滤
@@ -323,7 +396,6 @@ const getBookColor = (index: number) => {
   border: 1px solid rgba(16, 185, 129, 0.15);
   border-radius: 20px;
   overflow: hidden;
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   cursor: pointer;
   backdrop-filter: blur(20px);
   position: relative;
@@ -348,7 +420,6 @@ const getBookColor = (index: number) => {
 }
 
 .masonry-item:hover {
-  transform: translateY(-8px) scale(1.02);
   box-shadow:
     0 20px 40px rgba(16, 185, 129, 0.2),
     0 0 0 1px rgba(16, 185, 129, 0.3);
