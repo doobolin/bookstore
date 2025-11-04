@@ -2,6 +2,23 @@
   <div class="book-manage-container">
     <div class="page-header">
       <h2>图书管理</h2>
+      <div class="search-box">
+        <span class="search-icon">🔍</span>
+        <input
+          v-model="searchKeyword"
+          type="text"
+          placeholder="搜索书名、作者或ISBN..."
+          class="search-input"
+        />
+        <button
+          v-if="searchKeyword"
+          class="clear-btn"
+          @click="searchKeyword = ''"
+          title="清除搜索"
+        >
+          ×
+        </button>
+      </div>
       <button class="add-btn" @click="handleAddBook" :disabled="loading || isProcessing">
         添加图书
       </button>
@@ -20,7 +37,7 @@
       <div v-if="loading" class="loading-message">
         加载中...
       </div>
-      <div v-else v-for="book in books" :key="book.id" class="book-item">
+      <div v-else v-for="book in filteredBooks" :key="book.id" class="book-item">
         <div class="book-info">{{ book.id }}</div>
         <div class="book-info">{{ book.title }}</div>
         <div class="book-info">{{ book.author }}</div>
@@ -35,8 +52,8 @@
           </button>
         </div>
       </div>
-      <div v-if="!loading && books.length === 0" class="empty-message">
-        暂无图书数据
+      <div v-if="!loading && filteredBooks.length === 0" class="empty-message">
+        {{ searchKeyword ? '未找到匹配的图书' : '暂无图书数据' }}
       </div>
     </div>
 
@@ -137,7 +154,7 @@
 
 <script setup lang="ts">
 // 导入接口
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, onMounted, computed } from 'vue'
 import { ElMessage } from 'element-plus'
 import {
   getAllBooks,
@@ -174,6 +191,7 @@ const currentBookId = ref<number | null>(null)
 const loading = ref(false)
 const isProcessing = ref(false)
 const loadingCategories = ref(false)
+const searchKeyword = ref('')
 
 // 表单数据
 const formData = reactive({
@@ -184,6 +202,20 @@ const formData = reactive({
   isbn: '',
   category_id: null as number | null,
   description: ''
+})
+
+// 过滤后的图书列表
+const filteredBooks = computed(() => {
+  if (!searchKeyword.value.trim()) {
+    return books.value
+  }
+
+  const keyword = searchKeyword.value.toLowerCase()
+  return books.value.filter(book =>
+    book.title.toLowerCase().includes(keyword) ||
+    book.author.toLowerCase().includes(keyword) ||
+    (book.isbn && book.isbn.toLowerCase().includes(keyword))
+  )
 })
 
 // 生命周期钩子
@@ -369,6 +401,61 @@ const resetForm = () => {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 24px;
+  gap: 16px;
+}
+
+.search-box {
+  position: relative;
+  flex: 1;
+  max-width: 400px;
+  display: flex;
+  align-items: center;
+}
+
+.search-icon {
+  position: absolute;
+  left: 12px;
+  font-size: 16px;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.search-input {
+  width: 100%;
+  padding: 10px 40px 10px 36px;
+  background-color: #1e1e1e;
+  border: 1px solid #333;
+  border-radius: 4px;
+  color: #fff;
+  font-size: 14px;
+  transition: all 0.3s ease;
+
+  &::placeholder {
+    color: #666;
+  }
+
+  &:focus {
+    outline: none;
+    border-color: #4caf50;
+    box-shadow: 0 0 8px rgba(76, 175, 80, 0.3);
+  }
+}
+
+.clear-btn {
+  position: absolute;
+  right: 8px;
+  background: none;
+  border: none;
+  color: #999;
+  font-size: 24px;
+  cursor: pointer;
+  padding: 0 8px;
+  line-height: 1;
+  transition: color 0.2s ease;
+
+  &:hover {
+    color: #4caf50;
+  }
 }
 
 .add-btn {
@@ -381,6 +468,7 @@ const resetForm = () => {
   font-size: 14px;
   font-weight: 500;
   transition: background-color 0.3s ease;
+  white-space: nowrap;
 }
 
 .add-btn:hover {
