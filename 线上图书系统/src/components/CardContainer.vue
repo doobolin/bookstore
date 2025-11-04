@@ -23,6 +23,7 @@
         :ref="el => setCardRef(el, index)"
         class="masonry-item"
         :class="[getCardSizeClass(index), cardAnimations[index] ? 'animate__animated' : '', cardAnimations[index]]"
+        :style="{ opacity: cardVisible[index] ? 1 : 0, transition: 'opacity 0.3s ease' }"
         @click="handleCardClick(book)"
       >
         <!-- 图书封面 -->
@@ -90,7 +91,9 @@ const loading = ref(false)
 const books = ref<Book[]>([])
 const cardRefs = ref<(HTMLElement | null)[]>([])
 const cardAnimations = ref<string[]>([])
+const cardVisible = ref<boolean[]>([]) // 跟踪卡片是否已显示
 const observers = ref<IntersectionObserver[]>([])
+const timeoutMap = new Map<number, number>() // 管理所有 setTimeout ID
 
 // 左右方向随机
 const bounceInDirections = ['animate__bounceInLeft', 'animate__bounceInRight']
@@ -187,48 +190,67 @@ const performSearch = async () => {
   }
 }
 
-// 初始化滚动动画观察器
+// 初始化滚动动画观察器 - 优化版:使用单个共享 Observer
 const initScrollAnimations = () => {
   // 清除旧的观察器
   observers.value.forEach(observer => observer.disconnect())
   observers.value = []
 
-  // 为每个卡片创建观察器
-  cardRefs.value.forEach((card, index) => {
-    if (!card) return
+  // 清除所有旧的 timeouts
+  timeoutMap.forEach(timeoutId => clearTimeout(timeoutId))
+  timeoutMap.clear()
 
-    // 初始化为空动画
+  // 初始化所有卡片动画为空,可见性为 false
+  cardRefs.value.forEach((_, index) => {
     cardAnimations.value[index] = ''
-
-    // 标记是否正在播放动画
-    let isAnimating = false
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting && !isAnimating) {
-            // 进入视口且未在播放动画 - 随机左右 bounceIn
-            isAnimating = true
-            const direction = getRandomDirection()
-            cardAnimations.value[index] = direction
-
-            // 动画结束后移除动画类并重置标记
-            setTimeout(() => {
-              cardAnimations.value[index] = ''
-              isAnimating = false
-            }, 1000)
-          }
-        })
-      },
-      {
-        threshold: 0.2,
-        rootMargin: '0px'
-      }
-    )
-
-    observer.observe(card)
-    observers.value.push(observer)
+    cardVisible.value[index] = false
   })
+
+  // 创建单个共享的 IntersectionObserver
+  const sharedObserver = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          // 找到对应的卡片索引
+          const index = cardRefs.value.findIndex(ref => ref === entry.target)
+          if (index === -1) return
+
+          // 检查是否已显示过(避免重复触发)
+          if (cardVisible.value[index]) return
+
+          // 设置卡片为可见
+          cardVisible.value[index] = true
+
+          // 随机选择左右方向的 bounceIn 动画
+          const direction = getRandomDirection()
+          cardAnimations.value[index] = direction
+
+          // 动画结束后移除动画类(但保持可见)
+          const timeoutId = window.setTimeout(() => {
+            cardAnimations.value[index] = ''
+            timeoutMap.delete(index)
+          }, 1000)
+
+          // 存储 timeout ID 以便后续清理
+          timeoutMap.set(index, timeoutId)
+        }
+      })
+    },
+    {
+      threshold: 0.4, // 阈值设为 40%,动画触发更明显
+      rootMargin: '0px'
+    }
+  )
+
+  // 为所有卡片添加观察
+  cardRefs.value.forEach((card) => {
+    if (card) {
+      sharedObserver.observe(card)
+    }
+  })
+
+  // 保存 observer 引用以便清理
+  observers.value.push(sharedObserver)
 }
 
 // 监听图书数据变化，重新初始化动画
@@ -248,8 +270,14 @@ onMounted(() => {
 
 onUnmounted(() => {
   window.removeEventListener('book-search', handleSearch as EventListener)
+
   // 清除所有观察器
   observers.value.forEach(observer => observer.disconnect())
+  observers.value = []
+
+  // 清除所有 timeouts,防止内存泄漏
+  timeoutMap.forEach(timeoutId => clearTimeout(timeoutId))
+  timeoutMap.clear()
 })
 
 // 由于现在使用后端搜索，不再需要前端过滤
