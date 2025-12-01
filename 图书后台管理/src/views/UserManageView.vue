@@ -1,64 +1,120 @@
 <template>
   <div class="user-manage-container">
-    <div class="page-header">
-      <h2>用户管理</h2>
-      <button class="add-btn" @click="showAddForm = true" :disabled="loading">
-            添加用户
-          </button>
+    <!-- 标签页切换 -->
+    <div class="tabs">
+      <button
+        :class="['tab-btn', { active: activeTab === 'users' }]"
+        @click="activeTab = 'users'"
+      >
+        普通用户管理
+      </button>
+      <button
+        :class="['tab-btn', { active: activeTab === 'admins' }]"
+        @click="activeTab = 'admins'"
+      >
+        管理员管理
+      </button>
     </div>
 
-    <!-- 用户列表 -->
-    <div class="user-list">
-      <div class="list-header">
-        <div class="header-item">ID</div>
-        <div class="header-item">用户名</div>
-        <div class="header-item">邮箱</div>
-        <div class="header-item">角色</div>
-        <div class="header-item">状态</div>
-        <div class="header-item">创建时间</div>
-        <div class="header-item">操作</div>
-      </div>
-      <div v-if="loading" class="loading-message">
-        加载中...
-      </div>
-      <div v-else v-for="user in users" :key="user.id" class="user-item">
-        <div class="user-info">{{ user.id }}</div>
-        <div class="user-info">{{ user.username }}</div>
-        <div class="user-info">{{ user.email }}</div>
-        <div class="user-info">
-          <span :class="['role-tag', user.role]">{{ user.role === 'admin' ? '管理员' : '普通用户' }}</span>
+    <!-- 普通用户管理 -->
+    <div v-show="activeTab === 'users'" class="tab-content">
+      <div class="user-list">
+        <div class="list-header">
+          <div class="header-item">ID</div>
+          <div class="header-item">用户名</div>
+          <div class="header-item">邮箱</div>
+          <div class="header-item">状态</div>
+          <div class="header-item">创建时间</div>
+          <div class="header-item">操作</div>
         </div>
-        <div class="user-info">
-          <span :class="['status-tag', user.status]">{{ user.status === 'active' ? '活跃' : '禁用' }}</span>
+        <div v-if="loading" class="loading-message">
+          加载中...
         </div>
-        <div class="user-info">{{ formatDate(user.created_at) }}</div>
-        <div class="user-actions">
-          <button class="edit-btn" @click="editUser(user)" :disabled="isProcessing">
-            编辑
-          </button>
-          <button class="delete-btn" @click="deleteUser(user.id)" :disabled="isProcessing">
-            删除
-          </button>
-          <button 
-            class="status-btn" 
-            :class="user.status === 'active' ? 'disable' : 'enable'"
-            @click="toggleUserStatus(user.id, user.status)"
-            :disabled="isProcessing"
-          >
-            {{ user.status === 'active' ? '禁用' : '启用' }}
-          </button>
+        <div v-else v-for="user in normalUsers" :key="user.id" class="user-item">
+          <div class="user-info">{{ user.id }}</div>
+          <div class="user-info">{{ user.username }}</div>
+          <div class="user-info">{{ user.email }}</div>
+          <div class="user-info">
+            <span :class="['status-tag', user.status]">
+              {{ user.status === 'active' ? '活跃' : '禁用' }}
+            </span>
+          </div>
+          <div class="user-info">{{ formatDate(user.created_at) }}</div>
+          <div class="user-actions">
+            <button
+              class="status-btn"
+              :class="user.status === 'active' ? 'disable' : 'enable'"
+              @click="toggleUserStatus(user.id, user.status)"
+              :disabled="isProcessing"
+            >
+              {{ user.status === 'active' ? '禁用' : '启用' }}
+            </button>
+          </div>
         </div>
-      </div>
-      <div v-if="!loading && users.length === 0" class="empty-message">
-        暂无用户数据
+        <div v-if="!loading && normalUsers.length === 0" class="empty-message">
+          暂无普通用户数据
+        </div>
       </div>
     </div>
 
-    <!-- 添加/编辑用户表单 -->
+    <!-- 管理员管理 -->
+    <div v-show="activeTab === 'admins'" class="tab-content">
+      <div class="section-header">
+        <button class="add-btn" @click="showAddForm = true" :disabled="loading">
+          添加管理员
+        </button>
+      </div>
+
+      <div class="user-list">
+        <div class="list-header">
+          <div class="header-item">ID</div>
+          <div class="header-item">用户名</div>
+          <div class="header-item">邮箱</div>
+          <div class="header-item">状态</div>
+          <div class="header-item">创建时间</div>
+          <div class="header-item">操作</div>
+        </div>
+        <div v-if="loading" class="loading-message">
+          加载中...
+        </div>
+        <div v-else v-for="user in adminUsers" :key="user.id" class="user-item">
+          <div class="user-info">{{ user.id }}</div>
+          <div class="user-info">{{ user.username }}</div>
+          <div class="user-info">{{ user.email }}</div>
+          <div class="user-info">
+            <span :class="['status-tag', user.status]">
+              {{ user.status === 'active' ? '活跃' : '禁用' }}
+            </span>
+          </div>
+          <div class="user-info">{{ formatDate(user.created_at) }}</div>
+          <div class="user-actions">
+            <button class="edit-btn" @click="editUser(user)" :disabled="isProcessing">
+              编辑
+            </button>
+            <button class="delete-btn" @click="deleteUser(user.id)" :disabled="isProcessing">
+              删除
+            </button>
+            <button
+              class="status-btn"
+              :class="user.status === 'active' ? 'disable' : 'enable'"
+              @click="toggleUserStatus(user.id, user.status)"
+              :disabled="isProcessing"
+            >
+              {{ user.status === 'active' ? '禁用' : '启用' }}
+            </button>
+          </div>
+        </div>
+        <div v-if="!loading && adminUsers.length === 0" class="empty-message">
+          暂无管理员数据
+        </div>
+      </div>
+    </div>
+
+    <!-- 添加/编辑管理员表单 -->
     <div v-if="showAddForm || showEditForm" class="modal-overlay" @click="closeModal">
       <div class="modal-content" @click.stop>
         <div class="modal-header">
-          <h3>{{ showEditForm ? '编辑用户' : '添加用户' }}</h3>
+          <h3>{{ showEditForm ? '编辑管理员' : '添加管理员' }}</h3>
           <button class="close-btn" @click="closeModal">&times;</button>
         </div>
         <form @submit.prevent="submitForm" class="user-form">
@@ -92,13 +148,6 @@
               placeholder="请输入密码"
             />
           </div>
-          <div class="form-group">
-            <label for="role">角色</label>
-            <select id="role" v-model="formData.role" required>
-              <option value="user">普通用户</option>
-              <option value="admin">管理员</option>
-            </select>
-          </div>
           <div class="form-group" v-if="showEditForm">
             <label for="status">状态</label>
             <select id="status" v-model="formData.status" required>
@@ -108,15 +157,11 @@
           </div>
           <div class="form-actions">
             <button type="button" class="cancel-btn" @click="closeModal" :disabled="formLoading">
-              <i class="icon-cancel"></i> 取消
+              取消
             </button>
             <button type="submit" class="submit-btn" :disabled="formLoading">
               <span v-if="formLoading">处理中...</span>
-              <span v-else>
-                <i v-if="showEditForm" class="icon-save"></i>
-                <i v-else class="icon-add"></i>
-                {{ showEditForm ? '保存' : '添加' }}
-              </span>
+              <span v-else>{{ showEditForm ? '保存' : '添加' }}</span>
             </button>
           </div>
         </form>
@@ -126,14 +171,14 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, onMounted, computed } from 'vue'
 import { ElMessage } from 'element-plus'
-import { 
-  getAllUsers, 
-  addUser, 
-  updateUser, 
-  deleteUser as deleteUserApi, 
-  toggleUserStatus as toggleUserStatusApi 
+import {
+  getAllUsers,
+  addUser,
+  updateUser,
+  deleteUser as deleteUserApi,
+  toggleUserStatus as toggleUserStatusApi
 } from '../api/userApi'
 
 // 定义用户接口
@@ -148,21 +193,32 @@ interface User {
 }
 
 // 状态变量
+const activeTab = ref<'users' | 'admins'>('users')
 const users = ref<User[]>([])
 const showAddForm = ref(false)
 const showEditForm = ref(false)
 const currentUserId = ref<number | null>(null)
-const loading = ref(false) // 列表加载状态
-const isProcessing = ref(false) // 操作处理状态
-const formLoading = ref(false) // 表单处理状态
+const loading = ref(false)
+const isProcessing = ref(false)
+const formLoading = ref(false)
 
 // 表单数据
 const formData = reactive({
   username: '',
   email: '',
   password: '',
-  role: 'user' as 'admin' | 'user',
+  role: 'admin' as 'admin' | 'user',
   status: 'active' as 'active' | 'inactive'
+})
+
+// 计算属性：普通用户列表
+const normalUsers = computed(() => {
+  return users.value.filter(user => user.role === 'user')
+})
+
+// 计算属性：管理员列表
+const adminUsers = computed(() => {
+  return users.value.filter(user => user.role === 'admin')
 })
 
 // 组件挂载时加载数据
@@ -170,33 +226,32 @@ onMounted(() => {
   loadUsers()
 })
 
-// 加载用户数据（从后端API）
-  const loadUsers = async () => {
-    loading.value = true
-    try {
-      console.log('开始加载用户数据')
-      const data = await getAllUsers()
-      console.log('getAllUsers返回的数据:', data)
-      users.value = data
-      console.log('users.value赋值后:', users.value)
-    } catch (error) {
-      ElMessage.error('加载用户列表失败，请检查后端服务是否正常运行')
-      console.error('加载用户列表失败:', error)
-      // 不使用模拟数据，保持列表为空
-      users.value = []
-    } finally {
-      loading.value = false
-      console.log('加载完成，loading状态变为false')
-    }
+// 加载用户数据
+const loadUsers = async () => {
+  loading.value = true
+  try {
+    const data = await getAllUsers()
+    users.value = data
+  } catch (error) {
+    ElMessage.error('加载用户列表失败，请检查后端服务是否正常运行')
+    console.error('加载用户列表失败:', error)
+    users.value = []
+  } finally {
+    loading.value = false
   }
+}
 
-// 编辑用户
+// 编辑用户（仅限管理员）
 const editUser = (user: User) => {
+  if (user.role !== 'admin') {
+    ElMessage.warning('只能编辑管理员信息')
+    return
+  }
   currentUserId.value = user.id
   formData.username = user.username
   formData.email = user.email
-  formData.password = '' // 编辑时不显示密码
-  formData.role = user.role
+  formData.password = ''
+  formData.role = 'admin'
   formData.status = user.status
   showEditForm.value = true
 }
@@ -206,7 +261,7 @@ const resetForm = () => {
   formData.username = ''
   formData.email = ''
   formData.password = ''
-  formData.role = 'user'
+  formData.role = 'admin'
   formData.status = 'active'
   currentUserId.value = null
 }
@@ -218,61 +273,65 @@ const closeModal = () => {
   resetForm()
 }
 
-// 提交表单（添加或编辑用户）
+// 提交表单（添加或编辑管理员）
 const submitForm = async () => {
   formLoading.value = true
   try {
     if (showEditForm.value && currentUserId.value) {
-      // 编辑用户
-      const updateData = {
+      // 编辑管理员
+      const updateData: any = {
         username: formData.username,
         email: formData.email,
-        role: formData.role,
+        role: 'admin',
         status: formData.status
       }
-      // 只有在填写了新密码时才更新密码
       if (formData.password) {
         updateData.password = formData.password
       }
-      
+
       await updateUser(currentUserId.value, updateData)
-      ElMessage.success('用户更新成功')
+      ElMessage.success('管理员更新成功')
     } else {
-      // 添加用户
+      // 添加管理员
       await addUser({
         username: formData.username,
         email: formData.email,
         password: formData.password,
-        role: formData.role
+        role: 'admin'
       })
-      ElMessage.success('用户添加成功')
+      ElMessage.success('管理员添加成功')
     }
-    
-    // 关闭模态框并重新加载数据
+
     closeModal()
     await loadUsers()
   } catch (error) {
-    ElMessage.error(showEditForm.value ? '用户更新失败' : '用户添加失败')
-    console.error(showEditForm.value ? '更新用户失败:' : '添加用户失败:', error)
+    ElMessage.error(showEditForm.value ? '管理员更新失败' : '管理员添加失败')
+    console.error(showEditForm.value ? '更新管理员失败:' : '添加管理员失败:', error)
   } finally {
     formLoading.value = false
   }
 }
 
-// 删除用户
+// 删除用户（仅限管理员）
 const deleteUser = async (id: number) => {
-  if (!confirm('确定要删除这个用户吗？')) {
+  const user = users.value.find(u => u.id === id)
+  if (user && user.role !== 'admin') {
+    ElMessage.warning('只能删除管理员账号')
     return
   }
-  
+
+  if (!confirm('确定要删除这个管理员吗？')) {
+    return
+  }
+
   isProcessing.value = true
   try {
     await deleteUserApi(id)
-    ElMessage.success('用户删除成功')
+    ElMessage.success('管理员删除成功')
     await loadUsers()
   } catch (error) {
-    ElMessage.error('用户删除失败')
-    console.error('删除用户失败:', error)
+    ElMessage.error('管理员删除失败')
+    console.error('删除管理员失败:', error)
   } finally {
     isProcessing.value = false
   }
@@ -318,10 +377,75 @@ const formatDate = (dateString?: string) => {
 }
 
 .page-header {
+  margin-bottom: 24px;
+
+  h2 {
+    margin: 0;
+    color: #4caf50;
+  }
+}
+
+/* 标签页 */
+.tabs {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 24px;
+  border-bottom: 2px solid #333;
+}
+
+.tab-btn {
+  background: none;
+  border: none;
+  padding: 12px 24px;
+  color: #999;
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  border-bottom: 3px solid transparent;
+  transition: all 0.3s ease;
+  position: relative;
+  top: 2px;
+
+  &:hover {
+    color: #4caf50;
+  }
+
+  &.active {
+    color: #4caf50;
+    border-bottom-color: #4caf50;
+  }
+}
+
+.tab-content {
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.section-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 24px;
+  margin-bottom: 20px;
+
+  h3 {
+    margin: 0;
+    color: #e0e0e0;
+  }
+
+  .tip {
+    color: #999;
+    font-size: 13px;
+  }
 }
 
 .add-btn {
@@ -334,10 +458,15 @@ const formatDate = (dateString?: string) => {
   font-size: 14px;
   font-weight: 500;
   transition: background-color 0.3s ease;
-}
 
-.add-btn:hover {
-  background-color: #45a049;
+  &:hover {
+    background-color: #45a049;
+  }
+
+  &:disabled {
+    background-color: #666;
+    cursor: not-allowed;
+  }
 }
 
 /* 用户列表样式 */
@@ -349,7 +478,7 @@ const formatDate = (dateString?: string) => {
 
 .list-header {
   display: grid;
-  grid-template-columns: 80px 150px 1fr 100px 100px 200px 180px;
+  grid-template-columns: 80px 150px 1fr 100px 200px 180px;
   background-color: #2a2a2a;
   padding: 16px 20px;
   font-weight: 600;
@@ -363,18 +492,18 @@ const formatDate = (dateString?: string) => {
 
 .user-item {
   display: grid;
-  grid-template-columns: 80px 150px 1fr 100px 100px 200px 180px;
+  grid-template-columns: 80px 150px 1fr 100px 200px 180px;
   padding: 16px 20px;
   border-bottom: 1px solid #333;
   transition: background-color 0.2s ease;
-}
 
-.user-item:hover {
-  background-color: #252525;
-}
+  &:hover {
+    background-color: #252525;
+  }
 
-.user-item:last-child {
-  border-bottom: none;
+  &:last-child {
+    border-bottom: none;
+  }
 }
 
 .user-info {
@@ -383,33 +512,22 @@ const formatDate = (dateString?: string) => {
   color: #e0e0e0;
 }
 
-/* 角色和状态标签 */
-.role-tag,
+/* 状态标签 */
 .status-tag {
   padding: 4px 8px;
   border-radius: 12px;
   font-size: 12px;
   font-weight: 500;
-}
 
-.role-tag.admin {
-  background-color: #2196f3;
-  color: white;
-}
+  &.active {
+    background-color: #4caf50;
+    color: white;
+  }
 
-.role-tag.user {
-  background-color: #673ab7;
-  color: white;
-}
-
-.status-tag.active {
-  background-color: #4caf50;
-  color: white;
-}
-
-.status-tag.inactive {
-  background-color: #9e9e9e;
-  color: white;
+  &.inactive {
+    background-color: #9e9e9e;
+    color: white;
+  }
 }
 
 /* 操作按钮 */
@@ -428,43 +546,48 @@ const formatDate = (dateString?: string) => {
   cursor: pointer;
   font-size: 12px;
   transition: background-color 0.3s ease;
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
 }
 
 .edit-btn {
   background-color: #2196f3;
   color: white;
-}
 
-.edit-btn:hover {
-  background-color: #1976d2;
+  &:hover:not(:disabled) {
+    background-color: #1976d2;
+  }
 }
 
 .delete-btn {
   background-color: #f44336;
   color: white;
-}
 
-.delete-btn:hover {
-  background-color: #d32f2f;
+  &:hover:not(:disabled) {
+    background-color: #d32f2f;
+  }
 }
 
 .status-btn {
-  background-color: #ff9800;
   color: white;
+
+  &.disable {
+    background-color: #ff5722;
+  }
+
+  &.enable {
+    background-color: #4caf50;
+  }
+
+  &:hover:not(:disabled) {
+    opacity: 0.9;
+  }
 }
 
-.status-btn.disable {
-  background-color: #ff5722;
-}
-
-.status-btn.enable {
-  background-color: #4caf50;
-}
-
-.status-btn:hover {
-  opacity: 0.9;
-}
-
+.loading-message,
 .empty-message {
   padding: 40px;
   text-align: center;
@@ -500,11 +623,11 @@ const formatDate = (dateString?: string) => {
   align-items: center;
   padding: 20px;
   border-bottom: 1px solid #333;
-}
 
-.modal-header h3 {
-  margin: 0;
-  color: #4caf50;
+  h3 {
+    margin: 0;
+    color: #4caf50;
+  }
 }
 
 .close-btn {
@@ -519,10 +642,10 @@ const formatDate = (dateString?: string) => {
   display: flex;
   align-items: center;
   justify-content: center;
-}
 
-.close-btn:hover {
-  color: #fff;
+  &:hover {
+    color: #fff;
+  }
 }
 
 /* 表单样式 */
@@ -532,30 +655,29 @@ const formatDate = (dateString?: string) => {
 
 .form-group {
   margin-bottom: 20px;
-}
 
-.form-group label {
-  display: block;
-  margin-bottom: 8px;
-  color: #e0e0e0;
-  font-weight: 500;
-}
+  label {
+    display: block;
+    margin-bottom: 8px;
+    color: #e0e0e0;
+    font-weight: 500;
+  }
 
-.form-group input,
-.form-group select {
-  width: 100%;
-  padding: 10px;
-  background-color: #2a2a2a;
-  border: 1px solid #333;
-  border-radius: 4px;
-  color: #e0e0e0;
-  font-size: 14px;
-}
+  input,
+  select {
+    width: 100%;
+    padding: 10px;
+    background-color: #2a2a2a;
+    border: 1px solid #333;
+    border-radius: 4px;
+    color: #e0e0e0;
+    font-size: 14px;
 
-.form-group input:focus,
-.form-group select:focus {
-  outline: none;
-  border-color: #4caf50;
+    &:focus {
+      outline: none;
+      border-color: #4caf50;
+    }
+  }
 }
 
 .form-actions {
@@ -574,25 +696,28 @@ const formatDate = (dateString?: string) => {
   font-size: 14px;
   font-weight: 500;
   transition: background-color 0.3s ease;
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
 }
 
 .cancel-btn {
   background-color: #666;
   color: white;
-}
 
-.cancel-btn:hover {
-  background-color: #555;
+  &:hover:not(:disabled) {
+    background-color: #555;
+  }
 }
 
 .submit-btn {
   background-color: #4caf50;
   color: white;
+
+  &:hover:not(:disabled) {
+    background-color: #45a049;
+  }
 }
-
-.submit-btn:hover {
-  background-color: #45a049;
-}
-
-
 </style>

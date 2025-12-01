@@ -234,7 +234,7 @@ const getCartItemColor = (index: number) => {
   return colors[index % colors.length]
 }
 
-const checkout = async () => {
+const checkout = () => {
   if (cartItems.value.length === 0) {
     ElMessage.warning('购物车为空')
     return
@@ -247,40 +247,20 @@ const checkout = async () => {
     return
   }
 
-  try {
-    // 确认订单
-    await ElMessageBox.confirm(
-      `确认提交订单？共 ${cartItems.value.length} 件商品，总金额：¥${cartTotal.value}`,
-      '确认订单',
-      {
-        confirmButtonText: '确认提交',
-        cancelButtonText: '取消',
-        type: 'warning'
-      }
-    )
-
-    // 创建订单 - 简化版
-    const orderData = {
-      user_id: userId,
-      items: cartItems.value.map(item => ({
-        book_id: item.book_id,
-        quantity: item.quantity
-      }))
-    }
-
-    const response = await createOrder(orderData)
-
-    ElMessage.success(`订单提交成功！订单号：${response.order_number}，总金额：¥${response.total_amount.toFixed(2)}`)
-
-    // 清空购物车
-    await clearCart(userId)
-    await loadCart()
-  } catch (error: any) {
-    if (error !== 'cancel') {
-      console.error('提交订单失败:', error)
-      ElMessage.error('提交订单失败')
-    }
+  // 将购物车数据存储到 sessionStorage，传递给订单确认页面
+  const checkoutData = {
+    items: cartItems.value.map(item => ({
+      book_id: item.book_id,
+      title: item.title,
+      author: item.author,
+      price: item.price,
+      quantity: item.quantity
+    }))
   }
+  sessionStorage.setItem('checkoutCart', JSON.stringify(checkoutData))
+
+  // 跳转到订单确认页面
+  router.push('/checkout')
 }
 
 const handleAddToCart = (event: CustomEvent) => {

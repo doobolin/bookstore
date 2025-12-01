@@ -42,6 +42,10 @@
               </span>
               <template #dropdown>
                 <el-dropdown-menu>
+                  <el-dropdown-item command="profile">
+                    <el-icon><User /></el-icon>
+                    个人资料
+                  </el-dropdown-item>
                   <el-dropdown-item command="orders">
                     <el-icon><Tickets /></el-icon>
                     我的订单
@@ -209,7 +213,9 @@ const handleUserCommand = async (command: string) => {
       // 用户取消
     }
   } else if (command === 'orders') {
-    ElMessage.info('订单页面开发中...')
+    router.push('/orders')
+  } else if (command === 'profile') {
+    router.push('/profile')
   }
 }
 

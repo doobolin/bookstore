@@ -12,14 +12,20 @@ export interface OrderItem {
   subtotal?: number
 }
 
+// 定义订单状态类型
+export type OrderStatus = 'pending' | 'processing' | 'shipping' | 'delivered' | 'cancelled'
+
 // 定义订单接口
 export interface Order {
   id: number
   order_number: string
   user_id?: number
   total_amount: number
+  status?: OrderStatus
   created_at: string
   items?: OrderItem[]
+  total_items?: number
+  username?: string
 }
 
 // 定义创建订单请求接口
@@ -82,12 +88,35 @@ export const getOrderDetail = async (orderId: number): Promise<Order | null> => 
   }
 }
 
-// 取消订单（删除订单）
+// 取消订单（将状态改为cancelled）
 export const cancelOrder = async (orderId: number): Promise<void> => {
   try {
-    await axiosInstance.delete(`/orders/${orderId}/cancel`)
+    await axiosInstance.put(`/orders/${orderId}/cancel`)
   } catch (error) {
     console.error('取消订单失败:', error)
+    throw error
+  }
+}
+
+// 更新订单状态
+export const updateOrderStatus = async (
+  orderId: number,
+  status: OrderStatus
+): Promise<void> => {
+  try {
+    await axiosInstance.put(`/orders/${orderId}/status`, { status })
+  } catch (error) {
+    console.error('更新订单状态失败:', error)
+    throw error
+  }
+}
+
+// 删除订单（仅限已取消和已完成的订单）
+export const deleteOrder = async (orderId: number): Promise<void> => {
+  try {
+    await axiosInstance.delete(`/orders/${orderId}`)
+  } catch (error) {
+    console.error('删除订单失败:', error)
     throw error
   }
 }

@@ -5,6 +5,8 @@ import Register from '../components/Register.vue'
 import BookDetail from '../components/BookDetail.vue'
 import OrderList from '../components/OrderList.vue'
 import OrderDetail from '../components/OrderDetail.vue'
+import OrderCheckout from '../components/OrderCheckout.vue'
+import UserProfile from '../components/UserProfile.vue'
 
 const routes = [
   {
@@ -38,6 +40,16 @@ const routes = [
     name: 'OrderDetail',
     component: OrderDetail,
     props: true
+  },
+  {
+    path: '/checkout',
+    name: 'OrderCheckout',
+    component: OrderCheckout
+  },
+  {
+    path: '/profile',
+    name: 'UserProfile',
+    component: UserProfile
   }
 ]
 

@@ -623,7 +623,8 @@ def get_all_books():
                     b.stock,
                     b.rating,
                     b.image,
-                    b.status
+                    b.status,
+                    b.isbn
                 FROM books b
                 LEFT JOIN categories c ON b.category_id = c.id
             """))
@@ -640,7 +641,8 @@ def get_all_books():
                     'stock': row[7],
                     'rating': float(row[8]) if row[8] else 0.0,
                     'image': row[9],
-                    'status': row[10]
+                    'status': row[10],
+                    'isbn': row[11]
                 })
             return make_response({'books': books}, '获取图书列表成功')
     except Exception as e:
@@ -753,13 +755,14 @@ def add_book():
             
             # 插入新图书（指定ID）
             insert_query = text("""
-                INSERT INTO books (id, title, author, category_id, description, price, stock, rating, image, status)
-                VALUES (:id, :title, :author, :category_id, :description, :price, :stock, :rating, :image, :status)
+                INSERT INTO books (id, title, author, isbn, category_id, description, price, stock, rating, image, status)
+                VALUES (:id, :title, :author, :isbn, :category_id, :description, :price, :stock, :rating, :image, :status)
             """)
             db.session.execute(insert_query, {
                 'id': min_available_id,
                 'title': data['title'],
                 'author': data['author'],
+                'isbn': data.get('isbn'),
                 'category_id': data.get('category_id'),
                 'description': data.get('description'),
                 'price': data['price'],
@@ -771,18 +774,20 @@ def add_book():
             db.session.commit()
             
             # 获取新创建的图书信息
-            new_book_query = text("SELECT id, title, author, price, stock FROM books WHERE id = :id")
+            new_book_query = text("SELECT id, title, author, isbn, price, stock, status FROM books WHERE id = :id")
             new_book = db.session.execute(new_book_query, {'id': min_available_id}).fetchone()
-            
+
             if not new_book:
                 return make_response(None, '添加图书成功，但无法获取新图书信息', 201)
-            
+
             book_data = {
                 'id': new_book[0],
                 'title': new_book[1],
                 'author': new_book[2],
-                'price': float(new_book[3]),
-                'stock': new_book[4]
+                'isbn': new_book[3],
+                'price': float(new_book[4]),
+                'stock': new_book[5],
+                'status': new_book[6]
             }
             
             return make_response(book_data, '添加图书成功')
@@ -1345,7 +1350,7 @@ def get_orders():
             if user_id:
                 # 用户订单
                 result = db.session.execute(text("""
-                    SELECT id, order_number, total_amount, created_at
+                    SELECT id, order_number, total_amount, status, created_at
                     FROM orders
                     WHERE user_id = :user_id
                     ORDER BY created_at DESC
@@ -1354,7 +1359,7 @@ def get_orders():
                 # 所有订单（管理员用）- 关联users表获取用户名
                 result = db.session.execute(text("""
                     SELECT o.id, o.order_number, o.user_id, u.username,
-                           o.total_amount, o.created_at
+                           o.total_amount, o.status, o.created_at
                     FROM orders o
                     LEFT JOIN users u ON o.user_id = u.id
                     ORDER BY o.created_at DESC
@@ -1364,12 +1369,43 @@ def get_orders():
             for row in result:
                 if user_id:
                     # 用户订单格式
-                    orders.append({
-                        'id': row[0],
+                    order_id = row[0]
+                    order_data = {
+                        'id': order_id,
                         'order_number': row[1],
                         'total_amount': float(row[2]),
-                        'created_at': row[3].strftime('%Y-%m-%d %H:%M:%S') if row[3] else None
-                    })
+                        'status': row[3],
+                        'created_at': row[4].strftime('%Y-%m-%d %H:%M:%S') if row[4] else None
+                    }
+
+                    # 查询订单商品信息（仅获取前3个商品用于预览）
+                    items_result = db.session.execute(text("""
+                        SELECT oi.book_id, b.title, b.author, b.image, oi.quantity
+                        FROM order_items oi
+                        JOIN books b ON oi.book_id = b.id
+                        WHERE oi.order_id = :order_id
+                        LIMIT 3
+                    """), {'order_id': order_id})
+
+                    items = []
+                    for item_row in items_result:
+                        items.append({
+                            'book_id': item_row[0],
+                            'book_title': item_row[1],
+                            'book_author': item_row[2],
+                            'book_image': item_row[3],
+                            'quantity': item_row[4]
+                        })
+
+                    # 查询订单商品总数
+                    total_items_result = db.session.execute(text("""
+                        SELECT COUNT(*) FROM order_items WHERE order_id = :order_id
+                    """), {'order_id': order_id})
+                    total_items = total_items_result.scalar() or 0
+
+                    order_data['items'] = items
+                    order_data['total_items'] = total_items
+                    orders.append(order_data)
                 else:
                     # 管理员订单格式
                     orders.append({
@@ -1378,7 +1414,8 @@ def get_orders():
                         'user_id': row[2],
                         'username': row[3],
                         'total_amount': float(row[4]),
-                        'created_at': row[5].strftime('%Y-%m-%d %H:%M:%S') if row[5] else None
+                        'status': row[5],
+                        'created_at': row[6].strftime('%Y-%m-%d %H:%M:%S') if row[6] else None
                     })
 
             return make_response({
@@ -1395,7 +1432,7 @@ def get_order_detail(order_id):
         with app.app_context():
             # 获取订单基本信息（关联users表获取用户名）
             order = db.session.execute(text("""
-                SELECT o.id, o.order_number, o.user_id, o.total_amount, o.created_at, u.username
+                SELECT o.id, o.order_number, o.user_id, o.total_amount, o.status, o.created_at, u.username
                 FROM orders o
                 LEFT JOIN users u ON o.user_id = u.id
                 WHERE o.id = :order_id
@@ -1431,9 +1468,10 @@ def get_order_detail(order_id):
                 'id': order[0],
                 'order_number': order[1],
                 'user_id': order[2],
-                'username': order[5],  # 添加用户名
+                'username': order[6],  # 用户名
                 'total_amount': float(order[3]),
-                'created_at': order[4].strftime('%Y-%m-%d %H:%M:%S') if order[4] else None,
+                'status': order[4],  # 订单状态
+                'created_at': order[5].strftime('%Y-%m-%d %H:%M:%S') if order[5] else None,
                 'items': order_items
             }
 
@@ -1441,18 +1479,22 @@ def get_order_detail(order_id):
     except Exception as e:
         return make_response(None, f'获取订单详情失败: {str(e)}', 500)
 
-# 取消订单（恢复库存并删除订单）
-@app.route('/api/orders/<int:order_id>/cancel', methods=['DELETE'])
+# 取消订单（恢复库存并将状态改为cancelled）
+@app.route('/api/orders/<int:order_id>/cancel', methods=['PUT'])
 def cancel_order(order_id):
     try:
         with app.app_context():
             # 检查订单是否存在
             order = db.session.execute(text("""
-                SELECT id FROM orders WHERE id = :order_id
+                SELECT id, status FROM orders WHERE id = :order_id
             """), {'order_id': order_id}).fetchone()
 
             if not order:
                 return make_response(None, '订单不存在', 404)
+
+            # 检查订单状态，只有pending和processing状态的订单可以取消
+            if order[1] not in ['pending', 'processing']:
+                return make_response(None, f'订单状态为{order[1]}，无法取消', 400)
 
             # 恢复库存
             db.session.execute(text("""
@@ -1462,16 +1504,406 @@ def cancel_order(order_id):
                 WHERE oi.order_id = :order_id
             """), {'order_id': order_id})
 
-            # 删除订单（会级联删除order_items）
+            # 将订单状态更新为cancelled（不删除订单）
+            db.session.execute(text("""
+                UPDATE orders SET status = 'cancelled' WHERE id = :order_id
+            """), {'order_id': order_id})
+
+            db.session.commit()
+            return make_response(None, '订单已取消')
+    except Exception as e:
+        db.session.rollback()
+        return make_response(None, f'取消订单失败: {str(e)}', 500)
+
+# 更新订单状态
+@app.route('/api/orders/<int:order_id>/status', methods=['PUT'])
+def update_order_status(order_id):
+    try:
+        from flask import request
+        data = request.get_json()
+
+        # 验证必填字段
+        if not data or 'status' not in data:
+            return make_response(None, '缺少状态字段', 400)
+
+        status = data['status']
+
+        # 验证状态值
+        valid_statuses = ['pending', 'processing', 'shipping', 'delivered', 'cancelled']
+        if status not in valid_statuses:
+            return make_response(None, f'无效的状态值，只能是: {", ".join(valid_statuses)}', 400)
+
+        with app.app_context():
+            # 检查订单是否存在
+            order = db.session.execute(text("""
+                SELECT id, status FROM orders WHERE id = :order_id
+            """), {'order_id': order_id}).fetchone()
+
+            if not order:
+                return make_response(None, '订单不存在', 404)
+
+            # 更新订单状态
+            db.session.execute(text("""
+                UPDATE orders SET status = :status WHERE id = :order_id
+            """), {'status': status, 'order_id': order_id})
+
+            db.session.commit()
+
+            return make_response({
+                'id': order_id,
+                'status': status
+            }, '订单状态更新成功')
+    except Exception as e:
+        db.session.rollback()
+        return make_response(None, f'更新订单状态失败: {str(e)}', 500)
+
+# 删除订单（仅限已取消和已完成的订单）
+@app.route('/api/orders/<int:order_id>', methods=['DELETE'])
+def delete_order(order_id):
+    try:
+        with app.app_context():
+            # 检查订单是否存在并获取状态
+            order = db.session.execute(text("""
+                SELECT id, status FROM orders WHERE id = :order_id
+            """), {'order_id': order_id}).fetchone()
+
+            if not order:
+                return make_response(None, '订单不存在', 404)
+
+            # 只允许删除已取消或已完成的订单
+            if order[1] not in ['cancelled', 'delivered']:
+                return make_response(None, f'只能删除已取消或已完成的订单，当前状态为：{order[1]}', 400)
+
+            # 删除订单明细
+            db.session.execute(text("""
+                DELETE FROM order_items WHERE order_id = :order_id
+            """), {'order_id': order_id})
+
+            # 删除订单
             db.session.execute(text("""
                 DELETE FROM orders WHERE id = :order_id
             """), {'order_id': order_id})
 
             db.session.commit()
-            return make_response(None, '订单已取消并删除')
+            return make_response(None, '订单已删除')
     except Exception as e:
         db.session.rollback()
-        return make_response(None, f'取消订单失败: {str(e)}', 500)
+        return make_response(None, f'删除订单失败: {str(e)}', 500)
+
+# ============================================
+# 用户资料管理API
+# ============================================
+
+# 获取用户完整资料
+@app.route('/api/user/profile/<int:user_id>', methods=['GET'])
+def get_user_profile(user_id):
+    try:
+        with app.app_context():
+            # 查询用户基本信息
+            user_query = text("""
+                SELECT id, username, nickname, email, phone, avatar, gender, birthday,
+                       role, status, created_at
+                FROM users
+                WHERE id = :user_id
+            """)
+            user = db.session.execute(user_query, {'user_id': user_id}).fetchone()
+
+            if not user:
+                return make_response(None, '用户不存在', 404)
+
+            # 查询交易统计
+            stats_query = text("""
+                SELECT
+                    COUNT(DISTINCT o.id) as total_orders,
+                    COUNT(DISTINCT CASE WHEN o.status = 'delivered' THEN o.id END) as completed_orders,
+                    COALESCE(SUM(CASE WHEN o.status != 'cancelled' THEN o.total_amount ELSE 0 END), 0) as total_spent
+                FROM orders o
+                WHERE o.user_id = :user_id
+            """)
+            stats = db.session.execute(stats_query, {'user_id': user_id}).fetchone()
+
+            user_data = {
+                'id': user[0],
+                'username': user[1],
+                'nickname': user[2],
+                'email': user[3],
+                'phone': user[4],
+                'avatar': user[5],
+                'gender': user[6],
+                'birthday': user[7].strftime('%Y-%m-%d') if user[7] else None,
+                'role': user[8],
+                'status': user[9],
+                'created_at': user[10].strftime('%Y-%m-%d %H:%M:%S') if user[10] else None,
+                'stats': {
+                    'total_orders': stats[0] if stats else 0,
+                    'completed_orders': stats[1] if stats else 0,
+                    'total_spent': float(stats[2]) if stats else 0.0
+                }
+            }
+
+            return make_response(user_data, '获取用户资料成功')
+    except Exception as e:
+        return make_response(None, f'获取用户资料失败: {str(e)}', 500)
+
+# 更新用户资料
+@app.route('/api/user/profile/<int:user_id>', methods=['PUT'])
+def update_user_profile(user_id):
+    try:
+        from flask import request
+        data = request.get_json()
+
+        with app.app_context():
+            # 检查用户是否存在
+            check_query = text("SELECT id FROM users WHERE id = :user_id")
+            check_result = db.session.execute(check_query, {'user_id': user_id}).fetchone()
+
+            if not check_result:
+                return make_response(None, '用户不存在', 404)
+
+            # 构建更新查询
+            update_fields = []
+            update_params = {'user_id': user_id}
+
+            allowed_fields = ['nickname', 'email', 'phone', 'avatar', 'gender', 'birthday']
+            for field in allowed_fields:
+                if field in data:
+                    update_fields.append(f"{field} = :{field}")
+                    update_params[field] = data[field]
+
+            if not update_fields:
+                return make_response(None, '没有需要更新的字段', 400)
+
+            update_query = text(f"UPDATE users SET {', '.join(update_fields)} WHERE id = :user_id")
+            db.session.execute(update_query, update_params)
+            db.session.commit()
+
+            return make_response(None, '更新用户资料成功')
+    except Exception as e:
+        db.session.rollback()
+        return make_response(None, f'更新用户资料失败: {str(e)}', 500)
+
+# 修改密码
+@app.route('/api/user/password/<int:user_id>', methods=['PUT'])
+def change_password(user_id):
+    try:
+        from flask import request
+        data = request.get_json()
+
+        if 'old_password' not in data or 'new_password' not in data:
+            return make_response(None, '缺少旧密码或新密码', 400)
+
+        with app.app_context():
+            # 验证旧密码
+            verify_query = text("SELECT id FROM users WHERE id = :user_id AND password = :old_password")
+            verify_result = db.session.execute(verify_query, {
+                'user_id': user_id,
+                'old_password': data['old_password']
+            }).fetchone()
+
+            if not verify_result:
+                return make_response(None, '旧密码错误', 401)
+
+            # 更新密码
+            update_query = text("UPDATE users SET password = :new_password WHERE id = :user_id")
+            db.session.execute(update_query, {
+                'new_password': data['new_password'],
+                'user_id': user_id
+            })
+            db.session.commit()
+
+            return make_response(None, '密码修改成功')
+    except Exception as e:
+        db.session.rollback()
+        return make_response(None, f'密码修改失败: {str(e)}', 500)
+
+# ============================================
+# 收货地址管理API
+# ============================================
+
+# 获取用户所有收货地址
+@app.route('/api/addresses', methods=['GET'])
+def get_addresses():
+    try:
+        from flask import request
+        user_id = request.args.get('user_id')
+
+        if not user_id:
+            return make_response(None, '缺少用户ID', 400)
+
+        with app.app_context():
+            result = db.session.execute(text("""
+                SELECT id, receiver_name, receiver_phone, province, city, district,
+                       detail_address, postal_code, is_default, created_at
+                FROM shipping_addresses
+                WHERE user_id = :user_id
+                ORDER BY is_default DESC, created_at DESC
+            """), {'user_id': user_id})
+
+            addresses = []
+            for row in result:
+                addresses.append({
+                    'id': row[0],
+                    'receiver_name': row[1],
+                    'receiver_phone': row[2],
+                    'province': row[3],
+                    'city': row[4],
+                    'district': row[5],
+                    'detail_address': row[6],
+                    'postal_code': row[7],
+                    'is_default': bool(row[8]),
+                    'created_at': row[9].strftime('%Y-%m-%d %H:%M:%S') if row[9] else None,
+                    'full_address': f"{row[3]}{row[4]}{row[5]}{row[6]}"
+                })
+
+            return make_response({'addresses': addresses}, '获取地址列表成功')
+    except Exception as e:
+        return make_response(None, f'获取地址列表失败: {str(e)}', 500)
+
+# 添加收货地址
+@app.route('/api/addresses', methods=['POST'])
+def add_address():
+    try:
+        from flask import request
+        data = request.get_json()
+
+        # 验证必填字段
+        required_fields = ['user_id', 'receiver_name', 'receiver_phone', 'province', 'city', 'district', 'detail_address']
+        for field in required_fields:
+            if field not in data:
+                return make_response(None, f'缺少必填字段: {field}', 400)
+
+        with app.app_context():
+            # 如果设置为默认地址，先将其他地址设为非默认
+            if data.get('is_default', False):
+                db.session.execute(text("""
+                    UPDATE shipping_addresses SET is_default = 0 WHERE user_id = :user_id
+                """), {'user_id': data['user_id']})
+
+            # 插入新地址
+            insert_query = text("""
+                INSERT INTO shipping_addresses
+                (user_id, receiver_name, receiver_phone, province, city, district, detail_address, postal_code, is_default)
+                VALUES (:user_id, :receiver_name, :receiver_phone, :province, :city, :district, :detail_address, :postal_code, :is_default)
+            """)
+            db.session.execute(insert_query, {
+                'user_id': data['user_id'],
+                'receiver_name': data['receiver_name'],
+                'receiver_phone': data['receiver_phone'],
+                'province': data['province'],
+                'city': data['city'],
+                'district': data['district'],
+                'detail_address': data['detail_address'],
+                'postal_code': data.get('postal_code', ''),
+                'is_default': 1 if data.get('is_default', False) else 0
+            })
+            db.session.commit()
+
+            return make_response(None, '添加地址成功')
+    except Exception as e:
+        db.session.rollback()
+        return make_response(None, f'添加地址失败: {str(e)}', 500)
+
+# 更新收货地址
+@app.route('/api/addresses/<int:address_id>', methods=['PUT'])
+def update_address(address_id):
+    try:
+        from flask import request
+        data = request.get_json()
+
+        with app.app_context():
+            # 检查地址是否存在
+            check_query = text("SELECT user_id FROM shipping_addresses WHERE id = :address_id")
+            check_result = db.session.execute(check_query, {'address_id': address_id}).fetchone()
+
+            if not check_result:
+                return make_response(None, '地址不存在', 404)
+
+            user_id = check_result[0]
+
+            # 如果设置为默认地址，先将其他地址设为非默认
+            if data.get('is_default', False):
+                db.session.execute(text("""
+                    UPDATE shipping_addresses SET is_default = 0 WHERE user_id = :user_id
+                """), {'user_id': user_id})
+
+            # 构建更新查询
+            update_fields = []
+            update_params = {'address_id': address_id}
+
+            allowed_fields = ['receiver_name', 'receiver_phone', 'province', 'city', 'district', 'detail_address', 'postal_code']
+            for field in allowed_fields:
+                if field in data:
+                    update_fields.append(f"{field} = :{field}")
+                    update_params[field] = data[field]
+
+            if 'is_default' in data:
+                update_fields.append("is_default = :is_default")
+                update_params['is_default'] = 1 if data['is_default'] else 0
+
+            if not update_fields:
+                return make_response(None, '没有需要更新的字段', 400)
+
+            update_query = text(f"UPDATE shipping_addresses SET {', '.join(update_fields)} WHERE id = :address_id")
+            db.session.execute(update_query, update_params)
+            db.session.commit()
+
+            return make_response(None, '更新地址成功')
+    except Exception as e:
+        db.session.rollback()
+        return make_response(None, f'更新地址失败: {str(e)}', 500)
+
+# 删除收货地址
+@app.route('/api/addresses/<int:address_id>', methods=['DELETE'])
+def delete_address(address_id):
+    try:
+        with app.app_context():
+            # 检查地址是否存在
+            check_query = text("SELECT id FROM shipping_addresses WHERE id = :address_id")
+            check_result = db.session.execute(check_query, {'address_id': address_id}).fetchone()
+
+            if not check_result:
+                return make_response(None, '地址不存在', 404)
+
+            # 删除地址
+            delete_query = text("DELETE FROM shipping_addresses WHERE id = :address_id")
+            db.session.execute(delete_query, {'address_id': address_id})
+            db.session.commit()
+
+            return make_response(None, '删除地址成功')
+    except Exception as e:
+        db.session.rollback()
+        return make_response(None, f'删除地址失败: {str(e)}', 500)
+
+# 设置默认地址
+@app.route('/api/addresses/<int:address_id>/set-default', methods=['PUT'])
+def set_default_address(address_id):
+    try:
+        with app.app_context():
+            # 检查地址是否存在并获取用户ID
+            check_query = text("SELECT user_id FROM shipping_addresses WHERE id = :address_id")
+            check_result = db.session.execute(check_query, {'address_id': address_id}).fetchone()
+
+            if not check_result:
+                return make_response(None, '地址不存在', 404)
+
+            user_id = check_result[0]
+
+            # 将该用户的所有地址设为非默认
+            db.session.execute(text("""
+                UPDATE shipping_addresses SET is_default = 0 WHERE user_id = :user_id
+            """), {'user_id': user_id})
+
+            # 设置指定地址为默认
+            db.session.execute(text("""
+                UPDATE shipping_addresses SET is_default = 1 WHERE id = :address_id
+            """), {'address_id': address_id})
+
+            db.session.commit()
+
+            return make_response(None, '设置默认地址成功')
+    except Exception as e:
+        db.session.rollback()
+        return make_response(None, f'设置默认地址失败: {str(e)}', 500)
 
 
 # 运行应用

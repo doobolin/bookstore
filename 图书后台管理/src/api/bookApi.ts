@@ -15,7 +15,9 @@ export interface Book {
   stock: number
   isbn?: string
   category?: string
+  category_id?: number
   description?: string
+  status?: 'available' | 'pending'
 }
 
 // 定义类别接口
@@ -47,8 +49,9 @@ export const addBook = async (bookData: {
   price: number
   stock: number
   isbn?: string
-  category_id?: number
+  category_id?: number | null
   description?: string
+  status?: 'available' | 'pending'
 }): Promise<Book> => {
   try {
     const response = await axiosInstance.post('/books', bookData)
@@ -68,8 +71,9 @@ export const updateBook = async (
     price?: number
     stock?: number
     isbn?: string
-    category_id?: number
+    category_id?: number | null
     description?: string
+    status?: 'available' | 'pending'
   }
 ): Promise<Book> => {
   try {

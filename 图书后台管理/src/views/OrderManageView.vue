@@ -1,9 +1,21 @@
 <template>
   <div class="order-manage-container">
     <div class="page-header">
-      <h2>订单列表</h2>
       <button class="refresh-btn" @click="fetchOrders" :disabled="loading">
         🔄 刷新
+      </button>
+    </div>
+
+    <!-- 状态筛选标签 -->
+    <div class="status-tabs">
+      <button
+        v-for="tab in statusTabs"
+        :key="tab.value"
+        :class="['status-tab', { active: activeStatus === tab.value }]"
+        @click="activeStatus = tab.value"
+      >
+        {{ tab.label }}
+        <span v-if="getStatusCount(tab.value) > 0" class="tab-count">{{ getStatusCount(tab.value) }}</span>
       </button>
     </div>
 
@@ -13,6 +25,7 @@
         <div class="header-item">订单号</div>
         <div class="header-item">用户名</div>
         <div class="header-item">订单金额</div>
+        <div class="header-item">订单状态</div>
         <div class="header-item">下单时间</div>
         <div class="header-item">操作</div>
       </div>
@@ -21,26 +34,35 @@
         正在加载订单数据...
       </div>
 
-      <div v-else-if="orders.length === 0" class="empty-message">
-        暂无订单数据
+      <div v-else-if="filteredOrders.length === 0" class="empty-message">
+        {{ activeStatus === 'all' ? '暂无订单数据' : '该状态下暂无订单' }}
       </div>
 
       <div v-else>
         <div
-          v-for="order in orders"
+          v-for="order in filteredOrders"
           :key="order.id"
           class="order-item"
         >
           <div class="order-info">{{ order.order_number }}</div>
           <div class="order-info">{{ order.username || '未知用户' }}</div>
           <div class="order-info amount">¥{{ order.total_amount.toFixed(2) }}</div>
+          <div class="order-info">
+            <span :class="['status-badge', getStatusClass(order.status)]">
+              {{ getStatusText(order.status) }}
+            </span>
+          </div>
           <div class="order-info">{{ formatDate(order.created_at) }}</div>
           <div class="order-actions">
             <button class="view-btn" @click="viewOrderDetail(order)">
               👁️ 详情
             </button>
-            <button class="delete-btn" @click="handleDelete(order)">
-              🗑️ 删除
+            <button
+              v-if="order.status === 'pending' || order.status === 'processing'"
+              class="ship-btn"
+              @click="quickShip(order)"
+            >
+              📦 发货
             </button>
           </div>
         </div>
@@ -64,6 +86,14 @@
             <div class="detail-row">
               <span class="detail-label">用户名：</span>
               <span class="detail-value">{{ currentOrder.username || '未知用户' }}</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">订单状态：</span>
+              <span class="detail-value">
+                <span :class="['status-badge', getStatusClass(currentOrder.status)]">
+                  {{ getStatusText(currentOrder.status) }}
+                </span>
+              </span>
             </div>
             <div class="detail-row">
               <span class="detail-label">订单金额：</span>
@@ -105,14 +135,56 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { getAllOrders, getOrderDetail, updateOrderStatus, deleteOrder } from '../api/orderApi'
-import type { Order } from '../api/orderApi'
+import type { Order, OrderStatus } from '../api/orderApi'
 
 const orders = ref<Order[]>([])
 const loading = ref(false)
 const detailModalVisible = ref(false)
 const currentOrder = ref<Order | null>(null)
+const activeStatus = ref<'all' | 'to_ship' | OrderStatus>('all')
+
+// 状态标签页配置 - 删除待处理和处理中状态
+const statusTabs = [
+  { label: '全部订单', value: 'all' as const },
+  { label: '待发货', value: 'to_ship' as const },
+  { label: '配送中', value: 'shipping' as const },
+  { label: '已完成', value: 'delivered' as const },
+  { label: '已取消', value: 'cancelled' as const }
+]
+
+// 筛选后的订单列表
+const filteredOrders = computed(() => {
+  if (activeStatus.value === 'all') {
+    return orders.value
+  }
+
+  // 待发货：pending 和 processing 状态
+  if (activeStatus.value === 'to_ship') {
+    return orders.value.filter(order =>
+      order.status === 'pending' || order.status === 'processing'
+    )
+  }
+
+  return orders.value.filter(order => order.status === activeStatus.value)
+})
+
+// 获取各状态的订单数量
+const getStatusCount = (status: 'all' | 'to_ship' | OrderStatus): number => {
+  if (status === 'all') {
+    return orders.value.length
+  }
+
+  // 待发货：pending 和 processing 状态的订单数量
+  if (status === 'to_ship') {
+    return orders.value.filter(order =>
+      order.status === 'pending' || order.status === 'processing'
+    ).length
+  }
+
+  return orders.value.filter(order => order.status === status).length
+}
 
 // 获取订单列表
 const fetchOrders = async () => {
@@ -149,20 +221,45 @@ const closeDetailModal = () => {
   currentOrder.value = null
 }
 
-// 删除订单
-const handleDelete = async (order: Order) => {
-  if (!confirm(`确定要删除订单 ${order.order_number} 吗？此操作不可恢复并将恢复库存！`)) {
-    return
-  }
-
+// 快速发货（直接将状态改为配送中）
+const quickShip = async (order: Order) => {
   try {
-    await deleteOrder(order.id)
-    showMessage('删除成功', 'success')
-    fetchOrders()
+    await updateOrderStatus(order.id, 'shipping')
+    showMessage('订单已发货，状态更新为配送中', 'success')
+
+    // 刷新订单列表
+    await fetchOrders()
+
+    // 自动切换到配送中标签页
+    activeStatus.value = 'shipping'
   } catch (error) {
-    console.error('删除订单失败:', error)
-    showMessage('删除订单失败', 'error')
+    console.error('发货失败:', error)
+    showMessage('发货失败', 'error')
   }
+}
+
+// 获取状态文本
+const getStatusText = (status?: OrderStatus): string => {
+  const statusMap: Record<OrderStatus, string> = {
+    pending: '待处理',
+    processing: '处理中',
+    shipping: '配送中',
+    delivered: '已完成',
+    cancelled: '已取消'
+  }
+  return status ? statusMap[status] : '未知'
+}
+
+// 获取状态样式类名
+const getStatusClass = (status?: OrderStatus): string => {
+  const classMap: Record<OrderStatus, string> = {
+    pending: 'status-pending',
+    processing: 'status-processing',
+    shipping: 'status-shipping',
+    delivered: 'status-delivered',
+    cancelled: 'status-cancelled'
+  }
+  return status ? classMap[status] : ''
 }
 
 // 格式化日期
@@ -227,6 +324,59 @@ onMounted(() => {
   cursor: not-allowed;
 }
 
+/* 状态标签样式 */
+.status-tabs {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.status-tab {
+  position: relative;
+  padding: 10px 20px;
+  background-color: #2a2a2a;
+  color: #b0b0b0;
+  border: 1px solid #333;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.status-tab:hover {
+  background-color: #333;
+  border-color: #4caf50;
+  color: #e0e0e0;
+}
+
+.status-tab.active {
+  background-color: #4caf50;
+  color: white;
+  border-color: #4caf50;
+}
+
+.tab-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  background-color: rgba(255, 255, 255, 0.2);
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.status-tab.active .tab-count {
+  background-color: rgba(255, 255, 255, 0.3);
+}
+
 /* 订单列表样式 */
 .order-list {
   background-color: #1e1e1e;
@@ -236,7 +386,7 @@ onMounted(() => {
 
 .list-header {
   display: grid;
-  grid-template-columns: 200px 120px 120px 180px 200px;
+  grid-template-columns: 200px 120px 120px 140px 180px 200px;
   background-color: #2a2a2a;
   padding: 16px 20px;
   font-weight: 600;
@@ -250,7 +400,7 @@ onMounted(() => {
 
 .order-item {
   display: grid;
-  grid-template-columns: 200px 120px 120px 180px 200px;
+  grid-template-columns: 200px 120px 120px 140px 180px 200px;
   padding: 16px 20px;
   border-bottom: 1px solid #333;
   transition: background-color 0.2s ease;
@@ -287,27 +437,27 @@ onMounted(() => {
 .status-badge {
   display: inline-block;
   padding: 4px 12px;
-  border-radius: 4px;
+  border-radius: 12px;
   font-size: 12px;
   font-weight: 500;
 }
 
 .status-pending {
-  background-color: rgba(255, 193, 7, 0.2);
-  color: #ffc107;
+  background-color: rgba(100, 181, 246, 0.2);
+  color: #64b5f6;
 }
 
-.status-paid {
-  background-color: rgba(33, 150, 243, 0.2);
-  color: #2196f3;
+.status-processing {
+  background-color: rgba(255, 167, 38, 0.2);
+  color: #ffa726;
 }
 
-.status-shipped {
+.status-shipping {
   background-color: rgba(156, 39, 176, 0.2);
-  color: #9c27b0;
+  color: #ab47bc;
 }
 
-.status-completed {
+.status-delivered {
   background-color: rgba(76, 175, 80, 0.2);
   color: #4caf50;
 }
@@ -325,7 +475,7 @@ onMounted(() => {
 }
 
 .view-btn,
-.status-btn,
+.ship-btn,
 .delete-btn {
   padding: 6px 12px;
   border: none;
@@ -344,13 +494,13 @@ onMounted(() => {
   background-color: #1976d2;
 }
 
-.status-btn {
-  background-color: #ff9800;
+.ship-btn {
+  background-color: #4caf50;
   color: white;
 }
 
-.status-btn:hover {
-  background-color: #f57c00;
+.ship-btn:hover {
+  background-color: #45a049;
 }
 
 .delete-btn {
@@ -431,6 +581,10 @@ onMounted(() => {
   max-width: 800px;
   max-height: 90vh;
   overflow-y: auto;
+}
+
+.modal-content.small {
+  max-width: 500px;
 }
 
 .modal-header {
@@ -565,4 +719,5 @@ onMounted(() => {
 .modal-content::-webkit-scrollbar-thumb:hover {
   background: #888;
 }
+
 </style>

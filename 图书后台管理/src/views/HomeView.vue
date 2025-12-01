@@ -90,7 +90,6 @@
         
         <!-- 快捷操作区域 -->
         <div class="quick-actions">
-          <h3>快捷操作</h3>
           <div class="action-buttons">
             <button class="action-btn" @click="navigateTo('bookManage')">
               <i class="action-icon">📊</i>
@@ -109,7 +108,6 @@
         
         <!-- 系统通知 -->
         <div class="notifications">
-          <h3>系统通知</h3>
           <div class="notification-list">
             <!-- 新书上架通知 -->
             <div 

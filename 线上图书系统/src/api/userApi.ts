@@ -31,6 +31,42 @@ export interface User {
   created_at?: string
 }
 
+// 定义用户资料接口
+export interface UserProfile {
+  id: number
+  username: string
+  nickname?: string
+  email: string
+  phone?: string
+  avatar?: string
+  gender?: 'male' | 'female' | 'other'
+  birthday?: string
+  role: 'admin' | 'user'
+  status: 'active' | 'inactive'
+  created_at?: string
+  stats?: {
+    total_orders: number
+    completed_orders: number
+    total_spent: number
+  }
+}
+
+// 定义用户资料更新接口
+export interface UserProfileUpdate {
+  nickname?: string
+  email?: string
+  phone?: string
+  avatar?: string
+  gender?: 'male' | 'female' | 'other'
+  birthday?: string
+}
+
+// 定义修改密码接口
+export interface PasswordChange {
+  old_password: string
+  new_password: string
+}
+
 // 用户登录
 export const loginUser = async (loginData: LoginRequest): Promise<LoginResponse> => {
   try {
@@ -83,6 +119,40 @@ export const getCurrentUser = async (): Promise<User | null> => {
     return null
   } catch (error) {
     console.error('获取用户信息失败:', error)
+    throw error
+  }
+}
+
+// 获取用户完整资料
+export const getUserProfile = async (userId: number): Promise<UserProfile> => {
+  try {
+    const response: any = await axiosInstance.get(`/user/profile/${userId}`)
+    if (response && response.data) {
+      return response.data
+    }
+    throw new Error('获取用户资料失败')
+  } catch (error) {
+    console.error('获取用户资料失败:', error)
+    throw error
+  }
+}
+
+// 更新用户资料
+export const updateUserProfile = async (userId: number, profileData: UserProfileUpdate): Promise<void> => {
+  try {
+    await axiosInstance.put(`/user/profile/${userId}`, profileData)
+  } catch (error) {
+    console.error('更新用户资料失败:', error)
+    throw error
+  }
+}
+
+// 修改密码
+export const changePassword = async (userId: number, passwordData: PasswordChange): Promise<void> => {
+  try {
+    await axiosInstance.put(`/user/password/${userId}`, passwordData)
+  } catch (error) {
+    console.error('修改密码失败:', error)
     throw error
   }
 }
