@@ -530,31 +530,116 @@ onMounted(() => {
 .user-profile-container {
   max-width: 1200px;
   margin: 0 auto;
+  background: #f5f5f7;
+  padding: 20px;
+  border-radius: 20px;
 }
 
+/* 头部卡片 - iOS风格 */
 .profile-header {
   margin-bottom: 20px;
+  border-radius: 20px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 0.5px solid rgba(0, 0, 0, 0.04);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.06);
+}
+
+.profile-header :deep(.el-card__body) {
+  padding: 32px;
+  background: transparent;
 }
 
 .header-content {
   display: flex;
   align-items: center;
-  gap: 20px;
+  gap: 24px;
+}
+
+.header-content :deep(.el-avatar) {
+  border: 3px solid rgba(0, 0, 0, 0.05);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
 }
 
 .user-info h2 {
   margin: 0 0 8px 0;
-  font-size: 24px;
+  font-size: 28px;
+  color: #1d1d1f;
+  font-weight: 600;
+  letter-spacing: -0.5px;
 }
 
 .user-info .username {
-  margin: 0 0 8px 0;
-  color: #909399;
-  font-size: 14px;
+  margin: 0 0 12px 0;
+  color: #6e6e73;
+  font-size: 15px;
+  font-weight: 400;
 }
 
+/* 标签页 - iOS风格 */
 .profile-tabs {
   margin-top: 20px;
+}
+
+.profile-tabs :deep(.el-tabs__header) {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-radius: 16px;
+  padding: 8px 12px;
+  margin-bottom: 20px;
+  border: 0.5px solid rgba(0, 0, 0, 0.04);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.profile-tabs :deep(.el-tabs__nav-wrap::after) {
+  display: none;
+}
+
+.profile-tabs :deep(.el-tabs__item) {
+  font-size: 15px;
+  font-weight: 500;
+  color: #6e6e73;
+  padding: 0 20px;
+}
+
+.profile-tabs :deep(.el-tabs__item.is-active) {
+  color: #007aff;
+}
+
+.profile-tabs :deep(.el-tabs__active-bar) {
+  background-color: #007aff;
+  height: 2px;
+  border-radius: 2px;
+}
+
+/* 卡片通用样式 - iOS风格毛玻璃 */
+.profile-tabs :deep(.el-card) {
+  border-radius: 20px;
+  border: 0.5px solid rgba(0, 0, 0, 0.04);
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.06);
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.profile-tabs :deep(.el-card:hover) {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06), 0 2px 4px rgba(0, 0, 0, 0.08);
+  transform: translateY(-2px);
+}
+
+.profile-tabs :deep(.el-card__header) {
+  background: rgba(247, 247, 247, 0.6);
+  border-bottom: 0.5px solid rgba(0, 0, 0, 0.06);
+  padding: 18px 24px;
+}
+
+.profile-tabs :deep(.el-card__body) {
+  padding: 24px;
 }
 
 .card-header {
@@ -563,68 +648,109 @@ onMounted(() => {
   align-items: center;
 }
 
+.card-header span {
+  font-size: 17px;
+  font-weight: 600;
+  color: #1d1d1f;
+  letter-spacing: -0.3px;
+}
+
+/* 密码修改卡片 */
 .password-card {
   margin-top: 20px;
 }
 
+/* 地址列表 */
 .address-list {
   display: flex;
   flex-direction: column;
-  gap: 15px;
+  gap: 12px;
 }
 
 .address-item {
-  transition: all 0.3s;
+  border-radius: 16px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 0.5px solid rgba(0, 0, 0, 0.06);
+  background: rgba(255, 255, 255, 0.5);
 }
 
 .address-item:hover {
-  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  transform: translateY(-2px);
+  border-color: rgba(0, 122, 255, 0.2);
 }
 
 .default-address {
-  border: 2px solid #67c23a;
+  border: 1.5px solid #34c759;
+  background: rgba(52, 199, 89, 0.05);
 }
 
 .address-content {
-  padding: 10px;
+  padding: 20px;
 }
 
 .address-header {
   display: flex;
   align-items: center;
-  gap: 15px;
-  margin-bottom: 10px;
+  gap: 16px;
+  margin-bottom: 12px;
 }
 
 .receiver-name {
-  font-weight: bold;
-  font-size: 16px;
+  font-weight: 600;
+  font-size: 17px;
+  color: #1d1d1f;
+  letter-spacing: -0.3px;
 }
 
 .receiver-phone {
-  color: #606266;
+  color: #6e6e73;
+  font-size: 15px;
 }
 
 .address-detail {
-  color: #606266;
-  margin-bottom: 10px;
+  color: #6e6e73;
+  margin-bottom: 16px;
   line-height: 1.6;
+  font-size: 14px;
 }
 
 .address-actions {
   display: flex;
-  gap: 10px;
+  gap: 12px;
 }
 
 .empty-state {
-  padding: 40px 0;
+  padding: 60px 0;
   text-align: center;
 }
 
+/* 统计卡片 - iOS风格 */
 .stat-card {
   text-align: center;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 0.5px solid rgba(0, 0, 0, 0.04);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.06);
 }
 
+.stat-card :deep(.el-statistic__head) {
+  color: #6e6e73;
+  font-size: 13px;
+  margin-bottom: 8px;
+  font-weight: 500;
+}
+
+.stat-card :deep(.el-statistic__content) {
+  color: #1d1d1f;
+  font-size: 32px;
+  font-weight: 600;
+  letter-spacing: -1px;
+}
+
+/* 最近订单 */
 .recent-orders {
   margin-top: 20px;
 }
@@ -634,13 +760,13 @@ onMounted(() => {
   align-items: center;
   justify-content: center;
   gap: 12px;
-  padding: 40px 0;
-  color: #909399;
+  padding: 60px 0;
+  color: #6e6e73;
   font-size: 14px;
 }
 
 .empty-orders {
-  padding: 20px 0;
+  padding: 40px 0;
 }
 
 .orders-list {
@@ -650,35 +776,39 @@ onMounted(() => {
 }
 
 .order-item {
-  padding: 16px;
-  background: #f5f7fa;
-  border-radius: 8px;
+  padding: 18px;
+  background: rgba(255, 255, 255, 0.5);
+  border-radius: 16px;
   cursor: pointer;
-  transition: all 0.3s;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 0.5px solid rgba(0, 0, 0, 0.06);
 }
 
 .order-item:hover {
-  background: #ecf5ff;
+  background: rgba(255, 255, 255, 0.8);
   transform: translateX(4px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  border-color: rgba(0, 122, 255, 0.2);
 }
 
 .order-item-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 8px;
+  margin-bottom: 10px;
 }
 
 .order-number {
-  font-size: 14px;
-  color: #409eff;
-  font-weight: 500;
+  font-size: 15px;
+  color: #007aff;
+  font-weight: 600;
 }
 
 .order-amount {
-  font-size: 16px;
+  font-size: 18px;
   font-weight: 600;
-  color: #f56c6c;
+  color: #ff3b30;
+  letter-spacing: -0.3px;
 }
 
 .order-item-footer {
@@ -690,8 +820,155 @@ onMounted(() => {
 .order-time {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 6px;
   font-size: 13px;
-  color: #909399;
+  color: #6e6e73;
+}
+
+/* 按钮样式优化 - iOS风格 */
+.profile-tabs :deep(.el-button--primary) {
+  background: #007aff;
+  border: none;
+  border-radius: 12px;
+  padding: 10px 20px;
+  font-weight: 500;
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(0, 122, 255, 0.25);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.profile-tabs :deep(.el-button--primary:hover) {
+  background: #0051d5;
+  color: #fff;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 122, 255, 0.3);
+}
+
+.profile-tabs :deep(.el-button) {
+  border-radius: 12px;
+  padding: 10px 20px;
+  font-weight: 500;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 0.5px solid rgba(0, 0, 0, 0.1);
+}
+
+.profile-tabs :deep(.el-button:not(.el-button--primary)) {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  color: #1d1d1f;
+}
+
+.profile-tabs :deep(.el-button:not(.el-button--primary):hover) {
+  background: rgba(255, 255, 255, 0.9);
+  border-color: rgba(0, 122, 255, 0.3);
+}
+
+/* 表单优化 - iOS风格 */
+.profile-tabs :deep(.el-input__wrapper) {
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 0.5px solid rgba(0, 0, 0, 0.1);
+  box-shadow: none;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.profile-tabs :deep(.el-input__wrapper:hover) {
+  border-color: rgba(0, 122, 255, 0.3);
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.profile-tabs :deep(.el-input__wrapper.is-focus) {
+  border-color: #007aff;
+  box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.1);
+}
+
+.profile-tabs :deep(.el-textarea__inner) {
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 0.5px solid rgba(0, 0, 0, 0.1);
+}
+
+.profile-tabs :deep(.el-textarea__inner:hover) {
+  border-color: rgba(0, 122, 255, 0.3);
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.profile-tabs :deep(.el-textarea__inner:focus) {
+  border-color: #007aff;
+  box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.1);
+}
+
+/* 对话框 - iOS风格 */
+:deep(.el-dialog) {
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 0.5px solid rgba(0, 0, 0, 0.06);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+}
+
+:deep(.el-dialog__header) {
+  padding: 24px 24px 16px;
+  border-bottom: 0.5px solid rgba(0, 0, 0, 0.08);
+}
+
+:deep(.el-dialog__title) {
+  font-size: 20px;
+  font-weight: 600;
+  color: #1d1d1f;
+  letter-spacing: -0.3px;
+}
+
+:deep(.el-dialog__body) {
+  padding: 24px;
+}
+
+:deep(.el-dialog__footer) {
+  padding: 16px 24px 24px;
+  border-top: 0.5px solid rgba(0, 0, 0, 0.08);
+}
+
+/* MessageBox - iOS风格 */
+:deep(.el-message-box) {
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 0.5px solid rgba(0, 0, 0, 0.06);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+}
+
+:deep(.el-message-box__header) {
+  padding: 24px 24px 16px;
+}
+
+:deep(.el-message-box__title) {
+  font-size: 18px;
+  font-weight: 600;
+  color: #1d1d1f;
+  letter-spacing: -0.3px;
+}
+
+:deep(.el-message-box__content) {
+  padding: 16px 24px;
+  color: #6e6e73;
+  font-size: 15px;
+}
+
+:deep(.el-message-box__btns) {
+  padding: 16px 24px 24px;
+}
+
+:deep(.el-message-box__btns .el-button) {
+  border-radius: 12px;
+  padding: 10px 20px;
+  font-weight: 500;
+  font-size: 14px;
 }
 </style>

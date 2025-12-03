@@ -381,89 +381,125 @@ onMounted(() => {
 .order-list {
   max-width: 1000px;
   margin: 0 auto;
+  background: #f5f5f7;
+  padding: 20px;
+  border-radius: 20px;
 }
 
+/* 头部卡片 - iOS风格 */
 .order-header-card {
   margin-bottom: 20px;
+  border-radius: 20px;
+  border: none;
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 0.5px solid rgba(0, 0, 0, 0.04);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.06);
+  overflow: hidden;
+}
+
+.order-header-card :deep(.el-card__body) {
+  padding: 28px 32px;
+  background: transparent;
 }
 
 .header-content {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 24px;
 }
 
 .order-title {
   margin: 0;
-  font-size: 24px;
+  font-size: 28px;
   font-weight: 600;
-  color: #303133;
+  color: #1d1d1f;
+  letter-spacing: -0.5px;
 }
 
+/* 状态标签页 - iOS风格圆角按钮 */
 .status-tabs {
   display: flex;
-  gap: 12px;
+  gap: 10px;
   flex-wrap: wrap;
 }
 
 .status-tab {
-  padding: 8px 20px;
-  border: 1px solid #dcdfe6;
-  background: #fff;
+  padding: 8px 18px;
+  border: none;
+  background: rgba(0, 0, 0, 0.05);
   border-radius: 20px;
   cursor: pointer;
   font-size: 14px;
-  color: #606266;
-  transition: all 0.3s;
+  font-weight: 500;
+  color: #1d1d1f;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .status-tab:hover {
-  border-color: #409eff;
-  color: #409eff;
+  background: rgba(0, 0, 0, 0.08);
+  transform: scale(1.02);
 }
 
 .status-tab.active {
-  background: #409eff;
-  border-color: #409eff;
+  background: #007aff;
   color: #fff;
+  box-shadow: 0 2px 8px rgba(0, 122, 255, 0.3);
 }
 
+/* 加载状态 */
 .loading-container {
   text-align: center;
-  padding: 60px 20px;
-  color: #909399;
+  padding: 80px 20px;
+  color: #6e6e73;
 }
 
 .loading-container p {
   margin-top: 16px;
-  font-size: 14px;
+  font-size: 15px;
 }
 
 .empty-orders {
-  padding: 40px 20px;
+  padding: 60px 20px;
 }
 
+/* 订单卡片容器 */
 .orders-container {
   display: flex;
   flex-direction: column;
   gap: 16px;
 }
 
+/* 订单卡片 - iOS风格毛玻璃 */
 .order-card {
-  transition: all 0.3s;
+  border-radius: 20px;
+  border: 0.5px solid rgba(0, 0, 0, 0.04);
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.06);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
 }
 
 .order-card:hover {
   transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06), 0 2px 4px rgba(0, 0, 0, 0.08);
 }
 
+.order-card :deep(.el-card__body) {
+  padding: 24px;
+}
+
+/* 订单头部 */
 .order-card-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 16px;
-  padding-bottom: 12px;
-  border-bottom: 1px solid #ebeef5;
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 0.5px solid rgba(0, 0, 0, 0.08);
 }
 
 .order-number {
@@ -473,14 +509,18 @@ onMounted(() => {
 }
 
 .order-number .label {
-  color: #909399;
+  color: #6e6e73;
   font-size: 14px;
+  font-weight: 500;
 }
 
 .order-number .value {
-  color: #409eff;
+  color: #007aff;
   font-weight: 600;
-  font-size: 14px;
+  font-size: 15px;
+  padding: 4px 12px;
+  background: rgba(0, 122, 255, 0.08);
+  border-radius: 10px;
 }
 
 .order-status-badge {
@@ -488,8 +528,17 @@ onMounted(() => {
   align-items: center;
 }
 
+.order-status-badge :deep(.el-tag) {
+  padding: 6px 14px;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 13px;
+  border: none;
+}
+
+/* 订单主体 */
 .order-card-body {
-  margin-bottom: 16px;
+  margin-bottom: 20px;
 }
 
 /* 订单商品预览 */
@@ -497,24 +546,34 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   gap: 12px;
-  padding: 16px 0;
-  border-bottom: 1px solid #ebeef5;
-  margin-bottom: 12px;
+  padding: 20px 0;
+  border-bottom: 0.5px solid rgba(0, 0, 0, 0.08);
+  margin-bottom: 16px;
 }
 
 .order-item-preview {
   display: flex;
-  gap: 12px;
+  gap: 14px;
   align-items: center;
+  padding: 12px;
+  background: rgba(0, 0, 0, 0.02);
+  border-radius: 14px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.order-item-preview:hover {
+  background: rgba(0, 0, 0, 0.04);
+  transform: translateX(2px);
 }
 
 .item-image {
-  width: 60px;
-  height: 75px;
+  width: 64px;
+  height: 80px;
   flex-shrink: 0;
-  border-radius: 6px;
+  border-radius: 12px;
   overflow: hidden;
-  background: #f5f7fa;
+  background: rgba(255, 255, 255, 0.8);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 }
 
 .item-image :deep(.el-image) {
@@ -528,9 +587,9 @@ onMounted(() => {
   justify-content: center;
   width: 100%;
   height: 100%;
-  background: #f5f7fa;
+  background: rgba(0, 0, 0, 0.03);
   color: #c0c4cc;
-  font-size: 20px;
+  font-size: 24px;
 }
 
 .item-info {
@@ -538,76 +597,149 @@ onMounted(() => {
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 6px;
 }
 
 .item-title {
-  font-size: 14px;
-  font-weight: 500;
-  color: #303133;
+  font-size: 15px;
+  font-weight: 600;
+  color: #1d1d1f;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  letter-spacing: -0.2px;
 }
 
 .item-author {
-  font-size: 12px;
-  color: #909399;
+  font-size: 13px;
+  color: #6e6e73;
 }
 
 .item-quantity {
   font-size: 13px;
-  color: #606266;
-  font-weight: 500;
+  color: #1d1d1f;
+  font-weight: 600;
+  padding: 3px 10px;
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: 8px;
+  display: inline-block;
+  width: fit-content;
 }
 
 .more-items {
   text-align: center;
   font-size: 13px;
-  color: #909399;
-  padding: 8px 0;
-  background: #f5f7fa;
-  border-radius: 4px;
+  color: #007aff;
+  font-weight: 500;
+  padding: 10px 0;
+  background: rgba(0, 122, 255, 0.05);
+  border-radius: 10px;
 }
 
+/* 订单信息行 */
 .order-info-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 12px 0;
+  padding: 16px 0;
 }
 
 .order-time {
   display: flex;
   align-items: center;
-  gap: 4px;
-  color: #909399;
+  gap: 6px;
+  color: #6e6e73;
   font-size: 13px;
+  font-weight: 400;
 }
 
 .order-total {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
 }
 
 .total-label {
-  color: #606266;
+  color: #6e6e73;
   font-size: 14px;
   font-weight: 500;
 }
 
 .total-amount {
-  font-size: 20px;
+  font-size: 22px;
   font-weight: 600;
-  color: #f56c6c;
+  color: #ff3b30;
+  letter-spacing: -0.5px;
 }
 
+/* 订单底部操作 - iOS风格按钮 */
 .order-card-footer {
   display: flex;
   justify-content: flex-end;
-  gap: 12px;
-  padding-top: 12px;
-  border-top: 1px solid #ebeef5;
+  gap: 10px;
+  padding-top: 16px;
+  border-top: 0.5px solid rgba(0, 0, 0, 0.08);
+}
+
+.order-card-footer :deep(.el-button) {
+  border-radius: 12px;
+  padding: 8px 18px;
+  font-weight: 500;
+  font-size: 14px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.order-card-footer :deep(.el-button--primary) {
+  background: #007aff;
+  border: none;
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(0, 122, 255, 0.25);
+}
+
+.order-card-footer :deep(.el-button--primary:hover) {
+  background: #0051d5;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 122, 255, 0.3);
+}
+
+.order-card-footer :deep(.el-button--success) {
+  background: #34c759;
+  border: none;
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(52, 199, 89, 0.25);
+}
+
+.order-card-footer :deep(.el-button--success:hover) {
+  background: #28a745;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(52, 199, 89, 0.3);
+}
+
+.order-card-footer :deep(.el-button--danger) {
+  background: #ff3b30;
+  border: none;
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(255, 59, 48, 0.25);
+}
+
+.order-card-footer :deep(.el-button--danger:hover) {
+  background: #d32f2f;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(255, 59, 48, 0.3);
+}
+
+.order-card-footer :deep(.el-button:not(.el-button--primary):not(.el-button--success):not(.el-button--danger)) {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 0.5px solid rgba(0, 0, 0, 0.1);
+  color: #1d1d1f;
+}
+
+.order-card-footer :deep(.el-button:not(.el-button--primary):not(.el-button--success):not(.el-button--danger):hover) {
+  background: rgba(255, 255, 255, 0.9);
+  border-color: rgba(0, 122, 255, 0.3);
+  color: #007aff;
+  transform: translateY(-1px);
 }
 </style>

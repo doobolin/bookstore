@@ -464,17 +464,32 @@ onMounted(() => {
   max-width: 1200px;
   margin: 0 auto;
   padding-bottom: 100px;
+  background: #f5f5f7;
+  padding: 20px;
+  border-radius: 20px;
 }
 
+/* 头部 - iOS风格 */
 .checkout-header {
   margin-bottom: 20px;
+  border-radius: 20px;
+  border: 0.5px solid rgba(0, 0, 0, 0.04);
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.06);
+}
+
+.checkout-header :deep(.el-card__body) {
+  padding: 28px;
 }
 
 .checkout-header h2 {
   margin: 0;
-  font-size: 24px;
+  font-size: 28px;
   font-weight: 600;
-  color: #303133;
+  color: #1d1d1f;
+  letter-spacing: -0.5px;
 }
 
 /* 区块标题 */
@@ -485,14 +500,31 @@ onMounted(() => {
 }
 
 .section-title {
-  font-size: 16px;
+  font-size: 17px;
   font-weight: 600;
-  color: #303133;
+  color: #1d1d1f;
+  letter-spacing: -0.3px;
 }
 
-/* 收货地址部分 */
+/* 收货地址部分 - iOS风格 */
 .address-section {
   margin-bottom: 20px;
+  border-radius: 20px;
+  border: 0.5px solid rgba(0, 0, 0, 0.04);
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.06);
+}
+
+.address-section :deep(.el-card__header) {
+  background: rgba(247, 247, 247, 0.6);
+  border-bottom: 0.5px solid rgba(0, 0, 0, 0.06);
+  padding: 18px 24px;
+}
+
+.address-section :deep(.el-card__body) {
+  padding: 24px;
 }
 
 .loading-state {
@@ -501,7 +533,7 @@ onMounted(() => {
   justify-content: center;
   gap: 8px;
   padding: 40px;
-  color: #909399;
+  color: #6e6e73;
 }
 
 .empty-addresses {
@@ -518,20 +550,24 @@ onMounted(() => {
   display: flex;
   gap: 12px;
   padding: 16px;
-  border: 2px solid #dcdfe6;
-  border-radius: 8px;
+  border: 1.5px solid rgba(0, 0, 0, 0.08);
+  border-radius: 16px;
   cursor: pointer;
-  transition: all 0.3s;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  background: rgba(255, 255, 255, 0.5);
 }
 
 .address-item:hover {
-  border-color: #409eff;
-  background: #ecf5ff;
+  border-color: rgba(0, 122, 255, 0.3);
+  background: rgba(0, 122, 255, 0.05);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
 .address-item.selected {
-  border-color: #409eff;
-  background: #ecf5ff;
+  border-color: #007aff;
+  background: rgba(0, 122, 255, 0.08);
+  box-shadow: 0 2px 8px rgba(0, 122, 255, 0.15);
 }
 
 .address-radio {
@@ -543,22 +579,22 @@ onMounted(() => {
 .radio-icon {
   width: 18px;
   height: 18px;
-  border: 2px solid #dcdfe6;
+  border: 2px solid rgba(0, 0, 0, 0.2);
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.3s;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .radio-icon.checked {
-  border-color: #409eff;
+  border-color: #007aff;
 }
 
 .radio-dot {
   width: 10px;
   height: 10px;
-  background: #409eff;
+  background: #007aff;
   border-radius: 50%;
 }
 
@@ -576,16 +612,19 @@ onMounted(() => {
 .receiver-name {
   font-size: 16px;
   font-weight: 600;
-  color: #303133;
+  color: #1d1d1f;
+  letter-spacing: -0.3px;
 }
 
 .receiver-phone {
-  color: #606266;
+  color: #6e6e73;
+  font-size: 14px;
 }
 
 .address-detail {
-  color: #606266;
+  color: #6e6e73;
   line-height: 1.6;
+  font-size: 14px;
 }
 
 .address-actions {
@@ -593,9 +632,25 @@ onMounted(() => {
   align-items: center;
 }
 
-/* 订单信息部分 */
+/* 订单信息部分 - iOS风格 */
 .order-section {
   margin-bottom: 20px;
+  border-radius: 20px;
+  border: 0.5px solid rgba(0, 0, 0, 0.04);
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.06);
+}
+
+.order-section :deep(.el-card__header) {
+  background: rgba(247, 247, 247, 0.6);
+  border-bottom: 0.5px solid rgba(0, 0, 0, 0.06);
+  padding: 18px 24px;
+}
+
+.order-section :deep(.el-card__body) {
+  padding: 24px;
 }
 
 .empty-order {
@@ -613,8 +668,13 @@ onMounted(() => {
   align-items: center;
   gap: 16px;
   padding: 16px;
-  background: #f5f7fa;
-  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.02);
+  border-radius: 14px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.order-item:hover {
+  background: rgba(0, 0, 0, 0.04);
 }
 
 .item-info {
@@ -624,14 +684,15 @@ onMounted(() => {
 
 .item-title {
   font-size: 16px;
-  font-weight: 500;
-  color: #303133;
+  font-weight: 600;
+  color: #1d1d1f;
   margin-bottom: 4px;
+  letter-spacing: -0.3px;
 }
 
 .item-author {
-  font-size: 14px;
-  color: #909399;
+  font-size: 13px;
+  color: #6e6e73;
 }
 
 .item-price {
@@ -642,8 +703,9 @@ onMounted(() => {
 }
 
 .unit-price {
-  color: #606266;
+  color: #1d1d1f;
   font-size: 15px;
+  font-weight: 600;
 }
 
 .item-quantity {
@@ -655,28 +717,39 @@ onMounted(() => {
 }
 
 .quantity-btn {
-  width: 28px;
-  height: 28px;
+  width: 32px;
+  height: 32px;
   padding: 0;
   display: flex;
   align-items: center;
   justify-content: center;
+  border-radius: 10px;
+  border: 0.5px solid rgba(0, 0, 0, 0.1);
+  background: rgba(255, 255, 255, 0.7);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.quantity-btn:hover:not(:disabled) {
+  background: rgba(0, 122, 255, 0.1);
+  border-color: rgba(0, 122, 255, 0.3);
+  transform: scale(1.05);
 }
 
 .quantity-display {
   min-width: 32px;
   text-align: center;
   font-size: 15px;
-  font-weight: 500;
-  color: #303133;
+  font-weight: 600;
+  color: #1d1d1f;
 }
 
 .item-subtotal {
   min-width: 100px;
   text-align: right;
-  font-size: 16px;
+  font-size: 17px;
   font-weight: 600;
-  color: #f56c6c;
+  color: #ff3b30;
+  letter-spacing: -0.3px;
 }
 
 .item-remove {
@@ -686,9 +759,25 @@ onMounted(() => {
   justify-content: center;
 }
 
-/* 付款详情部分 */
+/* 付款详情部分 - iOS风格 */
 .payment-section {
-  margin-bottom: 20px;
+  margin-bottom: 100px;
+  border-radius: 20px;
+  border: 0.5px solid rgba(0, 0, 0, 0.04);
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.06);
+}
+
+.payment-section :deep(.el-card__header) {
+  background: rgba(247, 247, 247, 0.6);
+  border-bottom: 0.5px solid rgba(0, 0, 0, 0.06);
+  padding: 18px 24px;
+}
+
+.payment-section :deep(.el-card__body) {
+  padding: 24px;
 }
 
 .payment-details {
@@ -705,45 +794,55 @@ onMounted(() => {
 }
 
 .detail-label {
-  color: #606266;
+  color: #6e6e73;
+  font-size: 15px;
+  font-weight: 500;
 }
 
 .detail-value {
-  color: #303133;
+  color: #1d1d1f;
+  font-weight: 600;
 }
 
 .shipping-free {
-  color: #67c23a;
+  color: #34c759;
 }
 
 .total-row {
-  border-top: 1px dashed #dcdfe6;
+  border-top: 0.5px dashed rgba(0, 0, 0, 0.1);
   padding-top: 16px;
   margin-top: 8px;
+  background: rgba(0, 122, 255, 0.05);
+  border-radius: 12px;
+  padding: 16px;
 }
 
 .total-row .detail-label {
-  font-size: 16px;
+  font-size: 17px;
   font-weight: 600;
-  color: #303133;
+  color: #1d1d1f;
+  letter-spacing: -0.3px;
 }
 
 .detail-total {
-  font-size: 20px;
+  font-size: 26px;
   font-weight: 600;
-  color: #f56c6c;
+  color: #ff3b30;
+  letter-spacing: -0.5px;
 }
 
-/* 底部操作栏 */
+/* 底部操作栏 - iOS风格 */
 .checkout-footer {
   position: fixed;
   bottom: 0;
   left: 0;
   right: 0;
-  background: #fff;
-  border-top: 1px solid #dcdfe6;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-top: 0.5px solid rgba(0, 0, 0, 0.1);
   padding: 16px 20px;
-  box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.04), 0 -1px 2px rgba(0, 0, 0, 0.06);
   z-index: 100;
 }
 
@@ -762,19 +861,144 @@ onMounted(() => {
 }
 
 .summary-text {
-  color: #606266;
+  color: #6e6e73;
   font-size: 14px;
+  font-weight: 500;
 }
 
 .summary-amount {
-  font-size: 24px;
+  font-size: 26px;
   font-weight: 600;
-  color: #f56c6c;
+  color: #ff3b30;
+  letter-spacing: -0.5px;
 }
 
 .footer-actions {
   display: flex;
   gap: 12px;
+}
+
+/* 按钮样式 - iOS风格 */
+:deep(.el-button) {
+  border-radius: 12px;
+  padding: 10px 20px;
+  font-weight: 500;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+:deep(.el-button--primary) {
+  background: #007aff;
+  border: none;
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(0, 122, 255, 0.25);
+}
+
+:deep(.el-button--primary:hover) {
+  background: #0051d5;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 122, 255, 0.3);
+}
+
+:deep(.el-button--primary:disabled) {
+  background: rgba(0, 122, 255, 0.4);
+  transform: none;
+}
+
+:deep(.el-button:not(.el-button--primary)) {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 0.5px solid rgba(0, 0, 0, 0.1);
+  color: #1d1d1f;
+}
+
+:deep(.el-button:not(.el-button--primary):hover) {
+  background: rgba(255, 255, 255, 0.9);
+  border-color: rgba(0, 122, 255, 0.3);
+  color: #007aff;
+  transform: translateY(-1px);
+}
+
+:deep(.el-button--large) {
+  padding: 12px 24px;
+  font-size: 15px;
+  border-radius: 14px;
+}
+
+:deep(.el-button--small) {
+  padding: 6px 14px;
+  font-size: 13px;
+  border-radius: 10px;
+}
+
+/* 对话框 - iOS风格 */
+:deep(.el-dialog) {
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 0.5px solid rgba(0, 0, 0, 0.06);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+}
+
+:deep(.el-dialog__header) {
+  padding: 24px 24px 16px;
+  border-bottom: 0.5px solid rgba(0, 0, 0, 0.08);
+}
+
+:deep(.el-dialog__title) {
+  font-size: 20px;
+  font-weight: 600;
+  color: #1d1d1f;
+  letter-spacing: -0.3px;
+}
+
+:deep(.el-dialog__body) {
+  padding: 24px;
+}
+
+:deep(.el-dialog__footer) {
+  padding: 16px 24px 24px;
+  border-top: 0.5px solid rgba(0, 0, 0, 0.08);
+}
+
+/* 表单样式 - iOS风格 */
+:deep(.el-input__wrapper) {
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 0.5px solid rgba(0, 0, 0, 0.1);
+  box-shadow: none;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+:deep(.el-input__wrapper:hover) {
+  border-color: rgba(0, 122, 255, 0.3);
+  background: rgba(255, 255, 255, 0.9);
+}
+
+:deep(.el-input__wrapper.is-focus) {
+  border-color: #007aff;
+  box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.1);
+}
+
+:deep(.el-textarea__inner) {
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 0.5px solid rgba(0, 0, 0, 0.1);
+}
+
+:deep(.el-textarea__inner:hover) {
+  border-color: rgba(0, 122, 255, 0.3);
+  background: rgba(255, 255, 255, 0.9);
+}
+
+:deep(.el-textarea__inner:focus) {
+  border-color: #007aff;
+  box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.1);
 }
 
 /* 响应式 */

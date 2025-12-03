@@ -288,18 +288,21 @@ onMounted(() => {
 .order-detail {
   max-width: 1000px;
   margin: 0 auto;
+  background: #f5f5f7;
+  padding: 20px;
+  border-radius: 20px;
 }
 
 .loading-container,
 .error-container {
   text-align: center;
   padding: 60px 20px;
-  color: #909399;
+  color: #6e6e73;
 }
 
 .loading-container p {
   margin-top: 16px;
-  font-size: 14px;
+  font-size: 15px;
 }
 
 .order-content {
@@ -308,9 +311,18 @@ onMounted(() => {
   gap: 20px;
 }
 
-/* 订单头部 */
+/* 订单头部 - iOS风格 */
 .order-header-card {
-  background: #fff;
+  border-radius: 20px;
+  border: 0.5px solid rgba(0, 0, 0, 0.04);
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.06);
+}
+
+.order-header-card :deep(.el-card__body) {
+  padding: 28px;
 }
 
 .order-header {
@@ -332,14 +344,18 @@ onMounted(() => {
 
 .order-title {
   margin: 0;
-  font-size: 24px;
+  font-size: 26px;
   font-weight: 600;
-  color: #303133;
+  color: #1d1d1f;
+  letter-spacing: -0.5px;
 }
 
 .status-tag {
-  font-size: 14px;
+  font-size: 13px;
+  font-weight: 600;
   padding: 6px 16px;
+  border-radius: 12px;
+  border: none;
 }
 
 .order-meta {
@@ -351,56 +367,75 @@ onMounted(() => {
 .meta-item {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 6px;
   font-size: 14px;
 }
 
 .meta-label {
-  color: #909399;
-}
-
-.meta-value {
-  color: #606266;
+  color: #6e6e73;
   font-weight: 500;
 }
 
-/* 商品列表卡片 */
+.meta-value {
+  color: #1d1d1f;
+  font-weight: 600;
+}
+
+/* 商品列表卡片 - iOS风格 */
 .items-card {
-  background: #fff;
+  border-radius: 20px;
+  border: 0.5px solid rgba(0, 0, 0, 0.04);
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.06);
+}
+
+.items-card :deep(.el-card__header) {
+  background: rgba(247, 247, 247, 0.6);
+  border-bottom: 0.5px solid rgba(0, 0, 0, 0.06);
+  padding: 18px 24px;
+}
+
+.items-card :deep(.el-card__body) {
+  padding: 24px;
 }
 
 .card-header {
-  font-size: 16px;
+  font-size: 17px;
   font-weight: 600;
-  color: #303133;
+  color: #1d1d1f;
+  letter-spacing: -0.3px;
 }
 
 .items-container {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 14px;
 }
 
 .order-item {
   display: flex;
   gap: 16px;
   padding: 16px;
-  background: #f5f7fa;
-  border-radius: 8px;
-  transition: all 0.3s;
+  background: rgba(0, 0, 0, 0.02);
+  border-radius: 14px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .order-item:hover {
-  background: #ecf5ff;
+  background: rgba(0, 0, 0, 0.04);
+  transform: translateX(2px);
 }
 
 .item-image {
   width: 80px;
   height: 100px;
   flex-shrink: 0;
-  border-radius: 6px;
+  border-radius: 12px;
   overflow: hidden;
-  background: #fff;
+  background: rgba(255, 255, 255, 0.8);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 }
 
 .item-image :deep(.el-image) {
@@ -414,7 +449,7 @@ onMounted(() => {
   justify-content: center;
   width: 100%;
   height: 100%;
-  background: #f5f7fa;
+  background: rgba(0, 0, 0, 0.03);
   color: #c0c4cc;
   font-size: 24px;
 }
@@ -430,17 +465,18 @@ onMounted(() => {
 .item-title {
   font-size: 16px;
   font-weight: 600;
-  color: #303133;
+  color: #1d1d1f;
   margin: 0 0 8px 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  letter-spacing: -0.3px;
 }
 
 .item-author,
 .item-isbn {
   font-size: 13px;
-  color: #909399;
+  color: #6e6e73;
   margin: 4px 0;
 }
 
@@ -462,35 +498,46 @@ onMounted(() => {
 }
 
 .pricing-label {
-  color: #909399;
+  color: #6e6e73;
+  font-weight: 500;
 }
 
 .pricing-value {
-  color: #606266;
-  font-weight: 500;
+  color: #1d1d1f;
+  font-weight: 600;
 }
 
 .subtotal-row {
   margin-top: 4px;
   padding-top: 8px;
-  border-top: 1px dashed #dcdfe6;
+  border-top: 0.5px dashed rgba(0, 0, 0, 0.1);
 }
 
 .subtotal-value {
-  font-size: 16px;
+  font-size: 17px;
   font-weight: 600;
-  color: #f56c6c;
+  color: #ff3b30;
+  letter-spacing: -0.3px;
 }
 
-/* 总计卡片 */
+/* 总计卡片 - iOS风格 */
 .summary-card {
-  background: #fff;
+  border-radius: 20px;
+  border: 0.5px solid rgba(0, 0, 0, 0.04);
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.06);
+}
+
+.summary-card :deep(.el-card__body) {
+  padding: 24px;
 }
 
 .order-summary {
-  padding: 16px;
-  background: #f0f9ff;
-  border-radius: 8px;
+  padding: 20px;
+  background: rgba(0, 122, 255, 0.05);
+  border-radius: 14px;
 }
 
 .summary-row {
@@ -501,22 +548,86 @@ onMounted(() => {
 
 .summary-label {
   font-size: 16px;
-  font-weight: 500;
-  color: #606266;
+  font-weight: 600;
+  color: #1d1d1f;
+  letter-spacing: -0.3px;
 }
 
 .summary-amount {
-  font-size: 24px;
+  font-size: 26px;
   font-weight: 600;
-  color: #f56c6c;
+  color: #ff3b30;
+  letter-spacing: -0.5px;
 }
 
-/* 操作按钮 */
+/* 操作按钮 - iOS风格 */
 .order-actions {
   display: flex;
   justify-content: flex-end;
   gap: 12px;
   padding: 16px 0;
+}
+
+.order-actions :deep(.el-button) {
+  border-radius: 12px;
+  padding: 10px 20px;
+  font-weight: 500;
+  font-size: 14px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.order-actions :deep(.el-button--primary) {
+  background: #007aff;
+  border: none;
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(0, 122, 255, 0.25);
+}
+
+.order-actions :deep(.el-button--primary:hover) {
+  background: #0051d5;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 122, 255, 0.3);
+}
+
+.order-actions :deep(.el-button--success) {
+  background: #34c759;
+  border: none;
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(52, 199, 89, 0.25);
+}
+
+.order-actions :deep(.el-button--success:hover) {
+  background: #28a745;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(52, 199, 89, 0.3);
+}
+
+.order-actions :deep(.el-button--danger) {
+  background: #ff3b30;
+  border: none;
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(255, 59, 48, 0.25);
+}
+
+.order-actions :deep(.el-button--danger:hover) {
+  background: #d32f2f;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(255, 59, 48, 0.3);
+}
+
+.order-actions :deep(.el-button:not(.el-button--primary):not(.el-button--success):not(.el-button--danger)) {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 0.5px solid rgba(0, 0, 0, 0.1);
+  color: #1d1d1f;
+}
+
+.order-actions :deep(.el-button:not(.el-button--primary):not(.el-button--success):not(.el-button--danger):hover) {
+  background: rgba(255, 255, 255, 0.9);
+  border-color: rgba(0, 122, 255, 0.3);
+  color: #007aff;
+  transform: translateY(-1px);
 }
 
 /* 响应式 */

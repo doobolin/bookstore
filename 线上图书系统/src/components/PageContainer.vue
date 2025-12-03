@@ -111,13 +111,16 @@ onMounted(() => {
 <style scoped>
 .page-container {
   min-height: 100vh;
-  background: #f5f7fa;
+  background: #f5f5f7;
 }
 
-/* 顶部导航栏 */
+/* 顶部导航栏 - iOS风格 */
 .page-navbar {
-  background: #fff;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 0.5px solid rgba(0, 0, 0, 0.1);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.06);
   position: sticky;
   top: 0;
   z-index: 1000;
@@ -127,7 +130,7 @@ onMounted(() => {
   max-width: 1400px;
   margin: 0 auto;
   padding: 0 20px;
-  height: 60px;
+  height: 64px;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -135,30 +138,49 @@ onMounted(() => {
 
 .logo {
   cursor: pointer;
-  transition: transform 0.3s;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .logo:hover {
-  transform: scale(1.05);
+  transform: scale(1.02);
 }
 
 .logo-text {
-  font-size: 20px;
-  font-weight: bold;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  font-size: 22px;
+  font-weight: 600;
+  color: #1d1d1f;
+  letter-spacing: -0.5px;
 }
 
 .nav-actions {
   display: flex;
   align-items: center;
-  gap: 20px;
+  gap: 12px;
+}
+
+/* 返回首页按钮 - iOS风格 */
+.nav-actions :deep(.el-button) {
+  padding: 8px 16px;
+  border-radius: 12px;
+  font-weight: 500;
+  font-size: 14px;
+  color: #007aff;
+  background: rgba(0, 122, 255, 0.08);
+  border: none;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.nav-actions :deep(.el-button:hover) {
+  background: rgba(0, 122, 255, 0.15);
+  transform: translateY(-1px);
+}
+
+.nav-actions :deep(.el-icon) {
+  font-size: 16px;
 }
 
 .user-info {
-  margin-left: 10px;
+  margin-left: 8px;
 }
 
 .user-dropdown {
@@ -166,29 +188,74 @@ onMounted(() => {
   align-items: center;
   gap: 8px;
   cursor: pointer;
-  padding: 8px 12px;
-  border-radius: 6px;
-  transition: all 0.3s;
+  padding: 8px 16px;
+  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.03);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .user-dropdown:hover {
-  background: #f5f7fa;
+  background: rgba(0, 0, 0, 0.06);
+  transform: scale(1.02);
 }
 
 .user-icon {
   font-size: 18px;
-  color: #409eff;
+  color: #007aff;
 }
 
 .username {
   font-size: 14px;
-  font-weight: 500;
-  color: #303133;
+  font-weight: 600;
+  color: #1d1d1f;
+  letter-spacing: -0.2px;
 }
 
 .arrow-icon {
   font-size: 12px;
-  color: #909399;
+  color: #6e6e73;
+}
+
+/* 下拉菜单 - iOS风格 */
+.user-info :deep(.el-dropdown-menu) {
+  border-radius: 14px;
+  border: 0.5px solid rgba(0, 0, 0, 0.1);
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  padding: 6px;
+  margin-top: 8px;
+}
+
+.user-info :deep(.el-dropdown-menu__item) {
+  border-radius: 10px;
+  padding: 10px 16px;
+  margin: 2px 0;
+  font-size: 14px;
+  font-weight: 500;
+  color: #1d1d1f;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.user-info :deep(.el-dropdown-menu__item:hover) {
+  background: rgba(0, 122, 255, 0.1);
+  color: #007aff;
+}
+
+.user-info :deep(.el-dropdown-menu__item.is-disabled) {
+  color: #c0c4cc;
+}
+
+.user-info :deep(.el-dropdown-menu__item--divided) {
+  margin-top: 6px;
+  border-top: 0.5px solid rgba(0, 0, 0, 0.06);
+  padding-top: 10px;
+}
+
+.user-info :deep(.el-dropdown-menu__item .el-icon) {
+  margin-right: 8px;
+  font-size: 16px;
 }
 
 /* 主要内容区域 */
@@ -196,6 +263,6 @@ onMounted(() => {
   max-width: 1400px;
   margin: 0 auto;
   padding: 24px 20px;
-  min-height: calc(100vh - 60px);
+  min-height: calc(100vh - 64px);
 }
 </style>
