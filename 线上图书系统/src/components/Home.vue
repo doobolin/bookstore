@@ -1,10 +1,19 @@
 <template>
   <div class="home-container">
-    <!-- 欢迎屏幕 -->
+    <!-- 欢迎屏幕 - 文字动画效果 -->
     <div v-if="showWelcome" class="welcome-screen">
-      <h1 class="welcome-text" :class="{ 'fly-out': welcomeAnimating }">
-        欢迎来到科技书城
-      </h1>
+      <div class="texty-container">
+        <h1 class="welcome-text" :class="{ 'fly-out': welcomeAnimating }">
+          <span
+            v-for="(char, index) in welcomeChars"
+            :key="index"
+            class="char"
+            :style="getCharStyle(index)"
+          >
+            {{ char }}
+          </span>
+        </h1>
+      </div>
     </div>
 
     <!-- 动态粒子背景 -->
@@ -160,6 +169,9 @@ const username = ref('')
 const showWelcome = ref(true)
 const welcomeAnimating = ref(false)
 const canvasContainer = ref<HTMLDivElement | null>(null)
+const welcomeText = '欢迎来到科技书城'
+const welcomeChars = ref<string[]>([])
+const animationStarted = ref(false)
 
 // 检查登录状态
 const checkLoginStatus = () => {
@@ -489,6 +501,41 @@ function handleResize() {
   initCanvas()
 }
 
+// 获取每个字符的延迟时间（类似 rc-texty 的 interval 效果）
+const getCharDelay = (index: number): number => {
+  // 每个字符间隔150ms
+  return index * 150
+}
+
+// 获取每个字符的样式（动画延迟）
+const getCharStyle = (index: number) => {
+  return {
+    animationDelay: `${getCharDelay(index)}ms`
+  }
+}
+
+// 初始化文字动画
+const initTextAnimation = () => {
+  // 将文字拆分成字符数组
+  welcomeChars.value = welcomeText.split('')
+  animationStarted.value = true
+
+  // 计算总动画时间：最后一个字符的延迟 + 动画持续时间
+  const lastCharDelay = getCharDelay(welcomeChars.value.length - 1)
+  const animationDuration = 600 // 单个字符动画持续时间
+  const totalTime = lastCharDelay + animationDuration
+
+  // 动画完成后，等待1秒再开始飞出
+  setTimeout(() => {
+    welcomeAnimating.value = true
+
+    // 1秒后隐藏欢迎屏幕
+    setTimeout(() => {
+      showWelcome.value = false
+    }, 1000)
+  }, totalTime + 1000)
+}
+
 onMounted(() => {
   initCanvas()
   window.addEventListener('resize', handleResize)
@@ -506,17 +553,11 @@ onMounted(() => {
     // 已登录，直接显示主页内容
     showWelcome.value = false
   } else {
-    // 未登录，显示欢迎动画
-    // 1. 显示欢迎文字 1秒
+    // 未登录，显示文字动画
+    // 延迟500ms开始动画
     setTimeout(() => {
-      // 2. 开始向上飞出动画
-      welcomeAnimating.value = true
-    }, 1000)
-
-    // 3. 飞出动画完成后隐藏欢迎屏幕，主页内容开始淡入
-    setTimeout(() => {
-      showWelcome.value = false
-    }, 2000)
+      initTextAnimation()
+    }, 500)
   }
 
 })
@@ -541,7 +582,7 @@ onUnmounted(() => {
   overflow-x: hidden;
 }
 
-/* 欢迎屏幕 */
+/* 欢迎屏幕 - 文字动画效果 */
 .welcome-screen {
   position: fixed;
   top: 0;
@@ -556,25 +597,47 @@ onUnmounted(() => {
   overflow: hidden;
 }
 
+.texty-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  perspective: 1000px;
+}
+
 .welcome-text {
   font-size: 48px;
   font-weight: 700;
   color: #10b981;
   text-shadow: 0 0 40px rgba(16, 185, 129, 0.5);
-  animation: welcome-fade-in 1s ease-out;
+  display: inline-flex;
+  align-items: center;
+  white-space: nowrap;
+  letter-spacing: 4px;
 }
 
-/* 欢迎文字淡入动画 */
-@keyframes welcome-fade-in {
+/* 字符动画效果 */
+.welcome-text .char {
+  display: inline-block;
+  opacity: 0;
+  transform: translateY(-100%) scale(0.8) rotateX(-90deg);
+  animation: char-appear 0.6s cubic-bezier(0.22, 0.61, 0.36, 1) forwards;
+}
+
+@keyframes char-appear {
   0% {
     opacity: 0;
-    transform: scale(0.8);
+    transform: translateY(-100%) scale(0.3) rotateX(-90deg);
+  }
+  50% {
+    opacity: 0.8;
+    transform: translateY(-20%) scale(1.1) rotateX(-20deg);
   }
   100% {
     opacity: 1;
-    transform: scale(1);
+    transform: translateY(0) scale(1) rotateX(0);
   }
 }
+
 
 /* 文字向上飞出动画 */
 .welcome-text.fly-out {
@@ -1160,6 +1223,12 @@ onUnmounted(() => {
 
   .back-to-top-icon {
     font-size: 18px;
+  }
+
+  /* 小屏幕文字动画适配 */
+  .welcome-text {
+    font-size: 24px;
+    letter-spacing: 2px;
   }
 }
 
