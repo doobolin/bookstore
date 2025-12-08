@@ -384,18 +384,106 @@ onMounted(() => {
   background: #f5f5f7;
   padding: 20px;
   border-radius: 20px;
+  position: relative;
+  overflow: hidden;
 }
 
-/* 头部卡片 - iOS风格 */
+/* 渐变波纹背景 */
+.order-list::before {
+  content: '';
+  position: fixed;
+  width: 200%;
+  height: 200%;
+  left: -50%;
+  top: -50%;
+  background:
+    radial-gradient(circle at 30% 40%, rgba(100, 240, 255, 1) 0%, rgba(100, 240, 255, 0.6) 20%, transparent 45%),
+    radial-gradient(circle at 70% 30%, rgba(150, 100, 255, 0.9) 0%, rgba(255, 100, 220, 0.5) 25%, transparent 50%),
+    radial-gradient(circle at 50% 70%, rgba(50, 120, 220, 0.95) 0%, rgba(100, 20, 150, 0.6) 22%, transparent 48%);
+  background-size: 100% 100%;
+  animation: flowingWave1 8s ease-in-out infinite;
+  filter: blur(40px);
+  opacity: 0.3;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.order-list::after {
+  content: '';
+  position: fixed;
+  width: 200%;
+  height: 200%;
+  left: -50%;
+  top: -50%;
+  background:
+    radial-gradient(circle at 20% 60%, rgba(255, 100, 200, 1) 0%, rgba(255, 150, 180, 0.7) 18%, transparent 42%),
+    radial-gradient(circle at 80% 50%, rgba(200, 30, 200, 0.9) 0%, rgba(220, 50, 180, 0.6) 20%, transparent 46%),
+    radial-gradient(circle at 45% 25%, rgba(255, 150, 100, 0.85) 0%, rgba(180, 70, 50, 0.5) 24%, transparent 50%);
+  background-size: 100% 100%;
+  animation: flowingWave2 10s ease-in-out infinite;
+  filter: blur(50px);
+  opacity: 0.25;
+  z-index: 0;
+  pointer-events: none;
+}
+
+@keyframes flowingWave1 {
+  0% {
+    transform: translate(0%, 0%) rotate(0deg) scale(1);
+  }
+  25% {
+    transform: translate(-15%, 10%) rotate(90deg) scale(1.1);
+  }
+  50% {
+    transform: translate(-10%, -15%) rotate(180deg) scale(1.05);
+  }
+  75% {
+    transform: translate(15%, -8%) rotate(270deg) scale(1.12);
+  }
+  100% {
+    transform: translate(0%, 0%) rotate(360deg) scale(1);
+  }
+}
+
+@keyframes flowingWave2 {
+  0% {
+    transform: translate(0%, 0%) rotate(0deg) scale(1);
+  }
+  20% {
+    transform: translate(12%, -10%) rotate(-72deg) scale(1.08);
+  }
+  40% {
+    transform: translate(-8%, -12%) rotate(-144deg) scale(1.15);
+  }
+  60% {
+    transform: translate(-15%, 8%) rotate(-216deg) scale(1.06);
+  }
+  80% {
+    transform: translate(10%, 15%) rotate(-288deg) scale(1.12);
+  }
+  100% {
+    transform: translate(0%, 0%) rotate(-360deg) scale(1);
+  }
+}
+
+/* 确保内容在波纹之上 */
+.order-list > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* 头部卡片 - 增强毛玻璃 */
 .order-header-card {
   margin-bottom: 20px;
   border-radius: 20px;
-  border: none;
-  background: rgba(255, 255, 255, 0.7);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 0.5px solid rgba(0, 0, 0, 0.04);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.06);
+  background: rgba(255, 255, 255, 0.5);
+  backdrop-filter: saturate(180%) blur(30px);
+  -webkit-backdrop-filter: saturate(180%) blur(30px);
+  border: 0.5px solid rgba(255, 255, 255, 0.3);
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.08),
+    0 2px 8px rgba(0, 0, 0, 0.04),
+    inset 0 1px 1px rgba(255, 255, 255, 0.9);
   overflow: hidden;
 }
 
@@ -471,21 +559,28 @@ onMounted(() => {
   gap: 16px;
 }
 
-/* 订单卡片 - iOS风格毛玻璃 */
+/* 订单卡片 - 增强毛玻璃 */
 .order-card {
   border-radius: 20px;
-  border: 0.5px solid rgba(0, 0, 0, 0.04);
-  background: rgba(255, 255, 255, 0.7);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.06);
+  border: 0.5px solid rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.45);
+  backdrop-filter: saturate(180%) blur(30px);
+  -webkit-backdrop-filter: saturate(180%) blur(30px);
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.08),
+    0 2px 8px rgba(0, 0, 0, 0.04),
+    inset 0 1px 1px rgba(255, 255, 255, 0.8);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   overflow: hidden;
 }
 
 .order-card:hover {
+  background: rgba(255, 255, 255, 0.55);
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06), 0 2px 4px rgba(0, 0, 0, 0.08);
+  box-shadow:
+    0 12px 48px rgba(0, 0, 0, 0.12),
+    0 4px 12px rgba(0, 0, 0, 0.06),
+    inset 0 1px 1px rgba(255, 255, 255, 0.9);
 }
 
 .order-card :deep(.el-card__body) {

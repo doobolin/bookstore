@@ -467,17 +467,106 @@ onMounted(() => {
   background: #f5f5f7;
   padding: 20px;
   border-radius: 20px;
+  position: relative;
+  overflow: hidden;
 }
 
-/* 头部 - iOS风格 */
+/* 渐变波纹背景 */
+.checkout-container::before {
+  content: '';
+  position: fixed;
+  width: 200%;
+  height: 200%;
+  left: -50%;
+  top: -50%;
+  background:
+    radial-gradient(circle at 30% 40%, rgba(100, 240, 255, 1) 0%, rgba(100, 240, 255, 0.6) 20%, transparent 45%),
+    radial-gradient(circle at 70% 30%, rgba(150, 100, 255, 0.9) 0%, rgba(255, 100, 220, 0.5) 25%, transparent 50%),
+    radial-gradient(circle at 50% 70%, rgba(50, 120, 220, 0.95) 0%, rgba(100, 20, 150, 0.6) 22%, transparent 48%);
+  background-size: 100% 100%;
+  animation: flowingWave1 8s ease-in-out infinite;
+  filter: blur(40px);
+  opacity: 0.3;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.checkout-container::after {
+  content: '';
+  position: fixed;
+  width: 200%;
+  height: 200%;
+  left: -50%;
+  top: -50%;
+  background:
+    radial-gradient(circle at 20% 60%, rgba(255, 100, 200, 1) 0%, rgba(255, 150, 180, 0.7) 18%, transparent 42%),
+    radial-gradient(circle at 80% 50%, rgba(200, 30, 200, 0.9) 0%, rgba(220, 50, 180, 0.6) 20%, transparent 46%),
+    radial-gradient(circle at 45% 25%, rgba(255, 150, 100, 0.85) 0%, rgba(180, 70, 50, 0.5) 24%, transparent 50%);
+  background-size: 100% 100%;
+  animation: flowingWave2 10s ease-in-out infinite;
+  filter: blur(50px);
+  opacity: 0.25;
+  z-index: 0;
+  pointer-events: none;
+}
+
+@keyframes flowingWave1 {
+  0% {
+    transform: translate(0%, 0%) rotate(0deg) scale(1);
+  }
+  25% {
+    transform: translate(-15%, 10%) rotate(90deg) scale(1.1);
+  }
+  50% {
+    transform: translate(-10%, -15%) rotate(180deg) scale(1.05);
+  }
+  75% {
+    transform: translate(15%, -8%) rotate(270deg) scale(1.12);
+  }
+  100% {
+    transform: translate(0%, 0%) rotate(360deg) scale(1);
+  }
+}
+
+@keyframes flowingWave2 {
+  0% {
+    transform: translate(0%, 0%) rotate(0deg) scale(1);
+  }
+  20% {
+    transform: translate(12%, -10%) rotate(-72deg) scale(1.08);
+  }
+  40% {
+    transform: translate(-8%, -12%) rotate(-144deg) scale(1.15);
+  }
+  60% {
+    transform: translate(-15%, 8%) rotate(-216deg) scale(1.06);
+  }
+  80% {
+    transform: translate(10%, 15%) rotate(-288deg) scale(1.12);
+  }
+  100% {
+    transform: translate(0%, 0%) rotate(-360deg) scale(1);
+  }
+}
+
+/* 确保内容在波纹之上 */
+.checkout-container > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* 头部 - 增强毛玻璃 */
 .checkout-header {
   margin-bottom: 20px;
   border-radius: 20px;
-  border: 0.5px solid rgba(0, 0, 0, 0.04);
-  background: rgba(255, 255, 255, 0.7);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.06);
+  border: 0.5px solid rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.5);
+  backdrop-filter: saturate(180%) blur(30px);
+  -webkit-backdrop-filter: saturate(180%) blur(30px);
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.08),
+    0 2px 8px rgba(0, 0, 0, 0.04),
+    inset 0 1px 1px rgba(255, 255, 255, 0.9);
 }
 
 .checkout-header :deep(.el-card__body) {
@@ -506,15 +595,18 @@ onMounted(() => {
   letter-spacing: -0.3px;
 }
 
-/* 收货地址部分 - iOS风格 */
+/* 收货地址部分 - 增强毛玻璃 */
 .address-section {
   margin-bottom: 20px;
   border-radius: 20px;
-  border: 0.5px solid rgba(0, 0, 0, 0.04);
-  background: rgba(255, 255, 255, 0.7);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.06);
+  border: 0.5px solid rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.45);
+  backdrop-filter: saturate(180%) blur(30px);
+  -webkit-backdrop-filter: saturate(180%) blur(30px);
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.08),
+    0 2px 8px rgba(0, 0, 0, 0.04),
+    inset 0 1px 1px rgba(255, 255, 255, 0.8);
 }
 
 .address-section :deep(.el-card__header) {
@@ -632,15 +724,18 @@ onMounted(() => {
   align-items: center;
 }
 
-/* 订单信息部分 - iOS风格 */
+/* 订单信息部分 - 增强毛玻璃 */
 .order-section {
   margin-bottom: 20px;
   border-radius: 20px;
-  border: 0.5px solid rgba(0, 0, 0, 0.04);
-  background: rgba(255, 255, 255, 0.7);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.06);
+  border: 0.5px solid rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.45);
+  backdrop-filter: saturate(180%) blur(30px);
+  -webkit-backdrop-filter: saturate(180%) blur(30px);
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.08),
+    0 2px 8px rgba(0, 0, 0, 0.04),
+    inset 0 1px 1px rgba(255, 255, 255, 0.8);
 }
 
 .order-section :deep(.el-card__header) {
@@ -759,15 +854,18 @@ onMounted(() => {
   justify-content: center;
 }
 
-/* 付款详情部分 - iOS风格 */
+/* 付款详情部分 - 增强毛玻璃 */
 .payment-section {
   margin-bottom: 100px;
   border-radius: 20px;
-  border: 0.5px solid rgba(0, 0, 0, 0.04);
-  background: rgba(255, 255, 255, 0.7);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.06);
+  border: 0.5px solid rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.45);
+  backdrop-filter: saturate(180%) blur(30px);
+  -webkit-backdrop-filter: saturate(180%) blur(30px);
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.08),
+    0 2px 8px rgba(0, 0, 0, 0.04),
+    inset 0 1px 1px rgba(255, 255, 255, 0.8);
 }
 
 .payment-section :deep(.el-card__header) {
@@ -831,18 +929,21 @@ onMounted(() => {
   letter-spacing: -0.5px;
 }
 
-/* 底部操作栏 - iOS风格 */
+/* 底部操作栏 - 增强毛玻璃 */
 .checkout-footer {
   position: fixed;
   bottom: 0;
   left: 0;
   right: 0;
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border-top: 0.5px solid rgba(0, 0, 0, 0.1);
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: saturate(180%) blur(30px);
+  -webkit-backdrop-filter: saturate(180%) blur(30px);
+  border-top: 0.5px solid rgba(255, 255, 255, 0.5);
   padding: 16px 20px;
-  box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.04), 0 -1px 2px rgba(0, 0, 0, 0.06);
+  box-shadow:
+    0 -8px 32px rgba(0, 0, 0, 0.08),
+    0 -2px 8px rgba(0, 0, 0, 0.04),
+    inset 0 1px 1px rgba(255, 255, 255, 0.9);
   z-index: 100;
 }
 
