@@ -22,7 +22,6 @@
     <div v-if="activeTab === 'available'" class="tab-content">
       <div class="page-header">
         <div class="search-box">
-          <span class="search-icon">🔍</span>
           <input
             v-model="searchKeyword"
             type="text"
@@ -89,7 +88,7 @@
           <div class="book-info" :class="{ 'low-stock': book.stock && book.stock < 20 }">{{ book.stock }}</div>
           <div class="book-actions">
             <button class="restock-btn" @click="restockBook(book)" :disabled="isProcessing">
-              📦 进货
+              进货
             </button>
             <button class="edit-btn" @click="editBook(book)" :disabled="isProcessing">
               编辑
@@ -889,74 +888,106 @@ const resetForm = () => {
 </script>
 
 <style scoped lang="scss">
-.book-manage-container {
-  width: 100%;
+/* iOS 风格全局样式 */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #C7C7CC #f2f2f7;
 }
 
-/* 标签页样式 */
+*::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: #C7C7CC;
+  border-radius: 10px;
+
+  &:hover {
+    background: #8E8E93;
+  }
+}
+
+/* iOS 风格容器 */
+.book-manage-container {
+  width: 100%;
+  position: relative;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif;
+  -webkit-font-smoothing: antialiased;
+  background: #F2F2F7;
+  min-height: 100vh;
+  padding: 24px;
+}
+
+/* 标签页样式 - iOS风格 */
 .tabs-container {
   display: flex;
-  gap: 8px;
+  gap: 12px;
   margin-bottom: 24px;
-  border-bottom: 2px solid #333;
+  background: white;
+  padding: 6px;
+  border-radius: 12px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.04);
 }
 
 .tab-btn {
-  padding: 12px 24px;
+  padding: 10px 20px;
   background: none;
   border: none;
-  color: #999;
+  color: #8E8E93;
   font-size: 15px;
-  font-weight: 500;
+  font-weight: 600;
   cursor: pointer;
   position: relative;
-  transition: all 0.3s ease;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
   display: flex;
   align-items: center;
   gap: 8px;
+  border-radius: 8px;
+  flex: 1;
+  justify-content: center;
 
   &:hover {
-    color: #4caf50;
+    color: #34C759;
+    background: rgba(52, 199, 89, 0.05);
   }
 
   &.active {
-    color: #4caf50;
-
-    &::after {
-      content: '';
-      position: absolute;
-      bottom: -2px;
-      left: 0;
-      right: 0;
-      height: 2px;
-      background-color: #4caf50;
-    }
+    color: white;
+    background: #34C759;
+    box-shadow: 0 4px 12px rgba(52, 199, 89, 0.3);
   }
 }
 
 .tab-count {
-  background-color: #2a2a2a;
-  color: #e0e0e0;
+  background: rgba(0, 0, 0, 0.1);
+  color: inherit;
   padding: 2px 8px;
-  border-radius: 10px;
+  border-radius: 999px;
   font-size: 12px;
-  font-weight: 600;
+  font-weight: 700;
+  min-width: 24px;
+  text-align: center;
 }
 
 .tab-btn.active .tab-count {
-  background-color: #4caf50;
-  color: #fff;
+  background: rgba(255, 255, 255, 0.25);
+  color: white;
 }
 
 /* 页面头部 */
 .tab-content {
-  animation: fadeIn 0.3s ease;
+  animation: fadeIn 0.4s ease;
 }
 
 @keyframes fadeIn {
   from {
     opacity: 0;
-    transform: translateY(10px);
+    transform: translateY(20px);
   }
   to {
     opacity: 1;
@@ -968,7 +999,7 @@ const resetForm = () => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 24px;
+  margin-bottom: 20px;
   gap: 16px;
 }
 
@@ -977,51 +1008,60 @@ const resetForm = () => {
 
   h3 {
     margin: 0 0 4px 0;
-    color: #e0e0e0;
-    font-size: 20px;
+    color: #1C1C1E;
+    font-size: 22px;
+    font-weight: 700;
   }
 
   .subtitle {
     margin: 0;
-    color: #999;
+    color: #8E8E93;
     font-size: 13px;
+    font-weight: 500;
   }
 }
 
+/* 搜索框 - iOS风格 */
 .search-box {
   position: relative;
   flex: 1;
-  max-width: 400px;
+  max-width: 500px;
   display: flex;
   align-items: center;
 }
 
 .search-icon {
   position: absolute;
-  left: 12px;
+  left: 14px;
   font-size: 16px;
   pointer-events: none;
   z-index: 1;
+  color: #8E8E93;
 }
 
 .search-input {
   width: 100%;
-  padding: 10px 40px 10px 36px;
-  background-color: #1e1e1e;
-  border: 1px solid #333;
-  border-radius: 4px;
-  color: #fff;
-  font-size: 14px;
+  padding: 10px 40px 10px 40px;
+  background: white;
+  border: 1px solid #E5E5EA;
+  border-radius: 12px;
+  color: #1C1C1E;
+  font-size: 15px;
   transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
 
   &::placeholder {
-    color: #666;
+    color: #8E8E93;
   }
 
   &:focus {
     outline: none;
-    border-color: #4caf50;
-    box-shadow: 0 0 8px rgba(76, 175, 80, 0.3);
+    border-color: #34C759;
+    box-shadow: 0 0 0 3px rgba(52, 199, 89, 0.1), 0 8px 16px rgba(0, 0, 0, 0.04);
+  }
+
+  &:hover {
+    border-color: #C7C7CC;
   }
 }
 
@@ -1030,83 +1070,97 @@ const resetForm = () => {
   right: 8px;
   background: none;
   border: none;
-  color: #999;
-  font-size: 24px;
+  color: #8E8E93;
+  font-size: 20px;
   cursor: pointer;
-  padding: 0 8px;
+  padding: 4px 8px;
   line-height: 1;
   transition: color 0.2s ease;
+  border-radius: 6px;
 
   &:hover {
-    color: #4caf50;
+    color: #34C759;
+    background: rgba(52, 199, 89, 0.1);
   }
 }
 
+/* 按钮 - iOS风格 */
 .add-btn {
-  background-color: #4caf50;
+  background: #34C759;
   color: white;
   border: none;
   padding: 10px 20px;
-  border-radius: 4px;
+  border-radius: 12px;
   cursor: pointer;
-  font-size: 14px;
-  font-weight: 500;
-  transition: background-color 0.3s ease;
+  font-size: 15px;
+  font-weight: 600;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
   white-space: nowrap;
+  box-shadow: 0 4px 12px rgba(52, 199, 89, 0.3);
 
   &:hover {
-    background-color: #45a049;
+    background: #2db34b;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(52, 199, 89, 0.4);
+  }
+
+  &:active {
+    transform: translateY(0);
   }
 
   &:disabled {
     opacity: 0.5;
     cursor: not-allowed;
+    transform: none;
   }
 }
 
-/* 筛选栏样式 */
+/* 筛选栏 */
 .filter-bar {
   display: flex;
   align-items: center;
-  gap: 24px;
+  gap: 20px;
   padding: 16px 20px;
-  background-color: #1e1e1e;
-  border-radius: 8px;
+  background: white;
+  border-radius: 16px;
   margin-bottom: 16px;
   flex-wrap: wrap;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
 }
 
 .filter-group {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
 }
 
 .filter-label {
-  color: #b0b0b0;
+  color: #8E8E93;
   font-size: 14px;
   white-space: nowrap;
+  font-weight: 600;
 }
 
 .filter-select {
   padding: 8px 12px;
-  background-color: #2a2a2a;
-  border: 1px solid #333;
-  border-radius: 4px;
-  color: #e0e0e0;
+  background: #F2F2F7;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  color: #1C1C1E;
   font-size: 14px;
   cursor: pointer;
   transition: all 0.3s ease;
   min-width: 150px;
+  font-weight: 500;
 
   &:hover {
-    border-color: #4caf50;
+    background: #E5E5EA;
   }
 
   &:focus {
     outline: none;
-    border-color: #4caf50;
-    box-shadow: 0 0 8px rgba(76, 175, 80, 0.3);
+    border-color: #34C759;
+    box-shadow: 0 0 0 3px rgba(52, 199, 89, 0.1);
   }
 
   &:disabled {
@@ -1115,8 +1169,8 @@ const resetForm = () => {
   }
 
   option {
-    background-color: #2a2a2a;
-    color: #e0e0e0;
+    background: white;
+    color: #1C1C1E;
   }
 }
 
@@ -1128,35 +1182,38 @@ const resetForm = () => {
 }
 
 .low-stock-warning {
-  color: #ff9800;
+  color: #FF9500;
   font-size: 13px;
-  font-weight: 500;
-  padding: 4px 8px;
-  background-color: rgba(255, 152, 0, 0.1);
-  border-radius: 4px;
+  font-weight: 700;
+  padding: 8px 12px;
+  background: #FFF4E6;
+  border: 1px solid #FFE5CC;
+  border-radius: 10px;
 }
 
-/* 图书列表样式 */
+/* 图书列表 - iOS风格 */
 .book-list {
-  background-color: #1e1e1e;
-  border-radius: 8px;
+  background: white;
+  border-radius: 20px;
   overflow: hidden;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.04);
 }
 
 .list-header {
   display: grid;
-  background-color: #2a2a2a;
+  background: #F9F9F9;
   padding: 16px 20px;
-  font-weight: 600;
-  color: #4caf50;
-  border-bottom: 1px solid #333;
+  font-weight: 700;
+  color: #8E8E93;
+  border-bottom: 1px solid #E5E5EA;
+  text-transform: uppercase;
+  font-size: 11px;
+  letter-spacing: 0.5px;
 
-  /* 已上架图书：7列 */
   &.available-header {
     grid-template-columns: 80px 1fr 1fr 140px 120px 100px 260px;
   }
 
-  /* 进货图书：6列 */
   &.pending-header {
     grid-template-columns: 80px 1fr 1fr 140px 1fr 220px;
   }
@@ -1169,21 +1226,19 @@ const resetForm = () => {
 .book-item {
   display: grid;
   padding: 16px 20px;
-  border-bottom: 1px solid #333;
-  transition: background-color 0.2s ease;
+  border-bottom: 1px solid #F2F2F7;
+  transition: all 0.2s ease;
 
-  /* 已上架图书：7列 */
   &.available-item {
     grid-template-columns: 80px 1fr 1fr 140px 120px 100px 260px;
   }
 
-  /* 进货图书：6列 */
   &.pending-item {
     grid-template-columns: 80px 1fr 1fr 140px 1fr 220px;
   }
 
   &:hover {
-    background-color: #252525;
+    background: #F9F9F9;
   }
 
   &:last-child {
@@ -1194,11 +1249,13 @@ const resetForm = () => {
 .book-info {
   display: flex;
   align-items: center;
-  color: #e0e0e0;
+  color: #1C1C1E;
+  font-size: 14px;
+  font-weight: 500;
 
   &.low-stock {
-    color: #ff4444;
-    font-weight: bold;
+    color: #FF3B30;
+    font-weight: 700;
   }
 }
 
@@ -1207,16 +1264,18 @@ const resetForm = () => {
   gap: 8px;
 }
 
+/* 操作按钮 - iOS风格 */
 .edit-btn,
 .delete-btn,
 .launch-btn,
 .restock-btn {
-  padding: 6px 12px;
+  padding: 6px 14px;
   border: none;
-  border-radius: 4px;
+  border-radius: 8px;
   cursor: pointer;
-  font-size: 12px;
-  transition: background-color 0.3s ease;
+  font-size: 13px;
+  font-weight: 600;
+  transition: all 0.2s ease;
 
   &:disabled {
     opacity: 0.5;
@@ -1225,67 +1284,76 @@ const resetForm = () => {
 }
 
 .launch-btn {
-  background-color: #4caf50;
+  background: #34C759;
   color: white;
 
   &:hover {
-    background-color: #45a049;
+    background: #2db34b;
+    transform: translateY(-1px);
   }
 }
 
 .restock-btn {
-  background-color: #ff9800;
+  background: #FF9500;
   color: white;
 
   &:hover {
-    background-color: #f57c00;
+    background: #e68600;
+    transform: translateY(-1px);
   }
 }
 
 .edit-btn {
-  background-color: #2196f3;
+  background: #007AFF;
   color: white;
 
   &:hover {
-    background-color: #1976d2;
+    background: #0066d9;
+    transform: translateY(-1px);
   }
 }
 
 .delete-btn {
-  background-color: #f44336;
+  background: #FF3B30;
   color: white;
 
   &:hover {
-    background-color: #d32f2f;
+    background: #d92f24;
+    transform: translateY(-1px);
   }
 }
 
+/* 加载和空状态 */
 .loading-message {
-  padding: 40px;
+  padding: 60px 40px;
   text-align: center;
-  color: #4caf50;
-  font-weight: 500;
+  color: #34C759;
+  font-weight: 600;
+  font-size: 15px;
 }
 
 .empty-message {
-  padding: 40px;
+  padding: 60px 40px;
   text-align: center;
-  color: #666;
+  color: #8E8E93;
+  font-size: 15px;
+  font-weight: 500;
 }
 
-/* 模态框样式 */
+/* 模态框 - iOS风格 */
 .modal-overlay {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(0, 0, 0, 0.7);
+  background: rgba(0, 0, 0, 0.4);
   display: flex;
   justify-content: center;
   align-items: center;
   z-index: 1000;
   animation: fadeInOverlay 0.2s ease;
+  backdrop-filter: blur(10px);
 }
 
 @keyframes fadeInOverlay {
@@ -1298,13 +1366,14 @@ const resetForm = () => {
 }
 
 .modal-content {
-  background-color: #1e1e1e;
-  border-radius: 8px;
+  background: white;
+  border-radius: 20px;
   width: 90%;
   max-width: 500px;
   max-height: 90vh;
   overflow-y: auto;
-  animation: slideUp 0.3s ease;
+  animation: slideUp 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
 
   &.launch-modal {
     max-width: 600px;
@@ -1314,11 +1383,11 @@ const resetForm = () => {
 @keyframes slideUp {
   from {
     opacity: 0;
-    transform: translateY(20px);
+    transform: translateY(30px) scale(0.95);
   }
   to {
     opacity: 1;
-    transform: translateY(0);
+    transform: translateY(0) scale(1);
   }
 }
 
@@ -1326,30 +1395,35 @@ const resetForm = () => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 20px;
-  border-bottom: 1px solid #333;
+  padding: 24px 24px 16px;
+  border-bottom: 1px solid #F2F2F7;
 
   h3 {
     margin: 0;
-    color: #4caf50;
+    color: #1C1C1E;
+    font-size: 20px;
+    font-weight: 700;
   }
 }
 
 .close-btn {
-  background: none;
+  background: #F2F2F7;
   border: none;
-  color: #666;
+  color: #8E8E93;
   font-size: 24px;
   cursor: pointer;
   padding: 0;
-  width: 30px;
-  height: 30px;
+  width: 32px;
+  height: 32px;
   display: flex;
   align-items: center;
   justify-content: center;
+  border-radius: 8px;
+  transition: all 0.2s ease;
 
   &:hover {
-    color: #fff;
+    background: #E5E5EA;
+    color: #1C1C1E;
   }
 
   &:disabled {
@@ -1358,28 +1432,29 @@ const resetForm = () => {
   }
 }
 
-/* 表单样式 */
+/* 表单样式 - iOS风格 */
 .book-form {
-  padding: 20px;
+  padding: 24px;
 }
 
 .book-preview {
-  padding: 16px;
-  background-color: #2a2a2a;
-  border-radius: 6px;
-  margin-bottom: 16px;
+  padding: 20px;
+  background: #F9F9F9;
+  border-radius: 12px;
+  margin-bottom: 20px;
 
   h4 {
-    margin: 0 0 12px 0;
-    color: #4caf50;
-    font-size: 14px;
+    margin: 0 0 16px 0;
+    color: #1C1C1E;
+    font-size: 15px;
+    font-weight: 700;
   }
 }
 
 .preview-item {
   display: flex;
-  margin-bottom: 8px;
-  font-size: 13px;
+  margin-bottom: 10px;
+  font-size: 14px;
 
   &:last-child {
     margin-bottom: 0;
@@ -1387,94 +1462,33 @@ const resetForm = () => {
 }
 
 .preview-label {
-  color: #999;
-  min-width: 60px;
+  color: #8E8E93;
+  min-width: 80px;
+  font-weight: 600;
 }
 
 .preview-value {
-  color: #e0e0e0;
+  color: #1C1C1E;
   flex: 1;
+  font-weight: 500;
 
   &.cost-value {
-    color: #ff9800;
-    font-weight: 600;
+    color: #FF9500;
+    font-weight: 700;
   }
-}
-
-.cost-preview {
-  background-color: rgba(255, 152, 0, 0.1);
-  border-left: 3px solid #ff9800;
 }
 
 .divider {
   height: 1px;
-  background-color: #333;
-  margin: 20px 0;
-}
-
-/* 利润信息显示 */
-.profit-info {
-  padding: 16px;
-  background: linear-gradient(135deg, rgba(76, 175, 80, 0.1) 0%, rgba(33, 150, 243, 0.1) 100%);
-  border-radius: 8px;
-  border: 1px solid rgba(76, 175, 80, 0.3);
-  margin-bottom: 20px;
-}
-
-.profit-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 12px;
-  padding: 8px 12px;
-  background-color: rgba(0, 0, 0, 0.2);
-  border-radius: 4px;
-
-  &:last-child {
-    margin-bottom: 0;
-  }
-}
-
-.profit-label {
-  color: #b0b0b0;
-  font-size: 14px;
-}
-
-.profit-value {
-  font-size: 16px;
-  font-weight: 600;
-
-  &.profit-positive {
-    color: #4caf50;
-  }
-
-  &.profit-negative {
-    color: #f44336;
-  }
-
-  &.profit-total {
-    font-size: 18px;
-  }
+  background: #E5E5EA;
+  margin: 24px 0;
 }
 
 .section-title {
   margin: 0 0 16px 0;
-  color: #e0e0e0;
-  font-size: 15px;
-}
-
-.form-row {
-  display: flex;
-  gap: 16px;
-  margin-bottom: 20px;
-
-  .form-group {
-    margin-bottom: 0;
-  }
-
-  .half-width {
-    flex: 1;
-  }
+  color: #1C1C1E;
+  font-size: 17px;
+  font-weight: 700;
 }
 
 .form-group {
@@ -1483,14 +1497,15 @@ const resetForm = () => {
   label {
     display: block;
     margin-bottom: 8px;
-    color: #e0e0e0;
-    font-weight: 500;
+    color: #1C1C1E;
+    font-weight: 600;
+    font-size: 14px;
   }
 
   .field-hint {
     margin-top: 6px;
     font-size: 12px;
-    color: #999;
+    color: #8E8E93;
     line-height: 1.4;
   }
 
@@ -1498,27 +1513,41 @@ const resetForm = () => {
   select,
   textarea {
     width: 100%;
-    padding: 10px;
-    background-color: #2a2a2a;
-    border: 1px solid #333;
-    border-radius: 4px;
-    color: #e0e0e0;
-    font-size: 14px;
+    padding: 12px;
+    background: #F9F9F9;
+    border: 1px solid #E5E5EA;
+    border-radius: 10px;
+    color: #1C1C1E;
+    font-size: 15px;
+    transition: all 0.3s ease;
 
     &:focus {
       outline: none;
-      border-color: #4caf50;
+      border-color: #34C759;
+      background: white;
+      box-shadow: 0 0 0 3px rgba(52, 199, 89, 0.1);
+    }
+
+    &:hover {
+      border-color: #C7C7CC;
     }
 
     &::placeholder {
-      color: #666;
+      color: #8E8E93;
+    }
+
+    &:disabled,
+    &[readonly] {
+      opacity: 0.6;
+      cursor: not-allowed;
+      background: #F2F2F7;
     }
   }
 
   textarea {
     resize: vertical;
-    min-height: 80px;
-    font-family: inherit;
+    min-height: 100px;
+    line-height: 1.5;
   }
 
   select {
@@ -1533,44 +1562,51 @@ const resetForm = () => {
   margin-top: 30px;
 }
 
+/* 表单按钮 - iOS风格 */
 .cancel-btn,
 .submit-btn {
-  padding: 10px 20px;
+  padding: 12px 24px;
   border: none;
-  border-radius: 4px;
+  border-radius: 12px;
   cursor: pointer;
-  font-size: 14px;
-  font-weight: 500;
-  transition: background-color 0.3s ease;
+  font-size: 15px;
+  font-weight: 600;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
 
   &:disabled {
     opacity: 0.5;
     cursor: not-allowed;
+    transform: none;
   }
 }
 
 .cancel-btn {
-  background-color: #666;
-  color: white;
+  background: #F2F2F7;
+  color: #1C1C1E;
 
   &:hover {
-    background-color: #555;
+    background: #E5E5EA;
   }
 }
 
 .submit-btn {
-  background-color: #4caf50;
+  background: #34C759;
   color: white;
+  box-shadow: 0 4px 12px rgba(52, 199, 89, 0.3);
 
   &:hover {
-    background-color: #45a049;
+    background: #2db34b;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(52, 199, 89, 0.4);
   }
 
   &.launch-submit-btn {
-    background-color: #2196f3;
+    background: #007AFF;
+    box-shadow: 0 4px 12px rgba(0, 122, 255, 0.3);
 
     &:hover {
-      background-color: #1976d2;
+      background: #0066d9;
+      box-shadow: 0 6px 16px rgba(0, 122, 255, 0.4);
     }
   }
 }

@@ -159,8 +159,8 @@ class Particle {
     // 略微增加移动速度使效果更明显
     this.speedX = (Math.random() - 0.5) * 0.3;
     this.speedY = (Math.random() - 0.5) * 0.3;
-    // 使用更符合TRAE风格的颜色
-    const colors = ['#00bcd4', '#4caf50', '#8bc34a', '#cddc39'];
+    // 使用iOS风格的翠绿色系
+    const colors = ['#34C759', '#30d158', '#32d74b', '#2db34b'];
     this.color = colors[Math.floor(Math.random() * colors.length)];
     this.opacity = Math.random() * 0.7 + 0.3; // 增加基础透明度
     this.maxOpacity = 1; // 增加最大透明度
@@ -268,7 +268,7 @@ function connectParticles(ctx: CanvasRenderingContext2D) {
       if (distance < maxDistance) {
         // 线的透明度根据距离变化
         const opacity = 1 - distance / maxDistance;
-        ctx.strokeStyle = `rgba(76, 175, 80, ${opacity * 0.5})`; // 增加线的透明度
+        ctx.strokeStyle = `rgba(52, 199, 89, ${opacity * 0.5})`; // iOS绿色连接线
         ctx.lineWidth = 0.7; // 增加线宽
         ctx.beginPath();
         ctx.moveTo(particles[a].x, particles[a].y);
@@ -361,6 +361,7 @@ onUnmounted(() => {
 </script>
 
 <style scoped lang="scss">
+/* iOS风格登录页面 */
 .login-container {
   position: relative;
   display: flex;
@@ -368,7 +369,90 @@ onUnmounted(() => {
   align-items: center;
   height: 100vh;
   overflow: hidden;
-  background-color: #000;
+  background-color: #0a0a0a;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* 渐变波纹背景 - 第一层（红-橙-黄-绿光谱） */
+.login-container::before {
+  content: '';
+  position: fixed;
+  width: 200%;
+  height: 200%;
+  left: -50%;
+  top: -50%;
+  background:
+    radial-gradient(circle at 20% 30%, rgba(255, 20, 50, 1) 0%, rgba(255, 60, 80, 0.9) 15%, transparent 35%),
+    radial-gradient(circle at 50% 20%, rgba(255, 140, 0, 1) 0%, rgba(255, 170, 40, 0.8) 18%, transparent 40%),
+    radial-gradient(circle at 80% 35%, rgba(255, 210, 0, 1) 0%, rgba(255, 230, 80, 0.8) 20%, transparent 45%),
+    radial-gradient(circle at 35% 60%, rgba(50, 255, 100, 1) 0%, rgba(120, 255, 150, 0.7) 18%, transparent 38%);
+  background-size: 100% 100%;
+  animation: flowingWave1 12s ease-in-out infinite;
+  filter: blur(80px);
+  opacity: 0.65;
+  z-index: 0;
+  pointer-events: none;
+}
+
+/* 渐变波纹背景 - 第二层（青-蓝-紫-品红光谱） */
+.login-container::after {
+  content: '';
+  position: fixed;
+  width: 200%;
+  height: 200%;
+  left: -50%;
+  top: -50%;
+  background:
+    radial-gradient(circle at 65% 70%, rgba(0, 255, 200, 1) 0%, rgba(80, 255, 220, 0.9) 15%, transparent 38%),
+    radial-gradient(circle at 15% 45%, rgba(30, 130, 255, 1) 0%, rgba(80, 170, 255, 0.8) 18%, transparent 42%),
+    radial-gradient(circle at 85% 60%, rgba(140, 30, 255, 1) 0%, rgba(170, 80, 255, 0.8) 20%, transparent 45%),
+    radial-gradient(circle at 50% 85%, rgba(255, 20, 180, 1) 0%, rgba(255, 80, 210, 0.7) 18%, transparent 38%);
+  background-size: 100% 100%;
+  animation: flowingWave2 15s ease-in-out infinite;
+  filter: blur(85px);
+  opacity: 0.6;
+  z-index: 0;
+  pointer-events: none;
+}
+
+@keyframes flowingWave1 {
+  0% {
+    transform: translate(0%, 0%) rotate(0deg) scale(1);
+  }
+  25% {
+    transform: translate(-15%, 10%) rotate(90deg) scale(1.1);
+  }
+  50% {
+    transform: translate(-10%, -15%) rotate(180deg) scale(1.05);
+  }
+  75% {
+    transform: translate(15%, -8%) rotate(270deg) scale(1.12);
+  }
+  100% {
+    transform: translate(0%, 0%) rotate(360deg) scale(1);
+  }
+}
+
+@keyframes flowingWave2 {
+  0% {
+    transform: translate(0%, 0%) rotate(0deg) scale(1);
+  }
+  20% {
+    transform: translate(12%, -10%) rotate(-72deg) scale(1.08);
+  }
+  40% {
+    transform: translate(-8%, -12%) rotate(-144deg) scale(1.15);
+  }
+  60% {
+    transform: translate(-15%, 8%) rotate(-216deg) scale(1.06);
+  }
+  80% {
+    transform: translate(10%, 15%) rotate(-288deg) scale(1.12);
+  }
+  100% {
+    transform: translate(0%, 0%) rotate(-360deg) scale(1);
+  }
 }
 
 .dynamic-bg {
@@ -378,109 +462,130 @@ onUnmounted(() => {
   width: 100%;
   height: 100%;
   z-index: 0;
-  background-color: #000;
+  background-color: transparent;
 }
 
 .canvas-container {
   width: 100%;
   height: 100%;
+  display: none;
 }
 
 .dynamic-bg-canvas {
-  display: block;
-  background-color: #000;
+  display: none;
 }
 
 .login-card {
   position: relative;
-  width: 400px;
-  box-shadow: 0 8px 32px rgba(0, 255, 128, 0.15), 0 0 20px rgba(0, 255, 128, 0.05);
-  border-radius: 12px;
+  width: 420px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.08);
+  border-radius: 20px;
   overflow: hidden;
   z-index: 1;
-  background-color: rgba(15, 15, 15, 0.85);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(76, 175, 80, 0.2);
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: saturate(180%) blur(20px);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+  border: 0.5px solid rgba(0, 0, 0, 0.04);
 }
 
 .login-header {
   text-align: center;
-  font-size: 20px;
-  font-weight: 600;
-  color: #4caf50;
-  padding: 20px 0;
+  font-size: 22px;
+  font-weight: 700;
+  color: #1C1C1E;
+  padding: 28px 0;
+  letter-spacing: -0.5px;
 }
 
 .login-form {
-  padding: 0 30px 30px;
+  padding: 0 32px 32px;
 }
 
 .login-btn {
   width: 100%;
-  height: 40px;
+  height: 44px;
   font-size: 16px;
-  background: linear-gradient(135deg, #4caf50 0%, #8bc34a 100%);
+  font-weight: 600;
+  background: #34C759;
   border: none;
-  transition: all 0.3s ease;
+  border-radius: 12px;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  box-shadow: 0 4px 12px rgba(52, 199, 89, 0.3);
+  color: white;
 }
 
 .login-btn:hover {
-  background: linear-gradient(135deg, #45a049 0%, #7cb342 100%);
+  background: #2db34b;
   transform: translateY(-1px);
-  box-shadow: 0 4px 15px rgba(76, 175, 80, 0.4);
+  box-shadow: 0 6px 16px rgba(52, 199, 89, 0.4);
+}
+
+.login-btn:active {
+  transform: translateY(0);
 }
 
 .login-btn:disabled {
-  background: linear-gradient(135deg, #4caf50 0%, #8bc34a 100%);
-  opacity: 0.6;
+  background: #34C759;
+  opacity: 0.5;
+  transform: none;
 }
 
-/* 自定义输入框样式 */
+/* iOS风格输入框 */
 :deep(.el-input) {
-  margin-bottom: 20px;
-  width: 100%; /* 确保输入框宽度正确 */
+  margin-bottom: 16px;
+  width: 100%;
 }
 
 :deep(.el-input__wrapper) {
-  background-color: rgba(30, 30, 30, 0.7);
-  border: 1px solid rgba(76, 175, 80, 0.3);
+  background-color: #F9F9F9;
+  border: 1px solid #E5E5EA;
+  border-radius: 12px;
   transition: all 0.3s ease;
-  padding: 0 12px; /* 统一内边距 */
-  box-sizing: border-box; /* 确保宽度计算正确 */
-  display: flex; /* 确保内部元素正确对齐 */
-  align-items: center; /* 垂直居中内部元素 */
+  padding: 0 14px;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  box-shadow: none;
 }
 
 :deep(.el-input__wrapper:hover) {
-  border-color: rgba(76, 175, 80, 0.6);
-  box-shadow: 0 0 8px rgba(76, 175, 80, 0.2);
+  border-color: #C7C7CC;
+  box-shadow: none;
 }
 
 :deep(.el-input__wrapper.is-focus) {
-  border-color: #4caf50;
-  box-shadow: 0 0 12px rgba(76, 175, 80, 0.3);
+  border-color: #34C759;
+  box-shadow: 0 0 0 3px rgba(52, 199, 89, 0.1);
+  background-color: white;
 }
 
 :deep(.el-input__inner) {
-  color: #ffffff;
+  color: #1C1C1E;
   background-color: transparent;
   width: 100%;
   box-sizing: border-box;
+  font-size: 15px;
+}
+
+:deep(.el-input__inner::placeholder) {
+  color: #8E8E93;
 }
 
 :deep(.el-input__prefix) {
-  margin-right: 8px; /* 确保图标和输入内容之间有足够空间 */
+  margin-right: 8px;
 }
 
 :deep(.el-input__icon) {
-  color: rgba(255, 255, 255, 0.6);
+  color: #8E8E93;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-/* 自定义表单标签样式 */
+/* iOS风格表单标签 */
 :deep(.el-form-item__label) {
-  color: rgba(255, 255, 255, 0.8);
+  color: #1C1C1E;
+  font-weight: 600;
+  font-size: 14px;
 }
 </style>

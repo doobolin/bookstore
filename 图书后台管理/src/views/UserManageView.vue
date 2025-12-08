@@ -372,8 +372,34 @@ const formatDate = (dateString?: string) => {
 </script>
 
 <style scoped lang="scss">
+/* iOS风格全局样式 */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #C7C7CC #f2f2f7;
+}
+
+*::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: #C7C7CC;
+  border-radius: 10px;
+
+  &:hover {
+    background: #8E8E93;
+  }
+}
+
 .user-manage-container {
   width: 100%;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif;
+  -webkit-font-smoothing: antialiased;
 }
 
 .page-header {
@@ -381,49 +407,54 @@ const formatDate = (dateString?: string) => {
 
   h2 {
     margin: 0;
-    color: #4caf50;
+    color: #1C1C1E;
+    font-weight: 700;
   }
 }
 
-/* 标签页 */
+/* 标签页 - iOS风格 */
 .tabs {
   display: flex;
   gap: 12px;
   margin-bottom: 24px;
-  border-bottom: 2px solid #333;
+  background: white;
+  padding: 6px;
+  border-radius: 12px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.04);
 }
 
 .tab-btn {
   background: none;
   border: none;
-  padding: 12px 24px;
-  color: #999;
+  padding: 10px 24px;
+  color: #8E8E93;
   font-size: 15px;
-  font-weight: 500;
+  font-weight: 600;
   cursor: pointer;
-  border-bottom: 3px solid transparent;
-  transition: all 0.3s ease;
-  position: relative;
-  top: 2px;
+  border-radius: 8px;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  flex: 1;
 
   &:hover {
-    color: #4caf50;
+    color: #34C759;
+    background: rgba(52, 199, 89, 0.05);
   }
 
   &.active {
-    color: #4caf50;
-    border-bottom-color: #4caf50;
+    color: white;
+    background: #34C759;
+    box-shadow: 0 4px 12px rgba(52, 199, 89, 0.3);
   }
 }
 
 .tab-content {
-  animation: fadeIn 0.3s ease;
+  animation: fadeIn 0.4s ease;
 }
 
 @keyframes fadeIn {
   from {
     opacity: 0;
-    transform: translateY(10px);
+    transform: translateY(20px);
   }
   to {
     opacity: 1;
@@ -439,51 +470,65 @@ const formatDate = (dateString?: string) => {
 
   h3 {
     margin: 0;
-    color: #e0e0e0;
+    color: #1C1C1E;
+    font-weight: 700;
   }
 
   .tip {
-    color: #999;
+    color: #8E8E93;
     font-size: 13px;
+    font-weight: 500;
   }
 }
 
 .add-btn {
-  background-color: #4caf50;
+  background: #34C759;
   color: white;
   border: none;
   padding: 10px 20px;
-  border-radius: 4px;
+  border-radius: 12px;
   cursor: pointer;
-  font-size: 14px;
-  font-weight: 500;
-  transition: background-color 0.3s ease;
+  font-size: 15px;
+  font-weight: 600;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  box-shadow: 0 4px 12px rgba(52, 199, 89, 0.3);
 
   &:hover {
-    background-color: #45a049;
+    background: #2db34b;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(52, 199, 89, 0.4);
+  }
+
+  &:active {
+    transform: translateY(0);
   }
 
   &:disabled {
-    background-color: #666;
+    opacity: 0.5;
     cursor: not-allowed;
+    transform: none;
   }
 }
 
-/* 用户列表样式 */
+/* 用户列表样式 - iOS风格 */
 .user-list {
-  background-color: #1e1e1e;
-  border-radius: 8px;
+  background: white;
+  border-radius: 20px;
   overflow: hidden;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.04);
 }
 
 .list-header {
   display: grid;
   grid-template-columns: 80px 150px 1fr 100px 200px 180px;
-  background-color: #2a2a2a;
+  background: #F9F9F9;
   padding: 16px 20px;
-  font-weight: 600;
-  color: #4caf50;
-  border-bottom: 1px solid #333;
+  font-weight: 700;
+  color: #8E8E93;
+  border-bottom: 1px solid #E5E5EA;
+  text-transform: uppercase;
+  font-size: 11px;
+  letter-spacing: 0.5px;
 }
 
 .header-item {
@@ -494,11 +539,11 @@ const formatDate = (dateString?: string) => {
   display: grid;
   grid-template-columns: 80px 150px 1fr 100px 200px 180px;
   padding: 16px 20px;
-  border-bottom: 1px solid #333;
-  transition: background-color 0.2s ease;
+  border-bottom: 1px solid #F2F2F7;
+  transition: all 0.2s ease;
 
   &:hover {
-    background-color: #252525;
+    background: #F9F9F9;
   }
 
   &:last-child {
@@ -509,43 +554,46 @@ const formatDate = (dateString?: string) => {
 .user-info {
   display: flex;
   align-items: center;
-  color: #e0e0e0;
+  color: #1C1C1E;
+  font-size: 14px;
+  font-weight: 500;
 }
 
-/* 状态标签 */
+/* 状态标签 - iOS风格 */
 .status-tag {
-  padding: 4px 8px;
-  border-radius: 12px;
+  padding: 4px 10px;
+  border-radius: 999px;
   font-size: 12px;
-  font-weight: 500;
+  font-weight: 700;
 
   &.active {
-    background-color: #4caf50;
-    color: white;
+    background: #E6F9ED;
+    color: #34C759;
   }
 
   &.inactive {
-    background-color: #9e9e9e;
-    color: white;
+    background: #F2F2F7;
+    color: #8E8E93;
   }
 }
 
-/* 操作按钮 */
+/* 操作按钮 - iOS风格 */
 .user-actions {
   display: flex;
-  gap: 6px;
+  gap: 8px;
   align-items: center;
 }
 
 .edit-btn,
 .delete-btn,
 .status-btn {
-  padding: 6px 10px;
+  padding: 6px 14px;
   border: none;
-  border-radius: 4px;
+  border-radius: 8px;
   cursor: pointer;
-  font-size: 12px;
-  transition: background-color 0.3s ease;
+  font-size: 13px;
+  font-weight: 600;
+  transition: all 0.2s ease;
 
   &:disabled {
     opacity: 0.5;
@@ -554,20 +602,22 @@ const formatDate = (dateString?: string) => {
 }
 
 .edit-btn {
-  background-color: #2196f3;
+  background: #007AFF;
   color: white;
 
   &:hover:not(:disabled) {
-    background-color: #1976d2;
+    background: #0066d9;
+    transform: translateY(-1px);
   }
 }
 
 .delete-btn {
-  background-color: #f44336;
+  background: #FF3B30;
   color: white;
 
   &:hover:not(:disabled) {
-    background-color: #d32f2f;
+    background: #d92f24;
+    transform: translateY(-1px);
   }
 }
 
@@ -575,82 +625,118 @@ const formatDate = (dateString?: string) => {
   color: white;
 
   &.disable {
-    background-color: #ff5722;
+    background: #FF9500;
   }
 
   &.enable {
-    background-color: #4caf50;
+    background: #34C759;
   }
 
   &:hover:not(:disabled) {
     opacity: 0.9;
+    transform: translateY(-1px);
+  }
+
+  &:active:not(:disabled) {
+    transform: translateY(0);
   }
 }
 
 .loading-message,
 .empty-message {
-  padding: 40px;
+  padding: 60px 40px;
   text-align: center;
-  color: #666;
+  color: #8E8E93;
+  font-size: 15px;
+  font-weight: 500;
 }
 
-/* 模态框样式 */
+/* 模态框样式 - iOS风格 */
 .modal-overlay {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(0, 0, 0, 0.7);
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(10px);
   display: flex;
   justify-content: center;
   align-items: center;
   z-index: 1000;
+  animation: fadeInOverlay 0.2s ease;
+}
+
+@keyframes fadeInOverlay {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 .modal-content {
-  background-color: #1e1e1e;
-  border-radius: 8px;
+  background: white;
+  border-radius: 20px;
   width: 90%;
   max-width: 500px;
   max-height: 90vh;
   overflow-y: auto;
+  animation: slideUp 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 .modal-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 20px;
-  border-bottom: 1px solid #333;
+  padding: 24px 24px 16px;
+  border-bottom: 1px solid #F2F2F7;
 
   h3 {
     margin: 0;
-    color: #4caf50;
+    color: #1C1C1E;
+    font-size: 20px;
+    font-weight: 700;
   }
 }
 
 .close-btn {
-  background: none;
+  background: #F2F2F7;
   border: none;
-  color: #666;
+  color: #8E8E93;
   font-size: 24px;
   cursor: pointer;
   padding: 0;
-  width: 30px;
-  height: 30px;
+  width: 32px;
+  height: 32px;
   display: flex;
   align-items: center;
   justify-content: center;
+  border-radius: 8px;
+  transition: all 0.2s ease;
 
   &:hover {
-    color: #fff;
+    background: #E5E5EA;
+    color: #1C1C1E;
   }
 }
 
-/* 表单样式 */
+/* 表单样式 - iOS风格 */
 .user-form {
-  padding: 20px;
+  padding: 24px;
 }
 
 .form-group {
@@ -659,24 +745,40 @@ const formatDate = (dateString?: string) => {
   label {
     display: block;
     margin-bottom: 8px;
-    color: #e0e0e0;
-    font-weight: 500;
+    color: #1C1C1E;
+    font-weight: 600;
+    font-size: 14px;
   }
 
   input,
   select {
     width: 100%;
-    padding: 10px;
-    background-color: #2a2a2a;
-    border: 1px solid #333;
-    border-radius: 4px;
-    color: #e0e0e0;
-    font-size: 14px;
+    padding: 12px;
+    background: #F9F9F9;
+    border: 1px solid #E5E5EA;
+    border-radius: 10px;
+    color: #1C1C1E;
+    font-size: 15px;
+    transition: all 0.3s ease;
 
     &:focus {
       outline: none;
-      border-color: #4caf50;
+      border-color: #34C759;
+      background: white;
+      box-shadow: 0 0 0 3px rgba(52, 199, 89, 0.1);
     }
+
+    &:hover {
+      border-color: #C7C7CC;
+    }
+
+    &::placeholder {
+      color: #8E8E93;
+    }
+  }
+
+  select {
+    cursor: pointer;
   }
 }
 
@@ -689,35 +791,43 @@ const formatDate = (dateString?: string) => {
 
 .cancel-btn,
 .submit-btn {
-  padding: 10px 20px;
+  padding: 12px 24px;
   border: none;
-  border-radius: 4px;
+  border-radius: 12px;
   cursor: pointer;
-  font-size: 14px;
-  font-weight: 500;
-  transition: background-color 0.3s ease;
+  font-size: 15px;
+  font-weight: 600;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
 
   &:disabled {
     opacity: 0.5;
     cursor: not-allowed;
+    transform: none;
   }
 }
 
 .cancel-btn {
-  background-color: #666;
-  color: white;
+  background: #F2F2F7;
+  color: #1C1C1E;
 
   &:hover:not(:disabled) {
-    background-color: #555;
+    background: #E5E5EA;
   }
 }
 
 .submit-btn {
-  background-color: #4caf50;
+  background: #34C759;
   color: white;
+  box-shadow: 0 4px 12px rgba(52, 199, 89, 0.3);
 
   &:hover:not(:disabled) {
-    background-color: #45a049;
+    background: #2db34b;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(52, 199, 89, 0.4);
+  }
+
+  &:active:not(:disabled) {
+    transform: translateY(0);
   }
 }
 </style>

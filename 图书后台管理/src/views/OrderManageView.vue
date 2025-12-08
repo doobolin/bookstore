@@ -55,7 +55,7 @@
           <div class="order-info">{{ formatDate(order.created_at) }}</div>
           <div class="order-actions">
             <button class="view-btn" @click="viewOrderDetail(order)">
-              👁️ 详情
+              详情
             </button>
             <button
               v-if="order.status === 'pending' || order.status === 'processing'"
@@ -286,8 +286,34 @@ onMounted(() => {
 </script>
 
 <style scoped lang="scss">
+/* iOS风格全局样式 */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #C7C7CC #f2f2f7;
+}
+
+*::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: #C7C7CC;
+  border-radius: 10px;
+
+  &:hover {
+    background: #8E8E93;
+  }
+}
+
 .order-manage-container {
   width: 100%;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif;
+  -webkit-font-smoothing: antialiased;
 }
 
 .page-header {
@@ -299,99 +325,117 @@ onMounted(() => {
 
 .page-header h2 {
   margin: 0;
-  color: #4caf50;
-  font-size: 24px;
+  color: #1C1C1E;
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
 }
 
 .refresh-btn {
-  background-color: #4caf50;
+  background: #34C759;
   color: white;
   border: none;
   padding: 10px 20px;
-  border-radius: 4px;
+  border-radius: 12px;
   cursor: pointer;
-  font-size: 14px;
-  font-weight: 500;
-  transition: background-color 0.3s ease;
+  font-size: 15px;
+  font-weight: 600;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  box-shadow: 0 4px 12px rgba(52, 199, 89, 0.3);
 }
 
 .refresh-btn:hover:not(:disabled) {
-  background-color: #45a049;
+  background: #2db34b;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(52, 199, 89, 0.4);
+}
+
+.refresh-btn:active:not(:disabled) {
+  transform: translateY(0);
 }
 
 .refresh-btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+  transform: none;
 }
 
-/* 状态标签样式 */
+/* 状态标签样式 - iOS风格 */
 .status-tabs {
   display: flex;
   gap: 12px;
-  margin-bottom: 20px;
+  margin-bottom: 24px;
   flex-wrap: wrap;
+  background: white;
+  padding: 8px;
+  border-radius: 14px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.04);
 }
 
 .status-tab {
   position: relative;
-  padding: 10px 20px;
-  background-color: #2a2a2a;
-  color: #b0b0b0;
-  border: 1px solid #333;
-  border-radius: 6px;
+  padding: 10px 18px;
+  background: none;
+  color: #8E8E93;
+  border: none;
+  border-radius: 10px;
   cursor: pointer;
   font-size: 14px;
-  font-weight: 500;
-  transition: all 0.3s ease;
+  font-weight: 600;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
 }
 
 .status-tab:hover {
-  background-color: #333;
-  border-color: #4caf50;
-  color: #e0e0e0;
+  background: rgba(52, 199, 89, 0.05);
+  color: #34C759;
 }
 
 .status-tab.active {
-  background-color: #4caf50;
+  background: #34C759;
   color: white;
-  border-color: #4caf50;
+  box-shadow: 0 4px 12px rgba(52, 199, 89, 0.3);
 }
 
 .tab-count {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 20px;
-  height: 20px;
-  padding: 0 6px;
-  background-color: rgba(255, 255, 255, 0.2);
-  border-radius: 10px;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 7px;
+  background: rgba(0, 0, 0, 0.08);
+  border-radius: 999px;
   font-size: 12px;
-  font-weight: 600;
+  font-weight: 700;
 }
 
 .status-tab.active .tab-count {
-  background-color: rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.25);
+  color: white;
 }
 
-/* 订单列表样式 */
+/* 订单列表样式 - iOS风格 */
 .order-list {
-  background-color: #1e1e1e;
-  border-radius: 8px;
+  background: white;
+  border-radius: 20px;
   overflow: hidden;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.04);
 }
 
 .list-header {
   display: grid;
   grid-template-columns: 200px 120px 120px 140px 180px 200px;
-  background-color: #2a2a2a;
+  background: #F9F9F9;
   padding: 16px 20px;
-  font-weight: 600;
-  color: #4caf50;
-  border-bottom: 1px solid #333;
+  font-weight: 700;
+  color: #8E8E93;
+  border-bottom: 1px solid #E5E5EA;
+  text-transform: uppercase;
+  font-size: 11px;
+  letter-spacing: 0.5px;
 }
 
 .header-item {
@@ -402,13 +446,13 @@ onMounted(() => {
   display: grid;
   grid-template-columns: 200px 120px 120px 140px 180px 200px;
   padding: 16px 20px;
-  border-bottom: 1px solid #333;
-  transition: background-color 0.2s ease;
+  border-bottom: 1px solid #F2F2F7;
+  transition: all 0.2s ease;
   align-items: center;
 }
 
 .order-item:hover {
-  background-color: #252525;
+  background: #F9F9F9;
 }
 
 .order-item:last-child {
@@ -416,16 +460,17 @@ onMounted(() => {
 }
 
 .order-info {
-  color: #e0e0e0;
+  color: #1C1C1E;
   font-size: 14px;
+  font-weight: 500;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .order-info.amount {
-  color: #f56c6c;
-  font-weight: bold;
+  color: #FF3B30;
+  font-weight: 700;
 }
 
 .order-info.address {
@@ -433,41 +478,41 @@ onMounted(() => {
   line-height: 1.4;
 }
 
-/* 状态标签 */
+/* 状态标签 - iOS风格 */
 .status-badge {
   display: inline-block;
-  padding: 4px 12px;
-  border-radius: 12px;
+  padding: 4px 10px;
+  border-radius: 999px;
   font-size: 12px;
-  font-weight: 500;
+  font-weight: 700;
 }
 
 .status-pending {
-  background-color: rgba(100, 181, 246, 0.2);
-  color: #64b5f6;
+  background: rgba(0, 122, 255, 0.1);
+  color: #007AFF;
 }
 
 .status-processing {
-  background-color: rgba(255, 167, 38, 0.2);
-  color: #ffa726;
+  background: rgba(255, 149, 0, 0.1);
+  color: #FF9500;
 }
 
 .status-shipping {
-  background-color: rgba(156, 39, 176, 0.2);
-  color: #ab47bc;
+  background: rgba(175, 82, 222, 0.1);
+  color: #AF52DE;
 }
 
 .status-delivered {
-  background-color: rgba(76, 175, 80, 0.2);
-  color: #4caf50;
+  background: rgba(52, 199, 89, 0.1);
+  color: #34C759;
 }
 
 .status-cancelled {
-  background-color: rgba(244, 67, 54, 0.2);
-  color: #f44336;
+  background: rgba(255, 59, 48, 0.1);
+  color: #FF3B30;
 }
 
-/* 操作按钮 */
+/* 操作按钮 - iOS风格 */
 .order-actions {
   display: flex;
   gap: 8px;
@@ -477,42 +522,46 @@ onMounted(() => {
 .view-btn,
 .ship-btn,
 .delete-btn {
-  padding: 6px 12px;
+  padding: 6px 14px;
   border: none;
-  border-radius: 4px;
+  border-radius: 8px;
   cursor: pointer;
-  font-size: 12px;
-  transition: background-color 0.3s ease;
+  font-size: 13px;
+  font-weight: 600;
+  transition: all 0.2s ease;
 }
 
 .view-btn {
-  background-color: #2196f3;
+  background: #007AFF;
   color: white;
 }
 
 .view-btn:hover {
-  background-color: #1976d2;
+  background: #0066d9;
+  transform: translateY(-1px);
 }
 
 .ship-btn {
-  background-color: #4caf50;
+  background: #34C759;
   color: white;
 }
 
 .ship-btn:hover {
-  background-color: #45a049;
+  background: #2db34b;
+  transform: translateY(-1px);
 }
 
 .delete-btn {
-  background-color: #f44336;
+  background: #FF3B30;
   color: white;
 }
 
 .delete-btn:hover {
-  background-color: #d32f2f;
+  background: #d92f24;
+  transform: translateY(-1px);
 }
 
-/* 状态下拉菜单 */
+/* 状态下拉菜单 - iOS风格 */
 .status-dropdown {
   position: relative;
 }
@@ -521,66 +570,95 @@ onMounted(() => {
   position: absolute;
   top: 100%;
   left: 0;
-  background-color: #2a2a2a;
-  border: 1px solid #333;
-  border-radius: 4px;
+  background: white;
+  border: 1px solid #E5E5EA;
+  border-radius: 12px;
   margin-top: 4px;
   min-width: 120px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
   z-index: 1000;
+  overflow: hidden;
 }
 
 .dropdown-item {
-  padding: 10px 16px;
-  color: #e0e0e0;
+  padding: 12px 16px;
+  color: #1C1C1E;
   cursor: pointer;
-  transition: background-color 0.2s ease;
+  transition: background 0.2s ease;
   font-size: 14px;
-}
-
-.dropdown-item:hover {
-  background-color: #333;
-}
-
-.dropdown-item.danger {
-  color: #f44336;
-  border-top: 1px solid #333;
-}
-
-.loading-message {
-  padding: 40px;
-  text-align: center;
-  color: #4caf50;
   font-weight: 500;
 }
 
-.empty-message {
-  padding: 40px;
-  text-align: center;
-  color: #666;
+.dropdown-item:hover {
+  background: #F2F2F7;
 }
 
-/* 模态框样式 */
+.dropdown-item.danger {
+  color: #FF3B30;
+  border-top: 1px solid #E5E5EA;
+}
+
+.loading-message {
+  padding: 60px 40px;
+  text-align: center;
+  color: #34C759;
+  font-weight: 600;
+  font-size: 15px;
+}
+
+.empty-message {
+  padding: 60px 40px;
+  text-align: center;
+  color: #8E8E93;
+  font-size: 15px;
+  font-weight: 500;
+}
+
+/* 模态框样式 - iOS风格 */
 .modal-overlay {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(0, 0, 0, 0.8);
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(10px);
   display: flex;
   justify-content: center;
   align-items: center;
   z-index: 1000;
+  animation: fadeInOverlay 0.2s ease;
+}
+
+@keyframes fadeInOverlay {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 .modal-content {
-  background-color: #1e1e1e;
-  border-radius: 8px;
+  background: white;
+  border-radius: 20px;
   width: 90%;
   max-width: 800px;
   max-height: 90vh;
   overflow-y: auto;
+  animation: slideUp 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 .modal-content.small {
@@ -591,40 +669,44 @@ onMounted(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 20px;
-  border-bottom: 1px solid #333;
+  padding: 24px 24px 16px;
+  border-bottom: 1px solid #F2F2F7;
 }
 
 .modal-header h3 {
   margin: 0;
-  color: #4caf50;
+  color: #1C1C1E;
   font-size: 20px;
+  font-weight: 700;
 }
 
 .close-btn {
-  background: none;
+  background: #F2F2F7;
   border: none;
-  color: #666;
-  font-size: 28px;
+  color: #8E8E93;
+  font-size: 24px;
   cursor: pointer;
   padding: 0;
-  width: 30px;
-  height: 30px;
+  width: 32px;
+  height: 32px;
   display: flex;
   align-items: center;
   justify-content: center;
+  border-radius: 8px;
+  transition: all 0.2s ease;
   line-height: 1;
 }
 
 .close-btn:hover {
-  color: #fff;
+  background: #E5E5EA;
+  color: #1C1C1E;
 }
 
 .modal-body {
-  padding: 20px;
+  padding: 24px;
 }
 
-/* 详情部分 */
+/* 详情部分 - iOS风格 */
 .detail-section {
   margin-bottom: 30px;
 }
@@ -634,17 +716,18 @@ onMounted(() => {
 }
 
 .detail-section h4 {
-  color: #4caf50;
+  color: #1C1C1E;
   margin: 0 0 16px 0;
-  font-size: 16px;
+  font-size: 17px;
+  font-weight: 700;
   padding-bottom: 8px;
-  border-bottom: 1px solid #333;
+  border-bottom: 1px solid #E5E5EA;
 }
 
 .detail-row {
   display: flex;
   padding: 12px 0;
-  border-bottom: 1px solid #2a2a2a;
+  border-bottom: 1px solid #F2F2F7;
 }
 
 .detail-row:last-child {
@@ -653,71 +736,56 @@ onMounted(() => {
 
 .detail-label {
   flex: 0 0 120px;
-  color: #b0b0b0;
-  font-weight: 500;
+  color: #8E8E93;
+  font-weight: 600;
+  font-size: 14px;
 }
 
 .detail-value {
   flex: 1;
-  color: #e0e0e0;
+  color: #1C1C1E;
+  font-weight: 500;
 }
 
 .detail-value.amount {
-  color: #f56c6c;
-  font-weight: bold;
+  color: #FF3B30;
+  font-weight: 700;
 }
 
-/* 商品表格 */
+/* 商品表格 - iOS风格 */
 .items-table {
-  background-color: #2a2a2a;
-  border-radius: 4px;
+  background: #F9F9F9;
+  border-radius: 12px;
   overflow: hidden;
+  border: 1px solid #E5E5EA;
 }
 
 .items-header {
   display: grid;
   grid-template-columns: 2fr 1fr 100px 80px 100px;
   padding: 12px 16px;
-  background-color: #333;
-  color: #4caf50;
-  font-weight: 600;
-  font-size: 14px;
+  background: white;
+  color: #8E8E93;
+  font-weight: 700;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .items-row {
   display: grid;
   grid-template-columns: 2fr 1fr 100px 80px 100px;
   padding: 12px 16px;
-  border-bottom: 1px solid #333;
-  color: #e0e0e0;
+  border-top: 1px solid #E5E5EA;
+  color: #1C1C1E;
   font-size: 14px;
-}
-
-.items-row:last-child {
-  border-bottom: none;
+  font-weight: 500;
+  background: white;
 }
 
 .items-row div.amount {
-  color: #f56c6c;
-  font-weight: bold;
-}
-
-/* 滚动条样式 */
-.modal-content::-webkit-scrollbar {
-  width: 8px;
-}
-
-.modal-content::-webkit-scrollbar-track {
-  background: #1e1e1e;
-}
-
-.modal-content::-webkit-scrollbar-thumb {
-  background: #666;
-  border-radius: 4px;
-}
-
-.modal-content::-webkit-scrollbar-thumb:hover {
-  background: #888;
+  color: #FF3B30;
+  font-weight: 700;
 }
 
 </style>

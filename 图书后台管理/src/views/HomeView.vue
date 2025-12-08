@@ -378,59 +378,93 @@ const fetchLowStockBooks = async () => {
 </script>
 
 <style scoped lang="scss">
+/* iOS风格全局样式 */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #C7C7CC #f2f2f7;
+}
+
+*::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: #C7C7CC;
+  border-radius: 10px;
+
+  &:hover {
+    background: #8E8E93;
+  }
+}
+
 .home-container {
   display: flex;
   height: 100vh;
-  background-color: #121212;
-  color: #e0e0e0;
+  background-color: #F2F2F7;
+  color: #1C1C1E;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif;
+  -webkit-font-smoothing: antialiased;
 }
 
-/* 侧边栏样式 */
+/* 侧边栏样式 - iOS磨砂玻璃效果 */
 .sidebar {
   width: 240px;
-  background-color: #1e1e1e;
-  border-right: 1px solid #333;
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: saturate(180%) blur(20px);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+  border-right: 1px solid rgba(0, 0, 0, 0.06);
   display: flex;
   flex-direction: column;
+  box-shadow: 2px 0 20px rgba(0, 0, 0, 0.03);
 }
 
 .sidebar-header {
   padding: 24px;
-  border-bottom: 1px solid #333;
+  border-bottom: 1px solid #E5E5EA;
 }
 
 .sidebar-header h2 {
   margin: 0;
-  color: #4caf50;
+  color: #34C759;
   font-size: 18px;
-  font-weight: 600;
+  font-weight: 700;
+  letter-spacing: -0.3px;
 }
 
 .sidebar-nav {
   flex: 1;
-  padding: 16px 0;
+  padding: 12px 8px;
 }
 
 .nav-item {
   display: flex;
   align-items: center;
-  padding: 12px 24px;
-  color: #b0b0b0;
+  padding: 12px 16px;
+  margin: 4px 0;
+  color: #8E8E93;
   text-decoration: none;
-  transition: all 0.3s ease;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
   cursor: pointer;
-  border-left: 3px solid transparent;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 600;
 }
 
 .nav-item:hover {
-  background-color: #2a2a2a;
-  color: #4caf50;
+  background-color: rgba(52, 199, 89, 0.08);
+  color: #34C759;
+  transform: translateX(2px);
 }
 
 .nav-item.active {
-  background-color: #2a2a2a;
-  color: #4caf50;
-  border-left-color: #4caf50;
+  background-color: #34C759;
+  color: white;
+  box-shadow: 0 4px 12px rgba(52, 199, 89, 0.3);
 }
 
 .nav-item i {
@@ -440,47 +474,56 @@ const fetchLowStockBooks = async () => {
 
 .logout {
   margin-top: auto;
-  margin-bottom: 20px;
+  margin-bottom: 12px;
 }
 
 .logout:hover {
-  color: #f44336 !important;
-  border-left-color: #f44336 !important;
+  color: #FF3B30 !important;
+  background-color: rgba(255, 59, 48, 0.08) !important;
 }
 
-/* 主内容区域样式 */
+/* 主内容区域样式 - iOS风格 */
 .main-content {
   flex: 1;
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  background-color: #F2F2F7;
 }
 
 .content-header {
   padding: 20px 32px;
-  background-color: #1e1e1e;
-  border-bottom: 1px solid #333;
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: saturate(180%) blur(20px);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+  border-bottom: 1px solid #E5E5EA;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.02);
 }
 
 .content-header h1 {
   margin: 0;
-  color: #4caf50;
-  font-size: 24px;
+  color: #1C1C1E;
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
 }
 
 .user-info {
-  color: #b0b0b0;
+  color: #8E8E93;
   display: flex;
   align-items: center;
   gap: 20px;
+  font-size: 15px;
+  font-weight: 500;
 }
 
 .current-time {
   font-size: 14px;
-  color: #666;
+  color: #8E8E93;
+  font-weight: 600;
 }
 
 /* 首页仪表盘内容 */
@@ -488,61 +531,64 @@ const fetchLowStockBooks = async () => {
   flex: 1;
   padding: 24px;
   overflow-y: auto;
-  background-color: #121212;
+  background-color: #F2F2F7;
 }
 
 .content-wrapper {
   flex: 1;
   padding: 24px;
   overflow-y: auto;
-  background-color: #121212;
+  background-color: #F2F2F7;
 }
 
-/* 统计卡片样式 */
+/* 统计卡片样式 - iOS风格 */
 .stats-cards {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 20px;
-  margin-bottom: 30px;
+  margin-bottom: 24px;
 }
 
 .stat-card {
-  background-color: #1e1e1e;
-  border-radius: 8px;
-  padding: 20px;
+  background: white;
+  border-radius: 20px;
+  padding: 24px;
   display: flex;
   align-items: center;
   gap: 16px;
-  border-left: 4px solid #4caf50;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.04);
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
 
 .stat-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+  transform: translateY(-4px);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
 }
 
 .stat-icon {
   font-size: 32px;
-  width: 60px;
-  height: 60px;
+  width: 64px;
+  height: 64px;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 50%;
-  background-color: rgba(76, 175, 80, 0.1);
+  border-radius: 16px;
+  background: linear-gradient(135deg, rgba(52, 199, 89, 0.1) 0%, rgba(52, 199, 89, 0.05) 100%);
 }
 
 .book-icon {
-  color: #4caf50;
+  color: #34C759;
+  background: linear-gradient(135deg, rgba(52, 199, 89, 0.15) 0%, rgba(52, 199, 89, 0.08) 100%);
 }
 
 .user-icon {
-  color: #2196f3;
+  color: #007AFF;
+  background: linear-gradient(135deg, rgba(0, 122, 255, 0.15) 0%, rgba(0, 122, 255, 0.08) 100%);
 }
 
 .stock-icon {
-  color: #ff9800;
+  color: #FF9500;
+  background: linear-gradient(135deg, rgba(255, 149, 0, 0.15) 0%, rgba(255, 149, 0, 0.08) 100%);
 }
 
 .stat-info {
@@ -551,140 +597,160 @@ const fetchLowStockBooks = async () => {
 
 .stat-value {
   font-size: 28px;
-  font-weight: 700;
-  color: #fff;
+  font-weight: 800;
+  color: #1C1C1E;
   margin-bottom: 4px;
+  letter-spacing: -0.5px;
 }
 
 .stat-label {
   font-size: 14px;
-  color: #888;
+  color: #8E8E93;
+  font-weight: 600;
 }
 
 .stat-details {
   display: flex;
-  gap: 16px;
+  gap: 12px;
   margin-top: 8px;
   font-size: 12px;
+  font-weight: 600;
 }
 
 .stat-details span:first-child {
-  color: #4caf50;
+  color: #34C759;
 }
 
 .stat-details span:last-child {
-  color: #ff9800;
+  color: #FF9500;
 }
 
-/* 快捷操作区域样式 */
+/* 快捷操作区域样式 - iOS风格 */
 .quick-actions {
-  background-color: #1e1e1e;
-  border-radius: 8px;
+  background: white;
+  border-radius: 20px;
   padding: 24px;
-  margin-bottom: 30px;
+  margin-bottom: 24px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.04);
 }
 
 .quick-actions h3 {
   margin: 0 0 20px 0;
-  color: #4caf50;
+  color: #1C1C1E;
   font-size: 18px;
+  font-weight: 700;
 }
 
 .action-buttons {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: 16px;
+  gap: 12px;
 }
 
 .action-btn {
-  background-color: #2a2a2a;
-  border: 1px solid #333;
-  border-radius: 6px;
-  padding: 16px;
-  color: #e0e0e0;
+  background: #F9F9F9;
+  border: 1px solid #E5E5EA;
+  border-radius: 14px;
+  padding: 20px;
+  color: #1C1C1E;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 8px;
+  font-weight: 600;
 }
 
 .action-btn:hover {
-  background-color: #333;
-  border-color: #4caf50;
+  background: white;
+  border-color: #34C759;
   transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(52, 199, 89, 0.15);
 }
 
 .action-icon {
-  font-size: 24px;
+  font-size: 28px;
 }
 
-/* 通知区域样式 */
+/* 通知区域样式 - iOS风格 */
 .notifications {
-  background-color: #1e1e1e;
-  border-radius: 8px;
+  background: white;
+  border-radius: 20px;
   padding: 24px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.04);
 }
 
 .notifications h3 {
   margin: 0 0 20px 0;
-  color: #4caf50;
+  color: #1C1C1E;
   font-size: 18px;
+  font-weight: 700;
 }
 
 .notification-list {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
 }
 
 .notification-item {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 12px;
-  background-color: #2a2a2a;
-  border-radius: 6px;
-  transition: background-color 0.3s ease;
+  padding: 14px 16px;
+  background: #F9F9F9;
+  border-radius: 12px;
+  border: 1px solid #E5E5EA;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
 
 .notification-item.new-book {
-  border-left-color: #2196f3;
-  background-color: rgba(33, 150, 243, 0.1);
+  background: rgba(0, 122, 255, 0.06);
+  border-color: rgba(0, 122, 255, 0.2);
 }
 
 .notification-item.new-book:hover {
-  background-color: rgba(33, 150, 243, 0.2);
+  background: rgba(0, 122, 255, 0.1);
+  border-color: #007AFF;
+  transform: translateX(4px);
 }
 
 .notification-item.book-removed {
-  border-left-color: #f44336;
-  background-color: rgba(244, 67, 54, 0.1);
+  background: rgba(255, 59, 48, 0.06);
+  border-color: rgba(255, 59, 48, 0.2);
 }
 
 .notification-item.book-removed:hover {
-  background-color: rgba(244, 67, 54, 0.2);
+  background: rgba(255, 59, 48, 0.1);
+  border-color: #FF3B30;
+  transform: translateX(4px);
 }
 
 .notification-item:hover {
-  background-color: #333;
+  background: white;
+  border-color: #34C759;
+  transform: translateX(4px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
 }
 
 .notification-icon {
-  font-size: 16px;
+  font-size: 20px;
   flex-shrink: 0;
 }
 
 .notification-content {
   flex: 1;
-  color: #e0e0e0;
+  color: #1C1C1E;
+  font-size: 14px;
+  font-weight: 500;
 }
 
 .notification-time {
   font-size: 12px;
-  color: #666;
+  color: #8E8E93;
   flex-shrink: 0;
+  font-weight: 600;
 }
 
 /* 图标样式（简化版本，实际项目中可使用图标库） */
