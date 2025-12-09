@@ -14,6 +14,8 @@ export interface Book {
   stock?: number
   isbn?: string
   status?: string
+  created_at?: string
+  updated_at?: string
 }
 
 // 定义分类接口

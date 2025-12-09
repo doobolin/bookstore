@@ -1,5 +1,12 @@
 <template>
   <PageContainer>
+  <!-- 动态背景光球 (Mesh Gradients) -->
+  <div class="mesh-gradients">
+    <div class="gradient-blob blob-1"></div>
+    <div class="gradient-blob blob-2"></div>
+    <div class="gradient-blob blob-3"></div>
+  </div>
+
   <div class="order-detail">
     <div v-if="loading" class="loading-container">
       <el-icon class="is-loading" size="32"><Loading /></el-icon>
@@ -285,96 +292,64 @@ onMounted(() => {
 </script>
 
 <style scoped>
+/* ========== 动态背景光球 ========== */
+.mesh-gradients {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.gradient-blob {
+  position: absolute;
+  width: 384px;
+  height: 384px;
+  border-radius: 50%;
+  mix-blend-mode: multiply;
+  filter: blur(64px);
+  opacity: 0.3;
+}
+
+.blob-1 {
+  top: 0;
+  left: 25%;
+  background: #BFDBFE;
+  animation: blob 10s infinite;
+}
+
+.blob-2 {
+  top: 0;
+  right: 25%;
+  background: #BBF7D0;
+  animation: blob 10s infinite 2s;
+}
+
+.blob-3 {
+  bottom: -128px;
+  left: 33%;
+  background: #DDD6FE;
+  animation: blob 10s infinite 4s;
+}
+
+@keyframes blob {
+  0%, 100% {
+    transform: translate(0px, 0px) scale(1);
+  }
+  33% {
+    transform: translate(30px, -50px) scale(1.1);
+  }
+  66% {
+    transform: translate(-20px, 20px) scale(0.9);
+  }
+}
+
 .order-detail {
   max-width: 1000px;
   margin: 0 auto;
-  background: #f5f5f7;
   padding: 20px;
-  border-radius: 20px;
-  position: relative;
-  overflow: hidden;
-}
-
-/* 渐变波纹背景 */
-.order-detail::before {
-  content: '';
-  position: fixed;
-  width: 200%;
-  height: 200%;
-  left: -50%;
-  top: -50%;
-  background:
-    radial-gradient(circle at 30% 40%, rgba(100, 240, 255, 1) 0%, rgba(100, 240, 255, 0.6) 20%, transparent 45%),
-    radial-gradient(circle at 70% 30%, rgba(150, 100, 255, 0.9) 0%, rgba(255, 100, 220, 0.5) 25%, transparent 50%),
-    radial-gradient(circle at 50% 70%, rgba(50, 120, 220, 0.95) 0%, rgba(100, 20, 150, 0.6) 22%, transparent 48%);
-  background-size: 100% 100%;
-  animation: flowingWave1 8s ease-in-out infinite;
-  filter: blur(40px);
-  opacity: 0.3;
-  z-index: 0;
-  pointer-events: none;
-}
-
-.order-detail::after {
-  content: '';
-  position: fixed;
-  width: 200%;
-  height: 200%;
-  left: -50%;
-  top: -50%;
-  background:
-    radial-gradient(circle at 20% 60%, rgba(255, 100, 200, 1) 0%, rgba(255, 150, 180, 0.7) 18%, transparent 42%),
-    radial-gradient(circle at 80% 50%, rgba(200, 30, 200, 0.9) 0%, rgba(220, 50, 180, 0.6) 20%, transparent 46%),
-    radial-gradient(circle at 45% 25%, rgba(255, 150, 100, 0.85) 0%, rgba(180, 70, 50, 0.5) 24%, transparent 50%);
-  background-size: 100% 100%;
-  animation: flowingWave2 10s ease-in-out infinite;
-  filter: blur(50px);
-  opacity: 0.25;
-  z-index: 0;
-  pointer-events: none;
-}
-
-@keyframes flowingWave1 {
-  0% {
-    transform: translate(0%, 0%) rotate(0deg) scale(1);
-  }
-  25% {
-    transform: translate(-15%, 10%) rotate(90deg) scale(1.1);
-  }
-  50% {
-    transform: translate(-10%, -15%) rotate(180deg) scale(1.05);
-  }
-  75% {
-    transform: translate(15%, -8%) rotate(270deg) scale(1.12);
-  }
-  100% {
-    transform: translate(0%, 0%) rotate(360deg) scale(1);
-  }
-}
-
-@keyframes flowingWave2 {
-  0% {
-    transform: translate(0%, 0%) rotate(0deg) scale(1);
-  }
-  20% {
-    transform: translate(12%, -10%) rotate(-72deg) scale(1.08);
-  }
-  40% {
-    transform: translate(-8%, -12%) rotate(-144deg) scale(1.15);
-  }
-  60% {
-    transform: translate(-15%, 8%) rotate(-216deg) scale(1.06);
-  }
-  80% {
-    transform: translate(10%, 15%) rotate(-288deg) scale(1.12);
-  }
-  100% {
-    transform: translate(0%, 0%) rotate(-360deg) scale(1);
-  }
-}
-
-/* 确保内容在波纹之上 */
-.order-detail > * {
   position: relative;
   z-index: 1;
 }
@@ -397,17 +372,26 @@ onMounted(() => {
   gap: 20px;
 }
 
-/* 订单头部 - 增强毛玻璃 */
+/* 订单头部 - iOS Pro 毛玻璃 */
 .order-header-card {
-  border-radius: 20px;
-  border: 0.5px solid rgba(255, 255, 255, 0.3);
-  background: rgba(255, 255, 255, 0.5);
-  backdrop-filter: saturate(180%) blur(30px);
-  -webkit-backdrop-filter: saturate(180%) blur(30px);
+  border-radius: 24px;
+  border: 0.5px solid rgba(255, 255, 255, 0.4);
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: saturate(180%) blur(40px);
+  -webkit-backdrop-filter: saturate(180%) blur(40px);
   box-shadow:
-    0 8px 32px rgba(0, 0, 0, 0.08),
-    0 2px 8px rgba(0, 0, 0, 0.04),
-    inset 0 1px 1px rgba(255, 255, 255, 0.9);
+    0 10px 40px rgba(0, 0, 0, 0.06),
+    0 4px 16px rgba(0, 0, 0, 0.03),
+    inset 0 1px 2px rgba(255, 255, 255, 1);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.order-header-card:hover {
+  box-shadow:
+    0 12px 48px rgba(0, 0, 0, 0.08),
+    0 6px 20px rgba(0, 0, 0, 0.04),
+    inset 0 1px 2px rgba(255, 255, 255, 1);
+  transform: translateY(-2px);
 }
 
 .order-header-card :deep(.el-card__body) {
@@ -440,11 +424,16 @@ onMounted(() => {
 }
 
 .status-tag {
-  font-size: 13px;
-  font-weight: 600;
-  padding: 6px 16px;
-  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 8px 18px;
+  border-radius: 999px;
   border: none;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
 }
 
 .order-meta {
@@ -470,17 +459,26 @@ onMounted(() => {
   font-weight: 600;
 }
 
-/* 商品列表卡片 - 增强毛玻璃 */
+/* 商品列表卡片 - iOS Pro 毛玻璃 */
 .items-card {
-  border-radius: 20px;
-  border: 0.5px solid rgba(255, 255, 255, 0.3);
-  background: rgba(255, 255, 255, 0.45);
-  backdrop-filter: saturate(180%) blur(30px);
-  -webkit-backdrop-filter: saturate(180%) blur(30px);
+  border-radius: 24px;
+  border: 0.5px solid rgba(255, 255, 255, 0.4);
+  background: rgba(255, 255, 255, 0.65);
+  backdrop-filter: saturate(180%) blur(40px);
+  -webkit-backdrop-filter: saturate(180%) blur(40px);
   box-shadow:
-    0 8px 32px rgba(0, 0, 0, 0.08),
-    0 2px 8px rgba(0, 0, 0, 0.04),
-    inset 0 1px 1px rgba(255, 255, 255, 0.8);
+    0 10px 40px rgba(0, 0, 0, 0.06),
+    0 4px 16px rgba(0, 0, 0, 0.03),
+    inset 0 1px 2px rgba(255, 255, 255, 1);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.items-card:hover {
+  box-shadow:
+    0 12px 48px rgba(0, 0, 0, 0.08),
+    0 6px 20px rgba(0, 0, 0, 0.04),
+    inset 0 1px 2px rgba(255, 255, 255, 1);
+  transform: translateY(-2px);
 }
 
 .items-card :deep(.el-card__header) {
@@ -510,14 +508,19 @@ onMounted(() => {
   display: flex;
   gap: 16px;
   padding: 16px;
-  background: rgba(0, 0, 0, 0.02);
-  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.5);
+  border: 0.5px solid rgba(0, 0, 0, 0.04);
+  border-radius: 16px;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
 }
 
 .order-item:hover {
-  background: rgba(0, 0, 0, 0.04);
-  transform: translateX(2px);
+  background: rgba(255, 255, 255, 0.7);
+  border-color: rgba(0, 122, 255, 0.1);
+  transform: translateX(4px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
 }
 
 .item-image {
@@ -526,8 +529,18 @@ onMounted(() => {
   flex-shrink: 0;
   border-radius: 12px;
   overflow: hidden;
-  background: rgba(255, 255, 255, 0.8);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  background: rgba(255, 255, 255, 0.95);
+  box-shadow:
+    0 4px 12px rgba(0, 0, 0, 0.08),
+    inset 0 0 0 0.5px rgba(255, 255, 255, 1);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.item-image:hover {
+  transform: scale(1.05);
+  box-shadow:
+    0 6px 16px rgba(0, 0, 0, 0.12),
+    inset 0 0 0 0.5px rgba(255, 255, 255, 1);
 }
 
 .item-image :deep(.el-image) {
@@ -612,17 +625,26 @@ onMounted(() => {
   letter-spacing: -0.3px;
 }
 
-/* 总计卡片 - 增强毛玻璃 */
+/* 总计卡片 - iOS Pro 毛玻璃 */
 .summary-card {
-  border-radius: 20px;
-  border: 0.5px solid rgba(255, 255, 255, 0.3);
-  background: rgba(255, 255, 255, 0.45);
-  backdrop-filter: saturate(180%) blur(30px);
-  -webkit-backdrop-filter: saturate(180%) blur(30px);
+  border-radius: 24px;
+  border: 0.5px solid rgba(255, 255, 255, 0.4);
+  background: rgba(255, 255, 255, 0.65);
+  backdrop-filter: saturate(180%) blur(40px);
+  -webkit-backdrop-filter: saturate(180%) blur(40px);
   box-shadow:
-    0 8px 32px rgba(0, 0, 0, 0.08),
-    0 2px 8px rgba(0, 0, 0, 0.04),
-    inset 0 1px 1px rgba(255, 255, 255, 0.8);
+    0 10px 40px rgba(0, 0, 0, 0.06),
+    0 4px 16px rgba(0, 0, 0, 0.03),
+    inset 0 1px 2px rgba(255, 255, 255, 1);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.summary-card:hover {
+  box-shadow:
+    0 12px 48px rgba(0, 0, 0, 0.08),
+    0 6px 20px rgba(0, 0, 0, 0.04),
+    inset 0 1px 2px rgba(255, 255, 255, 1);
+  transform: translateY(-2px);
 }
 
 .summary-card :deep(.el-card__body) {
@@ -630,9 +652,22 @@ onMounted(() => {
 }
 
 .order-summary {
-  padding: 20px;
-  background: rgba(0, 122, 255, 0.05);
-  border-radius: 14px;
+  padding: 24px;
+  background: linear-gradient(135deg, rgba(0, 122, 255, 0.08) 0%, rgba(52, 199, 89, 0.06) 100%);
+  border-radius: 16px;
+  border: 0.5px solid rgba(0, 122, 255, 0.1);
+  position: relative;
+  overflow: hidden;
+}
+
+.order-summary::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.8), transparent);
 }
 
 .summary-row {
@@ -655,74 +690,93 @@ onMounted(() => {
   letter-spacing: -0.5px;
 }
 
-/* 操作按钮 - iOS风格 */
+/* 操作按钮 - iOS Pro 风格 */
 .order-actions {
   display: flex;
   justify-content: flex-end;
   gap: 12px;
-  padding: 16px 0;
+  padding: 20px 0;
 }
 
 .order-actions :deep(.el-button) {
-  border-radius: 12px;
-  padding: 10px 20px;
-  font-weight: 500;
+  border-radius: 14px;
+  padding: 12px 24px;
+  font-weight: 600;
   font-size: 14px;
+  letter-spacing: -0.2px;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .order-actions :deep(.el-button--primary) {
-  background: #007aff;
+  background: linear-gradient(135deg, #007AFF 0%, #0051D5 100%);
   border: none;
   color: #fff;
-  box-shadow: 0 2px 8px rgba(0, 122, 255, 0.25);
+  box-shadow:
+    0 4px 12px rgba(0, 122, 255, 0.25),
+    inset 0 1px 1px rgba(255, 255, 255, 0.2);
 }
 
 .order-actions :deep(.el-button--primary:hover) {
-  background: #0051d5;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(0, 122, 255, 0.3);
+  background: linear-gradient(135deg, #0051D5 0%, #003D99 100%);
+  transform: translateY(-2px);
+  box-shadow:
+    0 6px 20px rgba(0, 122, 255, 0.35),
+    inset 0 1px 1px rgba(255, 255, 255, 0.2);
 }
 
 .order-actions :deep(.el-button--success) {
-  background: #34c759;
+  background: linear-gradient(135deg, #34C759 0%, #28A745 100%);
   border: none;
   color: #fff;
-  box-shadow: 0 2px 8px rgba(52, 199, 89, 0.25);
+  box-shadow:
+    0 4px 12px rgba(52, 199, 89, 0.25),
+    inset 0 1px 1px rgba(255, 255, 255, 0.2);
 }
 
 .order-actions :deep(.el-button--success:hover) {
-  background: #28a745;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(52, 199, 89, 0.3);
+  background: linear-gradient(135deg, #28A745 0%, #1E7E34 100%);
+  transform: translateY(-2px);
+  box-shadow:
+    0 6px 20px rgba(52, 199, 89, 0.35),
+    inset 0 1px 1px rgba(255, 255, 255, 0.2);
 }
 
 .order-actions :deep(.el-button--danger) {
-  background: #ff3b30;
+  background: linear-gradient(135deg, #FF3B30 0%, #D32F2F 100%);
   border: none;
   color: #fff;
-  box-shadow: 0 2px 8px rgba(255, 59, 48, 0.25);
+  box-shadow:
+    0 4px 12px rgba(255, 59, 48, 0.25),
+    inset 0 1px 1px rgba(255, 255, 255, 0.2);
 }
 
 .order-actions :deep(.el-button--danger:hover) {
-  background: #d32f2f;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(255, 59, 48, 0.3);
+  background: linear-gradient(135deg, #D32F2F 0%, #B71C1C 100%);
+  transform: translateY(-2px);
+  box-shadow:
+    0 6px 20px rgba(255, 59, 48, 0.35),
+    inset 0 1px 1px rgba(255, 255, 255, 0.2);
 }
 
 .order-actions :deep(.el-button:not(.el-button--primary):not(.el-button--success):not(.el-button--danger)) {
-  background: rgba(255, 255, 255, 0.7);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border: 0.5px solid rgba(0, 0, 0, 0.1);
-  color: #1d1d1f;
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: saturate(180%) blur(20px);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+  border: 0.5px solid rgba(0, 0, 0, 0.08);
+  color: #1D1D1F;
+  box-shadow:
+    0 2px 8px rgba(0, 0, 0, 0.04),
+    inset 0 1px 1px rgba(255, 255, 255, 1);
 }
 
 .order-actions :deep(.el-button:not(.el-button--primary):not(.el-button--success):not(.el-button--danger):hover) {
-  background: rgba(255, 255, 255, 0.9);
-  border-color: rgba(0, 122, 255, 0.3);
-  color: #007aff;
-  transform: translateY(-1px);
+  background: rgba(255, 255, 255, 0.95);
+  border-color: rgba(0, 122, 255, 0.2);
+  color: #007AFF;
+  transform: translateY(-2px);
+  box-shadow:
+    0 4px 16px rgba(0, 122, 255, 0.15),
+    inset 0 1px 1px rgba(255, 255, 255, 1);
 }
 
 /* 响应式 */

@@ -17,24 +17,27 @@
         :key="book.id"
         class="book-card"
       >
-        <!-- 卡片头部 -->
-        <div class="card-header">
-          <span class="category-badge">{{ book.category }}</span>
-          <div class="rating-stars">
-            <i class="ri-star-fill" v-for="n in Math.floor(book.rating)" :key="n"></i>
-            <i class="ri-star-half-fill" v-if="book.rating % 1 !== 0"></i>
-          </div>
-        </div>
-
         <!-- 图书封面 -->
         <div class="book-cover" @click="handleCardClick(book)">
           <div class="cover-placeholder"></div>
+          <!-- 评分标签 -->
+          <div class="rating-badge">
+            <i class="ri-star-fill"></i>
+            {{ book.rating?.toFixed(1) || '4.5' }}
+          </div>
         </div>
 
         <!-- 图书信息 -->
-        <h3 class="book-title">{{ book.title }}</h3>
-        <p class="book-desc">{{ book.description?.substring(0, 30) }}...</p>
-        <button class="action-btn" @click="addToCart(book)">立即购买</button>
+        <div class="book-info">
+          <h3 class="book-title">{{ book.title }}</h3>
+          <p class="book-author">{{ book.author }}</p>
+          <div class="book-footer">
+            <span class="book-price">¥{{ typeof book.price === 'number' ? book.price.toFixed(2) : parseFloat(book.price).toFixed(2) }}</span>
+            <button class="add-btn" @click="addToCart(book)">
+              <i class="ri-add-line"></i>
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -46,6 +49,7 @@ import { useRouter } from 'vue-router'
 import { ShoppingCart, View, Star, User } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import { getAllBooks, getAllCategories, searchBooks, type Book, type SearchBooksParams } from '../api/bookApi'
+import { getCart, addToCart as addToCartApi } from '../api/cartApi'
 
 const router = useRouter()
 
@@ -147,9 +151,15 @@ onUnmounted(() => {
   window.removeEventListener('book-search', handleSearch as EventListener)
 })
 
-// 由于现在使用后端搜索，不再需要前端过滤
+// 随机选择10本书进行展示
 const filteredBooks = computed(() => {
-  return books.value.slice(0, 10) // 只显示前10本书
+  if (books.value.length === 0) return []
+
+  // 创建图书数组的副本并打乱顺序
+  const shuffled = [...books.value].sort(() => Math.random() - 0.5)
+
+  // 返回随机的前10本书
+  return shuffled.slice(0, Math.min(10, shuffled.length))
 })
 
 const selectCategory = async (category: string) => {
@@ -185,15 +195,54 @@ const handleImageError = (event: Event) => {
   target.src = '/images/book-placeholder.svg'
 }
 
+// 获取当前用户ID
+const getUserId = (): number | null => {
+  const userId = localStorage.getItem('user_id')
+  return userId ? parseInt(userId) : null
+}
+
+// 检查用户是否登录
+const checkUserLogin = (): boolean => {
+  const isLoggedIn = localStorage.getItem('isLoggedIn')
+  return isLoggedIn === 'true'
+}
+
 const handleCardClick = (book: Book) => {
   // 跳转到图书详情页
   router.push({ name: 'bookDetail', params: { id: book.id } })
 }
 
-const addToCart = (book: Book) => {
-  window.dispatchEvent(new CustomEvent('add-to-cart', {
-    detail: { book }
-  }))
+// 添加到购物车 - 使用真实API
+const addToCart = async (book: Book) => {
+  if (!checkUserLogin()) {
+    ElMessage.warning('请先登录')
+    router.push('/login')
+    return
+  }
+
+  const userId = getUserId()
+  if (!userId) {
+    ElMessage.warning('请先登录')
+    router.push('/login')
+    return
+  }
+
+  try {
+    await addToCartApi(userId, book.id, 1)
+    ElMessage.success(`《${book.title}》已添加到购物车！`)
+
+    // 更新购物车数量
+    const response = await getCart(userId)
+    const totalQuantity = response.items.reduce((total, item) => total + item.quantity, 0)
+
+    const event = new CustomEvent('cart-updated', {
+      detail: { count: totalQuantity }
+    })
+    window.dispatchEvent(event)
+  } catch (error) {
+    console.error('添加到购物车失败:', error)
+    ElMessage.error('添加到购物车失败')
+  }
 }
 
 // 根据索引返回不同的渐变背景
@@ -251,128 +300,133 @@ const getBookColor = (index: number) => {
 /* 图书网格布局 */
 .books-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 2rem;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 1.5rem;
   margin-top: 2rem;
 }
 
 .book-card {
-  background: rgba(255, 255, 255, 0.8);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
-  padding: 1.5rem;
-  border-radius: 24px;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.1);
-  border: 1px solid white;
-  animation: float 6s ease-in-out infinite;
+  background: white;
+  border-radius: 16px;
+  overflow: hidden;
   transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
-@keyframes float {
-  0%, 100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-20px);
-  }
-}
-
-/* 卡片头部 */
-.card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1rem;
-}
-
-.category-badge {
-  font-size: 11px;
-  font-weight: 700;
-  color: #86868B;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-.rating-stars {
-  display: flex;
-  gap: 2px;
-  color: #FCD34D;
-  font-size: 12px;
+.book-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
 }
 
 /* 图书封面 */
 .book-cover {
   position: relative;
   width: 100%;
-  height: 192px;
-  border-radius: 12px;
-  margin-bottom: 1rem;
+  aspect-ratio: 3/4;
   overflow: hidden;
   cursor: pointer;
+  background: #F5F5F7;
 }
 
 .cover-placeholder {
   width: 100%;
   height: 100%;
+  background: linear-gradient(135deg, #E5E5E7 0%, #F5F5F7 100%);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 64px;
-  color: #007AFF;
-  transition: transform 0.5s ease;
-  background: white;
-  border: 1px solid #E5E5E7;
-  position: relative;
-}
-
-.cover-placeholder::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(135deg, rgba(0, 122, 255, 0.05) 0%, rgba(52, 199, 89, 0.05) 100%);
-  z-index: 0;
+  transition: transform 0.3s ease;
 }
 
 .book-cover:hover .cover-placeholder {
   transform: scale(1.05);
 }
 
+/* 评分标签 */
+.rating-badge {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(8px);
+  color: white;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.rating-badge i {
+  color: #FCD34D;
+  font-size: 12px;
+}
+
+/* 图书信息 */
+.book-info {
+  padding: 16px;
+}
+
 /* 图书标题 */
 .book-title {
+  font-size: 16px;
+  font-weight: 700;
+  margin: 0 0 4px 0;
+  color: #1D1D1F;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 作者名 */
+.book-author {
+  font-size: 13px;
+  color: #86868B;
+  margin: 0 0 12px 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 底部操作区 */
+.book-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.book-price {
   font-size: 18px;
   font-weight: 700;
-  margin-bottom: 0.25rem;
   color: #1D1D1F;
 }
 
-/* 图书描述 */
-.book-desc {
-  font-size: 14px;
-  color: #6B7280;
-  margin-bottom: 1rem;
-}
-
-/* 操作按钮 */
-.action-btn {
-  width: 100%;
-  padding: 0.75rem;
+.add-btn {
+  width: 36px;
+  height: 36px;
   background: #000000;
   color: white;
   border: none;
-  border-radius: 12px;
-  font-weight: 600;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
   transition: all 0.3s ease;
+  font-size: 20px;
 }
 
-.action-btn:hover {
+.add-btn:hover {
   background: #2c2c2e;
+  transform: scale(1.1);
 }
 
 /* 响应式设计 */
 @media (max-width: 1200px) {
   .books-grid {
-    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
   }
 }
 

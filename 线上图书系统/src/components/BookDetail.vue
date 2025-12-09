@@ -6,9 +6,43 @@
         <i class="ri-arrow-left-s-line"></i>
       </a>
       <span class="nav-title">{{ book?.title }}</span>
+
       <div class="nav-actions">
-        <i class="ri-share-forward-line"></i>
-        <i class="ri-bookmark-line"></i>
+        <div class="cart-icon" @click="toggleCart">
+          <i class="ri-shopping-cart-line"></i>
+          <span class="cart-count" v-if="cartItemCount > 0">{{ cartItemCount }}</span>
+        </div>
+
+        <div v-if="isLoggedIn" class="user-info">
+          <el-dropdown @command="handleUserCommand">
+            <div class="user-avatar-simple">
+              <i class="ri-user-line"></i>
+            </div>
+            <template #dropdown>
+              <el-dropdown-menu>
+                <el-dropdown-item command="profile">
+                  <i class="ri-user-line"></i>
+                  个人资料
+                </el-dropdown-item>
+                <el-dropdown-item command="orders">
+                  <i class="ri-file-list-3-line"></i>
+                  我的订单
+                </el-dropdown-item>
+                <el-dropdown-item command="logout" divided>
+                  <i class="ri-logout-box-line"></i>
+                  退出登录
+                </el-dropdown-item>
+              </el-dropdown-menu>
+            </template>
+          </el-dropdown>
+        </div>
+        <button v-else class="login-btn" @click="goToLogin">
+          登录
+        </button>
+
+        <a @click="toggleFavorite" class="favorite-button">
+          <i :class="isFavorite ? 'ri-heart-fill' : 'ri-heart-line'"></i>
+        </a>
       </div>
     </nav>
 
@@ -35,23 +69,15 @@
               <img :src="bookCover" :alt="book.title" class="book-cover">
               <div class="cover-shine"></div>
             </div>
-            <button class="preview-button">
-              <i class="ri-book-read-line"></i> 免费试读第一章
-            </button>
           </div>
 
           <!-- 中间：核心信息 -->
           <div class="info-column">
-            <div class="badge">
-              <i class="ri-award-fill"></i> Best Seller
-            </div>
-
             <h1 class="book-title">{{ book.title }}</h1>
             <h2 class="book-subtitle">{{ book.subtitle || book.description?.substring(0, 50) + '...' }}</h2>
 
             <!-- 作者行 -->
             <div class="author-section">
-              <img :src="authorAvatar" class="author-avatar">
               <div class="author-info">
                 <p class="author-name">{{ book.author }}</p>
                 <p class="author-role">著名作家</p>
@@ -68,12 +94,12 @@
                     <i class="ri-star-half-fill" v-if="(book.rating || 4.5) % 1 !== 0"></i>
                   </div>
                 </div>
-                <p class="rating-count">{{ reviews }} 条评价</p>
+                <p class="rating-count" v-if="book.rating">基于评分</p>
               </div>
-              <div class="divider"></div>
-              <div class="rank-block">
-                <p class="rank-number">Top 1</p>
-                <p class="rank-category">{{ book.category }}榜</p>
+              <div class="divider" v-if="book.category"></div>
+              <div class="rank-block" v-if="book.category">
+                <p class="rank-number">{{ book.category }}</p>
+                <p class="rank-category">分类</p>
               </div>
             </div>
 
@@ -88,17 +114,10 @@
             <div class="price-card">
               <p class="card-label">价格</p>
               <div class="price-display">
-                <span class="current-price">¥{{ book.price }}</span>
-                <span class="original-price">¥{{ originalPrice }}</span>
+                <span class="current-price">¥{{ formattedPrice }}</span>
               </div>
-              <div class="discount-badge">省 {{ discount }}%</div>
             </div>
 
-            <div class="stat-card">
-              <i class="ri-file-text-line"></i>
-              <span class="stat-value">{{ pages }}</span>
-              <span class="stat-label">页数</span>
-            </div>
             <div class="stat-card">
               <i class="ri-translate-2"></i>
               <span class="stat-value">中文</span>
@@ -134,106 +153,39 @@
               <i :class="showFullDesc ? 'ri-arrow-up-s-line' : 'ri-arrow-down-s-line'"></i>
             </button>
           </section>
-
-          <!-- 本书亮点 -->
-          <section class="section">
-            <h3 class="section-title">本书亮点</h3>
-            <div class="highlights-grid">
-              <div class="highlight-card">
-                <div class="highlight-icon blue">
-                  <i class="ri-code-s-slash-line"></i>
-                </div>
-                <h4 class="highlight-title">实战重构案例</h4>
-                <p class="highlight-desc">包含 50+ 真实项目代码重构前后的对比分析。</p>
-              </div>
-              <div class="highlight-card">
-                <div class="highlight-icon orange">
-                  <i class="ri-mind-map"></i>
-                </div>
-                <h4 class="highlight-title">思维模式升级</h4>
-                <p class="highlight-desc">从"写完代码"转变为"设计系统"的架构师思维。</p>
-              </div>
-            </div>
-          </section>
-
-          <!-- 目录 -->
-          <section class="section">
-            <h3 class="section-title">目录</h3>
-            <div class="chapters-list">
-              <div v-for="(chapter, i) in chapters" :key="i" class="chapter-item">
-                <div class="chapter-info">
-                  <span class="chapter-number">{{ String(i + 1).padStart(2, '0') }}</span>
-                  <span class="chapter-title">{{ chapter.title }}</span>
-                </div>
-                <span v-if="chapter.free" class="free-badge">试读</span>
-                <i v-else class="ri-lock-line lock-icon"></i>
-              </div>
-            </div>
-          </section>
-
-          <!-- 评论区 -->
-          <section class="section pb-10">
-            <div class="section-header">
-              <h3 class="section-title">读者评价 (2.3k)</h3>
-              <button class="write-review-btn">写评论</button>
-            </div>
-
-            <div class="reviews-list">
-              <div v-for="(review, i) in reviewsList" :key="i" class="review-item">
-                <img :src="review.avatar" class="review-avatar">
-                <div class="review-content">
-                  <div class="review-header">
-                    <div>
-                      <h5 class="reviewer-name">{{ review.name }}</h5>
-                      <div class="review-stars">
-                        <i class="ri-star-fill" v-for="n in review.rating" :key="n"></i>
-                      </div>
-                    </div>
-                    <span class="review-time">{{ review.time }}</span>
-                  </div>
-                  <p class="review-text">{{ review.text }}</p>
-                </div>
-              </div>
-              <div class="review-divider"></div>
-            </div>
-          </section>
         </div>
 
         <!-- 右侧边栏 -->
-        <div class="sidebar-content">
-          <!-- 关于作者 -->
+        <aside class="sidebar-content" v-if="recommendedBooks.length > 0">
+          <!-- 推荐图书 -->
           <div class="sidebar-card">
-            <h4 class="sidebar-title">关于作者</h4>
-            <p class="sidebar-text">
-              Robert 是 Clean Code 运动的发起人，拥有超过 40 年的软件开发经验。他是 Agile Alliance 的首任主席。
-            </p>
-            <div class="social-links">
-              <a href="#" class="social-link">
-                <i class="ri-twitter-x-line"></i>
-              </a>
-              <a href="#" class="social-link">
-                <i class="ri-linkedin-fill"></i>
-              </a>
-              <a href="#" class="social-link">
-                <i class="ri-github-fill"></i>
-              </a>
-            </div>
-          </div>
-
-          <!-- 相关推荐 -->
-          <div class="recommendations">
-            <h4 class="sidebar-title">看过的人也买了</h4>
-            <div class="recommend-list">
-              <div v-for="item in recommendedBooks" :key="item.id" class="recommend-item">
-                <img :src="item.cover" class="recommend-cover">
-                <div class="recommend-info">
-                  <p class="recommend-title">{{ item.title }}</p>
-                  <p class="recommend-author">{{ item.author }}</p>
+            <h3 class="sidebar-title">看过的人也买了</h3>
+            <div class="recommendations-list">
+              <div
+                v-for="recommendedBook in recommendedBooks"
+                :key="recommendedBook.id"
+                class="recommendation-item"
+                @click="goToBook(recommendedBook.id)"
+              >
+                <div class="recommendation-cover">
+                  <div class="recommendation-cover-placeholder"></div>
+                </div>
+                <div class="recommendation-info">
+                  <h4 class="recommendation-title">{{ recommendedBook.title }}</h4>
+                  <p class="recommendation-author">{{ recommendedBook.author }}</p>
+                  <div class="recommendation-footer">
+                    <span class="recommendation-price">¥{{ typeof recommendedBook.price === 'number' ? recommendedBook.price.toFixed(2) : parseFloat(recommendedBook.price).toFixed(2) }}</span>
+                    <div class="recommendation-rating">
+                      <i class="ri-star-fill"></i>
+                      {{ recommendedBook.rating?.toFixed(1) || '4.5' }}
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
+        </aside>
+
       </main>
 
       <!-- 底部悬浮购买栏 -->
@@ -249,11 +201,11 @@
 
           <div class="purchase-actions">
             <div class="purchase-price">
-              <span class="price">¥{{ book.price }}</span>
+              <span class="price">¥{{ formattedPrice }}</span>
               <span class="vip-discount">VIP 专享 8 折</span>
             </div>
             <div class="action-buttons">
-              <button class="add-to-shelf-btn" @click="addToBookshelf">加入书架</button>
+              <button class="add-to-cart-btn" @click="addToCart">加入购物车</button>
               <button class="buy-now-btn" @click="buyNow">
                 立即购买 <i class="ri-arrow-right-line"></i>
               </button>
@@ -266,10 +218,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { ElMessage } from 'element-plus'
-import { getBookById, type Book } from '../api/bookApi'
+import { ElMessage, ElMessageBox } from 'element-plus'
+import { getBookById, getAllBooks, type Book } from '../api/bookApi'
+import { getCart, addToCart as addToCartApi } from '../api/cartApi'
 
 const route = useRoute()
 const router = useRouter()
@@ -277,59 +230,30 @@ const router = useRouter()
 const loading = ref(false)
 const book = ref<Book | null>(null)
 const showFullDesc = ref(false)
+const isFavorite = ref(false)
+const cartItemCount = ref(0)
+const isLoggedIn = ref(false)
 
 // 计算属性
 const bookCover = computed(() => book.value?.image || 'https://images.unsplash.com/photo-1532012197267-da84d127e765?auto=format&fit=crop&q=80&w=800')
-const authorAvatar = computed(() => 'https://i.pravatar.cc/150?img=11')
 const originalPrice = computed(() => {
   const price = parseFloat(book.value?.price || '0')
   return (price / 0.7).toFixed(2)
 })
 const discount = computed(() => Math.round((1 - parseFloat(book.value?.price || '0') / parseFloat(originalPrice.value)) * 100))
-const pages = computed(() => 482)
-const reviews = computed(() => '2.3k')
-const tags = computed(() => [book.value?.category || '技术', 'Best Practice', '必读经典'])
+const tags = computed(() => book.value?.category ? [book.value.category] : [])
 
-const chapters = ref([
-  { title: '第一章：核心概念', free: true },
-  { title: '第二章：基础实践', free: true },
-  { title: '第三章：进阶技巧', free: false },
-  { title: '第四章：高级应用', free: false },
-  { title: '第五章：案例分析', free: false },
-  { title: '第六章：最佳实践', free: false },
-])
+// 格式化价格为两位小数
+const formattedPrice = computed(() => {
+  const price = typeof book.value?.price === 'number'
+    ? book.value.price
+    : parseFloat(book.value?.price?.toString() || '0')
+  return price.toFixed(2)
+})
 
-const reviewsList = ref([
-  {
-    name: 'Jason Chen',
-    avatar: 'https://i.pravatar.cc/100?img=12',
-    rating: 5,
-    time: '2天前',
-    text: '这本书完全改变了我的学习方式。内容深入浅出，案例丰富实用，强烈推荐！'
-  },
-  {
-    name: 'Sarah Wu',
-    avatar: 'https://i.pravatar.cc/100?img=33',
-    rating: 4,
-    time: '1周前',
-    text: '翻译质量很棒，没有生硬的技术词汇堆砌。思想是通用的，值得一读。'
-  }
-])
-
-const recommendedBooks = ref([
-  {
-    id: 2,
-    title: '深入理解计算机系统',
-    author: 'Randal E. Bryant',
-    cover: 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?auto=format&fit=crop&q=80&w=200'
-  },
-  {
-    id: 3,
-    title: '设计模式精解',
-    author: 'Gang of Four',
-    cover: 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?auto=format&fit=crop&q=80&w=200'
-  }
-])
+const chapters = ref<any[]>([])
+const reviewsList = ref<any[]>([])
+const recommendedBooks = ref<any[]>([])
 
 // 加载图书详情
 const loadBookDetail = async () => {
@@ -338,6 +262,14 @@ const loadBookDetail = async () => {
     const bookId = route.params.id as string
     const bookData = await getBookById(parseInt(bookId))
     book.value = bookData
+
+    // 加载推荐图书（同分类的其他图书）
+    if (bookData && bookData.category) {
+      await loadRecommendations(bookData.category, bookData.id)
+    }
+
+    // 检查收藏状态
+    checkFavoriteStatus()
   } catch (error) {
     console.error('加载图书详情失败:', error)
     ElMessage.error('加载图书详情失败')
@@ -346,15 +278,33 @@ const loadBookDetail = async () => {
   }
 }
 
+// 加载推荐图书
+const loadRecommendations = async (category: string, currentBookId: number) => {
+  try {
+    const allBooks = await getAllBooks()
+    // 筛选同类图书，排除当前图书，最多显示3本
+    recommendedBooks.value = allBooks
+      .filter(b => b.category === category && b.id !== currentBookId)
+      .slice(0, 3)
+  } catch (error) {
+    console.error('加载推荐图书失败:', error)
+  }
+}
+
 const goBack = () => {
   router.back()
 }
 
-const addToBookshelf = () => {
-  ElMessage.success('已加入书架')
+// 检查是否已收藏
+const checkFavoriteStatus = () => {
+  if (!book.value) return
+
+  const favorites = JSON.parse(localStorage.getItem('favorites') || '[]')
+  isFavorite.value = favorites.some((item: any) => item.id === book.value?.id)
 }
 
-const buyNow = () => {
+// 切换收藏状态
+const toggleFavorite = () => {
   if (!book.value) return
 
   const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true'
@@ -365,26 +315,121 @@ const buyNow = () => {
   }
 
   try {
-    const cart = JSON.parse(localStorage.getItem('cart') || '[]')
-    const existingItem = cart.find((item: any) => item.id === book.value?.id)
+    const favorites = JSON.parse(localStorage.getItem('favorites') || '[]')
+    const existingIndex = favorites.findIndex((item: any) => item.id === book.value?.id)
 
-    if (!existingItem) {
-      cart.push({
+    if (existingIndex !== -1) {
+      // 已收藏，移除收藏
+      favorites.splice(existingIndex, 1)
+      localStorage.setItem('favorites', JSON.stringify(favorites))
+      isFavorite.value = false
+      ElMessage.success('已取消收藏')
+    } else {
+      // 未收藏，添加收藏
+      favorites.push({
         id: book.value.id,
         title: book.value.title,
         author: book.value.author,
         price: book.value.price,
         image: book.value.image,
-        quantity: 1
+        category: book.value.category
       })
-      localStorage.setItem('cart', JSON.stringify(cart))
-
-      const event = new CustomEvent('cart-updated', {
-        detail: { count: cart.length }
-      })
-      window.dispatchEvent(event)
+      localStorage.setItem('favorites', JSON.stringify(favorites))
+      isFavorite.value = true
+      ElMessage.success('已添加到收藏')
     }
+  } catch (error) {
+    console.error('收藏操作失败:', error)
+    ElMessage.error('收藏操作失败')
+  }
+}
 
+// 获取当前用户ID
+const getUserId = (): number | null => {
+  const userId = localStorage.getItem('user_id')
+  return userId ? parseInt(userId) : null
+}
+
+// 检查用户是否登录
+const checkUserLogin = (): boolean => {
+  const isLoggedIn = localStorage.getItem('isLoggedIn')
+  return isLoggedIn === 'true'
+}
+
+const goToBook = (bookId: number) => {
+  router.push(`/book/${bookId}`)
+  // 滚动到顶部
+  window.scrollTo(0, 0)
+  // 重新加载图书详情
+  loadBookDetail()
+}
+
+// 添加到购物车 - 使用真实API
+const addToCart = async () => {
+  if (!book.value) return
+
+  if (!checkUserLogin()) {
+    ElMessage.warning('请先登录')
+    router.push('/login')
+    return
+  }
+
+  const userId = getUserId()
+  if (!userId) {
+    ElMessage.warning('请先登录')
+    router.push('/login')
+    return
+  }
+
+  try {
+    await addToCartApi(userId, book.value.id, 1)
+    ElMessage.success(`《${book.value.title}》已添加到购物车！`)
+
+    // 更新购物车数量
+    const response = await getCart(userId)
+    const totalQuantity = response.items.reduce((total, item) => total + item.quantity, 0)
+
+    const event = new CustomEvent('cart-updated', {
+      detail: { count: totalQuantity }
+    })
+    window.dispatchEvent(event)
+  } catch (error) {
+    console.error('添加到购物车失败:', error)
+    ElMessage.error('添加到购物车失败')
+  }
+}
+
+// 立即购买 - 使用真实API
+const buyNow = async () => {
+  if (!book.value) return
+
+  if (!checkUserLogin()) {
+    ElMessage.warning('请先登录')
+    router.push('/login')
+    return
+  }
+
+  const userId = getUserId()
+  if (!userId) {
+    ElMessage.warning('请先登录')
+    router.push('/login')
+    return
+  }
+
+  try {
+    // 将商品信息存储到 sessionStorage，传递给订单确认页面
+    const checkoutData = {
+      items: [{
+        book_id: book.value.id,
+        title: book.value.title,
+        author: book.value.author,
+        price: typeof book.value.price === 'number' ? book.value.price : parseFloat(book.value.price.toString()),
+        quantity: 1
+      }]
+    }
+    sessionStorage.setItem('checkoutCart', JSON.stringify(checkoutData))
+
+    // 直接跳转到结算页面
     router.push('/checkout')
   } catch (error) {
     console.error('购买失败:', error)
@@ -392,10 +437,92 @@ const buyNow = () => {
   }
 }
 
-onMounted(() => {
+const toggleCart = () => {
+  router.push('/cart')
+}
+
+const goToLogin = () => {
+  router.push('/login')
+}
+
+const handleUserCommand = async (command: string) => {
+  if (command === 'logout') {
+    try {
+      await ElMessageBox.confirm('确定要退出登录吗？', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      })
+
+      localStorage.removeItem('token')
+      localStorage.removeItem('user_id')
+      localStorage.removeItem('username')
+      localStorage.removeItem('role')
+      localStorage.removeItem('isLoggedIn')
+
+      isLoggedIn.value = false
+
+      const event = new CustomEvent('user-logout')
+      window.dispatchEvent(event)
+
+      ElMessage.success('已退出登录')
+      router.push('/')
+    } catch (error) {
+      // 用户取消
+    }
+  } else if (command === 'orders') {
+    router.push('/orders')
+  } else if (command === 'profile') {
+    router.push('/profile')
+  }
+}
+
+const checkLoginStatus = () => {
+  const loginStatus = localStorage.getItem('isLoggedIn')
+  isLoggedIn.value = loginStatus === 'true'
+}
+
+// 更新购物车数量
+const updateCartCount = async (event?: CustomEvent) => {
+  if (event && event.detail && typeof event.detail.count !== 'undefined') {
+    cartItemCount.value = event.detail.count
+    return
+  }
+
+  const userId = getUserId()
+  if (!userId || !checkUserLogin()) {
+    cartItemCount.value = 0
+    return
+  }
+
+  try {
+    const response = await getCart(userId)
+    const totalQuantity = response.items.reduce((total, item) => total + item.quantity, 0)
+    cartItemCount.value = totalQuantity
+  } catch (error) {
+    console.error('获取购物车数量失败:', error)
+    cartItemCount.value = 0
+  }
+}
+
+onMounted(async () => {
   // 滚动到页面顶部
   window.scrollTo(0, 0)
   loadBookDetail()
+  checkLoginStatus()
+
+  // 加载购物车数量
+  await updateCartCount()
+
+  // 监听购物车更新事件
+  window.addEventListener('cart-updated', updateCartCount as EventListener)
+  window.addEventListener('user-logout', () => {
+    cartItemCount.value = 0
+  })
+})
+
+onUnmounted(() => {
+  window.removeEventListener('cart-updated', updateCartCount as EventListener)
 })
 </script>
 
@@ -454,18 +581,101 @@ onMounted(() => {
 
 .nav-actions {
   display: flex;
-  gap: 16px;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.cart-icon {
+  position: relative;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 18px;
+  color: #1D1D1F;
+  border-radius: 50%;
+  transition: all 0.3s ease;
+}
+
+.cart-icon:hover {
+  background: rgba(0, 122, 255, 0.1);
+  color: #007AFF;
+}
+
+.cart-count {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  background: #FF3B30;
+  color: white;
+  border-radius: 50%;
+  width: 16px;
+  height: 16px;
+  font-size: 10px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid white;
+}
+
+.user-avatar-simple {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.04);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 18px;
+  color: #1D1D1F;
+  transition: all 0.3s ease;
+}
+
+.user-avatar-simple:hover {
+  background: rgba(0, 122, 255, 0.1);
+  color: #007AFF;
+}
+
+.login-btn {
+  background: #000000;
+  border: none;
+  color: white;
+  font-weight: 600;
+  border-radius: 16px;
+  padding: 6px 16px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.login-btn:hover {
+  background: #2c2c2e;
+  transform: translateY(-1px);
+}
+
+.favorite-button {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.3s;
   font-size: 20px;
   color: #1D1D1F;
 }
 
-.nav-actions i {
-  cursor: pointer;
-  transition: color 0.3s;
+.favorite-button:hover {
+  background: rgba(0, 0, 0, 0.05);
 }
 
-.nav-actions i:hover {
-  color: #007AFF;
+.favorite-button .ri-heart-fill {
+  color: #FF3B30;
 }
 
 /* ========== 加载状态 ========== */
@@ -599,35 +809,6 @@ onMounted(() => {
   opacity: 1;
 }
 
-.preview-button {
-  width: 240px;
-  padding: 12px;
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.5);
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.4);
-  font-weight: 600;
-  font-size: 14px;
-  color: #1D1D1F;
-  cursor: pointer;
-  transition: all 0.3s;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-}
-
-@media (min-width: 768px) {
-  .preview-button {
-    width: 100%;
-  }
-}
-
-.preview-button:hover {
-  background: white;
-}
-
 /* 信息列 */
 .info-column {
   text-align: center;
@@ -685,7 +866,6 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 12px;
   margin-bottom: 24px;
 }
 
@@ -695,16 +875,14 @@ onMounted(() => {
   }
 }
 
-.author-avatar {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  border: 1px solid white;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+.author-info {
+  text-align: center;
 }
 
-.author-info {
-  text-align: left;
+@media (min-width: 768px) {
+  .author-info {
+    text-align: left;
+  }
 }
 
 .author-name {
@@ -954,7 +1132,7 @@ onMounted(() => {
   padding: 80px 24px 0;
   display: grid;
   grid-template-columns: 1fr;
-  gap: 48px;
+  gap: 40px;
 }
 
 @media (min-width: 1024px) {
@@ -1020,308 +1198,127 @@ onMounted(() => {
   opacity: 0.7;
 }
 
-.highlights-grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 16px;
-}
-
-@media (min-width: 768px) {
-  .highlights-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-.highlight-card {
-  padding: 20px;
-  border-radius: 16px;
-  background: white;
-  border: 1px solid #F3F4F6;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-  transition: box-shadow 0.3s;
-}
-
-.highlight-card:hover {
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
-}
-
-.highlight-icon {
-  width: 40px;
-  height: 40px;
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 20px;
-  margin-bottom: 12px;
-}
-
-.highlight-icon.blue {
-  background: #EFF6FF;
-  color: #007AFF;
-}
-
-.highlight-icon.orange {
-  background: #FEF3C7;
-  color: #FF9500;
-}
-
-.highlight-title {
-  font-weight: 700;
-  color: #1D1D1F;
-  margin: 0 0 4px 0;
-}
-
-.highlight-desc {
-  font-size: 14px;
-  color: #6B7280;
-  margin: 0;
-}
-
-.chapters-list {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.chapter-item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 16px;
-  border-radius: 12px;
-  background: #F9FAFB;
-  cursor: pointer;
-  transition: background 0.3s;
-}
-
-.chapter-item:hover {
-  background: #F3F4F6;
-}
-
-.chapter-info {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-}
-
-.chapter-number {
-  font-family: monospace;
-  font-size: 14px;
-  color: #9CA3AF;
-  width: 24px;
-}
-
-.chapter-title {
-  font-weight: 600;
-  color: #1D1D1F;
-}
-
-.free-badge {
-  font-size: 12px;
-  font-weight: 700;
-  color: #007AFF;
-  background: #EFF6FF;
-  padding: 4px 8px;
-  border-radius: 4px;
-}
-
-.lock-icon {
-  color: #D1D5DB;
-}
-
-.pb-10 {
-  padding-bottom: 40px;
-}
-
-.section-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 24px;
-}
-
-.write-review-btn {
-  font-size: 14px;
-  color: #007AFF;
-  font-weight: 600;
-  background: none;
-  border: none;
-  cursor: pointer;
-}
-
-.reviews-list {
+/* ========== 侧边栏 ========== */
+.sidebar-content {
   display: flex;
   flex-direction: column;
   gap: 24px;
 }
 
-.review-item {
-  display: flex;
-  gap: 16px;
-}
-
-.review-avatar {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background: #E5E5E7;
-}
-
-.review-content {
-  flex: 1;
-}
-
-.review-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 8px;
-}
-
-.reviewer-name {
-  font-weight: 700;
-  font-size: 14px;
-  color: #1D1D1F;
-  margin: 0 0 4px 0;
-}
-
-.review-stars {
-  display: flex;
-  gap: 2px;
-  color: #FCD34D;
-  font-size: 12px;
-}
-
-.review-time {
-  font-size: 12px;
-  color: #9CA3AF;
-}
-
-.review-text {
-  font-size: 14px;
-  color: #6B7280;
-  line-height: 1.6;
-  margin: 0;
-}
-
-.review-divider {
-  width: 100%;
-  height: 1px;
-  background: #F3F4F6;
-}
-
-/* ========== 侧边栏 ========== */
-.sidebar-content {
-  display: none;
-}
-
-@media (min-width: 1024px) {
-  .sidebar-content {
-    display: block;
-  }
-}
-
-.recommendations {
-  margin-top: 24px;
-}
-
 .sidebar-card {
   background: white;
-  padding: 24px;
   border-radius: 16px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  padding: 24px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
   border: 1px solid #F3F4F6;
 }
 
 .sidebar-title {
-  font-size: 14px;
+  font-size: 1.125rem;
   font-weight: 700;
-  color: #6B7280;
-  text-transform: uppercase;
-  margin: 0 0 16px 0;
-  letter-spacing: 0.05em;
+  color: #1D1D1F;
+  margin: 0 0 20px 0;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #F3F4F6;
 }
 
-.sidebar-text {
-  font-size: 14px;
-  color: #6B7280;
-  line-height: 1.6;
-  margin: 0 0 16px 0;
-}
-
-.social-links {
+/* ========== 推荐图书列表 ========== */
+.recommendations-list {
   display: flex;
-  gap: 8px;
+  flex-direction: column;
+  gap: 16px;
 }
 
-.social-link {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  background: #F3F4F6;
+.recommendation-item {
+  display: flex;
+  gap: 12px;
+  cursor: pointer;
+  padding: 12px;
+  border-radius: 12px;
+  transition: all 0.3s ease;
+  background: #FAFAFA;
+}
+
+.recommendation-item:hover {
+  background: #F5F5F7;
+  transform: translateX(4px);
+}
+
+.recommendation-cover {
+  flex-shrink: 0;
+  width: 80px;
+  height: 106px;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #F5F5F7;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.recommendation-cover-placeholder {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #E5E5E7 0%, #F5F5F7 100%);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #6B7280;
-  transition: all 0.3s;
-  text-decoration: none;
 }
 
-.social-link:hover {
-  background: #000000;
-  color: white;
-}
-
-.recommend-list {
+.recommendation-info {
+  flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  justify-content: space-between;
+  min-width: 0;
 }
 
-.recommend-item {
-  display: flex;
-  gap: 12px;
-  align-items: center;
-  padding: 8px;
-  border-radius: 12px;
-  cursor: pointer;
-  transition: all 0.3s;
-}
-
-.recommend-item:hover {
-  background: white;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-}
-
-.recommend-cover {
-  width: 48px;
-  height: 64px;
-  object-fit: cover;
-  border-radius: 4px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
-.recommend-info {
-  flex: 1;
-}
-
-.recommend-title {
-  font-weight: 700;
+.recommendation-title {
   font-size: 14px;
-  color: #1D1D1F;
+  font-weight: 600;
   margin: 0 0 4px 0;
-  transition: color 0.3s;
+  color: #1D1D1F;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  line-height: 1.4;
 }
 
-.recommend-item:hover .recommend-title {
-  color: #007AFF;
-}
-
-.recommend-author {
+.recommendation-author {
   font-size: 12px;
   color: #86868B;
-  margin: 0;
+  margin: 0 0 8px 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.recommendation-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.recommendation-price {
+  font-size: 16px;
+  font-weight: 700;
+  color: #1D1D1F;
+}
+
+.recommendation-rating {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #86868B;
+  flex-shrink: 0;
+}
+
+.recommendation-rating i {
+  color: #FCD34D;
+  font-size: 12px;
 }
 
 /* ========== 底部购买栏 ========== */
@@ -1451,7 +1448,7 @@ onMounted(() => {
   }
 }
 
-.add-to-shelf-btn {
+.add-to-cart-btn {
   flex: 1;
   background: #F3F4F6;
   color: #1D1D1F;
@@ -1465,12 +1462,12 @@ onMounted(() => {
 }
 
 @media (min-width: 768px) {
-  .add-to-shelf-btn {
+  .add-to-cart-btn {
     flex: none;
   }
 }
 
-.add-to-shelf-btn:hover {
+.add-to-cart-btn:hover {
   background: #E5E7EB;
 }
 

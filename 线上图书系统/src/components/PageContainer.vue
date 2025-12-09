@@ -1,7 +1,7 @@
 <template>
   <div class="page-container">
     <!-- 顶部导航栏 -->
-    <nav class="page-navbar">
+    <nav v-if="!hideNavbar" class="page-navbar">
       <div class="nav-content">
         <div class="logo" @click="goToHome">
           <span class="logo-text">科技书城</span>
@@ -41,7 +41,7 @@
     </nav>
 
     <!-- 主要内容区域 -->
-    <div class="page-content">
+    <div class="page-content" :class="{ 'no-navbar': hideNavbar }">
       <slot></slot>
     </div>
   </div>
@@ -52,6 +52,11 @@ import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { HomeFilled, User, ArrowDown, Tickets, SwitchButton } from '@element-plus/icons-vue'
+
+// 定义props
+const props = defineProps<{
+  hideNavbar?: boolean
+}>()
 
 const router = useRouter()
 const isLoggedIn = ref(false)
@@ -97,7 +102,7 @@ const handleUserCommand = async (command: string) => {
       // 用户取消
     }
   } else if (command === 'orders') {
-    router.push('/orders')
+    router.push('/profile')
   } else if (command === 'profile') {
     router.push('/profile')
   }
@@ -264,5 +269,10 @@ onMounted(() => {
   margin: 0 auto;
   padding: 24px 20px;
   min-height: calc(100vh - 64px);
+}
+
+.page-content.no-navbar {
+  min-height: 100vh;
+  padding: 0;
 }
 </style>

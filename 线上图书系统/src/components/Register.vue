@@ -187,46 +187,43 @@ const goToLogin = () => {
   height: 100%;
   overflow: hidden;
   z-index: 0;
+  pointer-events: none;
 }
 
 .gradient-blob {
   position: absolute;
+  width: 384px;
+  height: 384px;
   border-radius: 50%;
-  filter: blur(80px);
-  opacity: 0.5;
-  animation: blob-move 20s ease-in-out infinite;
+  mix-blend-mode: multiply;
+  filter: blur(64px);
+  opacity: 0.3;
 }
 
 .blob-1 {
-  width: 600px;
-  height: 600px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  top: -10%;
-  left: -10%;
-  animation-delay: 0s;
+  top: 0;
+  left: 25%;
+  background: #BFDBFE;
+  animation: blob 10s infinite;
 }
 
 .blob-2 {
-  width: 500px;
-  height: 500px;
-  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-  top: 60%;
-  right: -5%;
-  animation-delay: 4s;
+  top: 0;
+  right: 25%;
+  background: #BBF7D0;
+  animation: blob 10s infinite 2s;
 }
 
 .blob-3 {
-  width: 550px;
-  height: 550px;
-  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-  bottom: -10%;
-  left: 40%;
-  animation-delay: 2s;
+  bottom: -128px;
+  left: 33%;
+  background: #DDD6FE;
+  animation: blob 10s infinite 4s;
 }
 
-@keyframes blob-move {
+@keyframes blob {
   0%, 100% {
-    transform: translate(0, 0) scale(1);
+    transform: translate(0px, 0px) scale(1);
   }
   33% {
     transform: translate(30px, -50px) scale(1.1);

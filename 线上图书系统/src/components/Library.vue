@@ -8,7 +8,7 @@
     </div>
 
     <!-- 磨砂玻璃导航栏 -->
-    <nav class="glass-navbar">
+    <nav :class="['glass-navbar', { 'navbar-fixed': isNavbarFixed }]">
       <div class="nav-content">
         <div class="logo" @click="goToHome">
           <span class="logo-icon">
@@ -30,27 +30,9 @@
           </div>
 
           <div v-if="isLoggedIn" class="user-info">
-            <el-dropdown @command="handleUserCommand">
-              <div class="user-avatar-simple">
-                <i class="ri-user-line"></i>
-              </div>
-              <template #dropdown>
-                <el-dropdown-menu>
-                  <el-dropdown-item command="profile">
-                    <i class="ri-user-line"></i>
-                    个人资料
-                  </el-dropdown-item>
-                  <el-dropdown-item command="orders">
-                    <i class="ri-file-list-3-line"></i>
-                    我的订单
-                  </el-dropdown-item>
-                  <el-dropdown-item command="logout" divided>
-                    <i class="ri-logout-box-line"></i>
-                    退出登录
-                  </el-dropdown-item>
-                </el-dropdown-menu>
-              </template>
-            </el-dropdown>
+            <div class="user-avatar-simple" @click="goToProfile">
+              <i class="ri-user-line"></i>
+            </div>
           </div>
           <button v-else class="login-btn" @click="goToLogin">
             登录
@@ -110,24 +92,27 @@
           :key="book.id"
           class="book-card"
         >
-          <!-- 卡片头部 -->
-          <div class="card-header">
-            <span class="category-badge">{{ book.category }}</span>
-            <div class="rating-stars">
-              <i class="ri-star-fill" v-for="n in Math.floor(book.rating)" :key="n"></i>
-              <i class="ri-star-half-fill" v-if="book.rating % 1 !== 0"></i>
-            </div>
-          </div>
-
           <!-- 图书封面 -->
           <div class="book-cover" @click="handleCardClick(book)">
             <div class="cover-placeholder"></div>
+            <!-- 评分标签 -->
+            <div class="rating-badge">
+              <i class="ri-star-fill"></i>
+              {{ book.rating?.toFixed(1) || '4.5' }}
+            </div>
           </div>
 
           <!-- 图书信息 -->
-          <h3 class="book-title">{{ book.title }}</h3>
-          <p class="book-desc">{{ book.description?.substring(0, 30) }}...</p>
-          <button class="action-btn" @click="addToCart(book)">立即购买</button>
+          <div class="book-info">
+            <h3 class="book-title">{{ book.title }}</h3>
+            <p class="book-author">{{ book.author }}</p>
+            <div class="book-footer">
+              <span class="book-price">¥{{ typeof book.price === 'number' ? book.price.toFixed(2) : parseFloat(book.price).toFixed(2) }}</span>
+              <button class="add-btn" @click="addToCart(book)">
+                <i class="ri-add-line"></i>
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -153,13 +138,16 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { getAllBooks, getAllCategories, type Book } from '../api/bookApi'
+import { getCart, addToCart as addToCartApi } from '../api/cartApi'
 
 const router = useRouter()
+const route = useRoute()
 const cartItemCount = ref(0)
 const showBackToTop = ref(false)
+const isNavbarFixed = ref(false)
 const searchQuery = ref('')
 const selectedCategory = ref('全部')
 const categories = ref<string[]>(['全部'])
@@ -227,42 +215,49 @@ const handleSearch = () => {
   // 搜索会自动通过 computed 触发
 }
 
+// 获取当前用户ID
+const getUserId = (): number | null => {
+  const userId = localStorage.getItem('user_id')
+  return userId ? parseInt(userId) : null
+}
+
+// 检查用户是否登录
+const checkUserLogin = (): boolean => {
+  const isLoggedIn = localStorage.getItem('isLoggedIn')
+  return isLoggedIn === 'true'
+}
+
 const handleCardClick = (book: Book) => {
   router.push(`/book/${book.id}`)
 }
 
-const addToCart = (book: Book) => {
+// 添加到购物车 - 使用真实API
+const addToCart = async (book: Book) => {
   if (!isLoggedIn.value) {
     ElMessage.warning('请先登录')
     router.push('/login')
     return
   }
 
+  const userId = getUserId()
+  if (!userId) {
+    ElMessage.warning('请先登录')
+    router.push('/login')
+    return
+  }
+
   try {
-    const cart = JSON.parse(localStorage.getItem('cart') || '[]')
-    const existingItem = cart.find((item: any) => item.id === book.id)
+    await addToCartApi(userId, book.id, 1)
+    ElMessage.success(`《${book.title}》已添加到购物车！`)
 
-    if (existingItem) {
-      ElMessage.info('该书籍已在购物车中')
-    } else {
-      cart.push({
-        id: book.id,
-        title: book.title,
-        author: book.author,
-        price: book.price,
-        image: book.image,
-        quantity: 1
-      })
+    // 更新购物车数量
+    const response = await getCart(userId)
+    const totalQuantity = response.items.reduce((total, item) => total + item.quantity, 0)
 
-      localStorage.setItem('cart', JSON.stringify(cart))
-
-      const event = new CustomEvent('cart-updated', {
-        detail: { count: cart.length }
-      })
-      window.dispatchEvent(event)
-
-      ElMessage.success('已添加到购物车')
-    }
+    const event = new CustomEvent('cart-updated', {
+      detail: { count: totalQuantity }
+    })
+    window.dispatchEvent(event)
   } catch (error) {
     console.error('添加到购物车失败:', error)
     ElMessage.error('添加到购物车失败')
@@ -281,35 +276,8 @@ const toggleCart = () => {
   router.push('/cart')
 }
 
-const handleUserCommand = async (command: string) => {
-  if (command === 'logout') {
-    try {
-      await ElMessageBox.confirm('确定要退出登录吗？', '提示', {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
-        type: 'warning'
-      })
-
-      localStorage.removeItem('token')
-      localStorage.removeItem('user_id')
-      localStorage.removeItem('username')
-      localStorage.removeItem('role')
-      localStorage.removeItem('isLoggedIn')
-
-      isLoggedIn.value = false
-
-      const event = new CustomEvent('user-logout')
-      window.dispatchEvent(event)
-
-      ElMessage.success('已退出登录')
-    } catch (error) {
-      // 用户取消
-    }
-  } else if (command === 'orders') {
-    router.push('/orders')
-  } else if (command === 'profile') {
-    router.push('/profile')
-  }
+const goToProfile = () => {
+  router.push('/profile')
 }
 
 const scrollToTop = () => {
@@ -335,15 +303,36 @@ const scrollToTop = () => {
 }
 
 const handleScroll = () => {
-  showBackToTop.value = window.scrollY > 300
+  const currentScrollY = window.scrollY
+  showBackToTop.value = currentScrollY > 300
+
+  if (currentScrollY > 100) {
+    isNavbarFixed.value = true
+  } else {
+    isNavbarFixed.value = false
+  }
 }
 
-const updateCartCount = (event: CustomEvent) => {
-  if (event.detail && typeof event.detail.count !== 'undefined') {
+// 更新购物车数量
+const updateCartCount = async (event?: CustomEvent) => {
+  if (event && event.detail && typeof event.detail.count !== 'undefined') {
     cartItemCount.value = event.detail.count
-  } else {
-    const cartData = JSON.parse(localStorage.getItem('cart') || '[]')
-    cartItemCount.value = cartData.length
+    return
+  }
+
+  const userId = getUserId()
+  if (!userId || !checkUserLogin()) {
+    cartItemCount.value = 0
+    return
+  }
+
+  try {
+    const response = await getCart(userId)
+    const totalQuantity = response.items.reduce((total, item) => total + item.quantity, 0)
+    cartItemCount.value = totalQuantity
+  } catch (error) {
+    console.error('获取购物车数量失败:', error)
+    cartItemCount.value = 0
   }
 }
 
@@ -352,12 +341,25 @@ const checkLoginStatus = () => {
   isLoggedIn.value = loginStatus === 'true'
 }
 
-onMounted(() => {
+onMounted(async () => {
   window.addEventListener('scroll', handleScroll)
   window.addEventListener('cart-updated', updateCartCount as EventListener)
+  window.addEventListener('user-logout', () => {
+    cartItemCount.value = 0
+  })
+
   checkLoginStatus()
   loadCategories()
   loadBooks()
+
+  // 加载购物车数量
+  await updateCartCount()
+
+  // 从 URL 查询参数中获取搜索关键词
+  const searchParam = route.query.search as string
+  if (searchParam) {
+    searchQuery.value = searchParam
+  }
 })
 
 onUnmounted(() => {
@@ -442,6 +444,14 @@ onUnmounted(() => {
   backdrop-filter: saturate(180%) blur(24px);
   -webkit-backdrop-filter: saturate(180%) blur(24px);
   border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.04);
+}
+
+.navbar-fixed {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
   box-shadow: 0 4px 24px rgba(0, 0, 0, 0.04);
 }
 
@@ -581,6 +591,7 @@ onUnmounted(() => {
 .user-avatar-simple:hover {
   background: rgba(0, 122, 255, 0.1);
   color: #007AFF;
+  transform: scale(1.05);
 }
 
 .login-btn {
@@ -754,116 +765,126 @@ onUnmounted(() => {
 /* ========== 图书网格 ========== */
 .books-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 2rem;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 1.5rem;
 }
 
 .book-card {
-  background: rgba(255, 255, 255, 0.8);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
-  padding: 1.5rem;
-  border-radius: 24px;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.1);
-  border: 1px solid white;
-  animation: float 6s ease-in-out infinite;
+  background: white;
+  border-radius: 16px;
+  overflow: hidden;
   transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
-@keyframes float {
-  0%, 100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-20px);
-  }
+.book-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
 }
 
-.card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1rem;
-}
-
-.category-badge {
-  font-size: 11px;
-  font-weight: 700;
-  color: #86868B;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-.rating-stars {
-  display: flex;
-  gap: 2px;
-  color: #FCD34D;
-  font-size: 12px;
-}
-
+/* 图书封面 */
 .book-cover {
   position: relative;
   width: 100%;
-  height: 192px;
-  border-radius: 12px;
-  margin-bottom: 1rem;
+  aspect-ratio: 3/4;
   overflow: hidden;
   cursor: pointer;
+  background: #F5F5F7;
 }
 
 .cover-placeholder {
   width: 100%;
   height: 100%;
+  background: linear-gradient(135deg, #E5E5E7 0%, #F5F5F7 100%);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 64px;
-  color: #007AFF;
-  transition: transform 0.5s ease;
-  background: white;
-  border: 1px solid #E5E5E7;
-  position: relative;
-}
-
-.cover-placeholder::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(135deg, rgba(0, 122, 255, 0.05) 0%, rgba(52, 199, 89, 0.05) 100%);
-  z-index: 0;
+  transition: transform 0.3s ease;
 }
 
 .book-cover:hover .cover-placeholder {
   transform: scale(1.05);
 }
 
+/* 评分标签 */
+.rating-badge {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(8px);
+  color: white;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.rating-badge i {
+  color: #FCD34D;
+  font-size: 12px;
+}
+
+/* 图书信息 */
+.book-info {
+  padding: 16px;
+}
+
+/* 图书标题 */
 .book-title {
+  font-size: 16px;
+  font-weight: 700;
+  margin: 0 0 4px 0;
+  color: #1D1D1F;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 作者名 */
+.book-author {
+  font-size: 13px;
+  color: #86868B;
+  margin: 0 0 12px 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 底部操作区 */
+.book-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.book-price {
   font-size: 18px;
   font-weight: 700;
-  margin-bottom: 0.25rem;
   color: #1D1D1F;
 }
 
-.book-desc {
-  font-size: 14px;
-  color: #6B7280;
-  margin-bottom: 1rem;
-}
-
-.action-btn {
-  width: 100%;
-  padding: 0.75rem;
+.add-btn {
+  width: 36px;
+  height: 36px;
   background: #000000;
   color: white;
   border: none;
-  border-radius: 12px;
-  font-weight: 600;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
   transition: all 0.3s ease;
+  font-size: 20px;
 }
 
-.action-btn:hover {
+.add-btn:hover {
   background: #2c2c2e;
+  transform: scale(1.1);
 }
 
 /* ========== 回到顶部按钮 ========== */
@@ -945,7 +966,8 @@ onUnmounted(() => {
   }
 
   .books-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 1rem;
   }
 
   .back-to-top {

@@ -4,7 +4,7 @@ import Login from '../components/Login.vue'
 import Register from '../components/Register.vue'
 import Library from '../components/Library.vue'
 import BookDetail from '../components/BookDetail.vue'
-import OrderList from '../components/OrderList.vue'
+import Cart from '../components/Cart.vue'
 import OrderDetail from '../components/OrderDetail.vue'
 import OrderCheckout from '../components/OrderCheckout.vue'
 import UserProfile from '../components/UserProfile.vue'
@@ -37,9 +37,9 @@ const routes = [
     props: true
   },
   {
-    path: '/orders',
-    name: 'OrderList',
-    component: OrderList
+    path: '/cart',
+    name: 'Cart',
+    component: Cart
   },
   {
     path: '/order/:id',

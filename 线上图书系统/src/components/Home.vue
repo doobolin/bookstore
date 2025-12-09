@@ -30,27 +30,9 @@
           </div>
 
           <div v-if="isLoggedIn" class="user-info">
-            <el-dropdown @command="handleUserCommand">
-              <div class="user-avatar-simple">
-                <i class="ri-user-line"></i>
-              </div>
-              <template #dropdown>
-                <el-dropdown-menu>
-                  <el-dropdown-item command="profile">
-                    <i class="ri-user-line"></i>
-                    个人资料
-                  </el-dropdown-item>
-                  <el-dropdown-item command="orders">
-                    <i class="ri-file-list-3-line"></i>
-                    我的订单
-                  </el-dropdown-item>
-                  <el-dropdown-item command="logout" divided>
-                    <i class="ri-logout-box-line"></i>
-                    退出登录
-                  </el-dropdown-item>
-                </el-dropdown-menu>
-              </template>
-            </el-dropdown>
+            <div class="user-avatar-simple" @click="goToProfile">
+              <i class="ri-user-line"></i>
+            </div>
           </div>
           <button v-else class="login-btn" @click="goToLogin">
             登录
@@ -82,7 +64,7 @@
             </h1>
 
             <p class="hero-description">
-              TechBooks 汇集全球顶尖技术与科学著作，为您打造沉浸式的深度阅读体验。加入 10,000+ 开发者社区。
+              线上书店汇集全球顶尖技术与科学著作，为您打造沉浸式的阅读体验。
             </p>
 
             <!-- 搜索框 -->
@@ -118,7 +100,7 @@
               </div>
               <h3 class="featured-title">{{ latestBook.title }}</h3>
               <p class="featured-desc">{{ latestBook.description?.substring(0, 30) }}...</p>
-              <button class="featured-action-btn" @click="addToCart(latestBook)">立即购买</button>
+              <button class="featured-action-btn" @click="buyNow(latestBook)">立即购买</button>
             </div>
             <div class="stats-mini-card">
               <div class="stats-mini-icon">
@@ -222,6 +204,7 @@ import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import CardContainer from './CardContainer.vue'
 import { getAllBooks, type Book } from '../api/bookApi'
+import { getCart, addToCart as addToCartApi } from '../api/cartApi'
 
 const router = useRouter()
 const cartItemCount = ref(0)
@@ -272,48 +255,47 @@ const refreshPage = () => {
   window.location.reload()
 }
 
-const handleUserCommand = async (command: string) => {
-  if (command === 'logout') {
-    try {
-      await ElMessageBox.confirm('确定要退出登录吗？', '提示', {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
-        type: 'warning'
-      })
+const goToProfile = () => {
+  router.push('/profile')
+}
 
-      localStorage.removeItem('token')
-      localStorage.removeItem('user_id')
-      localStorage.removeItem('username')
-      localStorage.removeItem('role')
-      localStorage.removeItem('isLoggedIn')
+// 获取当前用户ID
+const getUserId = (): number | null => {
+  const userId = localStorage.getItem('user_id')
+  return userId ? parseInt(userId) : null
+}
 
-      isLoggedIn.value = false
-      username.value = ''
-
-      const event = new CustomEvent('user-logout')
-      window.dispatchEvent(event)
-
-      ElMessage.success('已退出登录')
-    } catch (error) {
-      // 用户取消
-    }
-  } else if (command === 'orders') {
-    router.push('/orders')
-  } else if (command === 'profile') {
-    router.push('/profile')
-  }
+// 检查用户是否登录
+const checkUserLogin = (): boolean => {
+  const isLoggedIn = localStorage.getItem('isLoggedIn')
+  return isLoggedIn === 'true'
 }
 
 const toggleCart = () => {
   router.push('/cart')
 }
 
-const updateCartCount = (event: CustomEvent) => {
-  if (event.detail && typeof event.detail.count !== 'undefined') {
+// 更新购物车数量
+const updateCartCount = async (event?: CustomEvent) => {
+  if (event && event.detail && typeof event.detail.count !== 'undefined') {
     cartItemCount.value = event.detail.count
-  } else {
-    const cartData = JSON.parse(localStorage.getItem('cart') || '[]')
-    cartItemCount.value = cartData.length
+    return
+  }
+
+  const userId = getUserId()
+  if (!userId || !checkUserLogin()) {
+    cartItemCount.value = 0
+    return
+  }
+
+  try {
+    const response = await getCart(userId)
+    // 计算总数量
+    const totalQuantity = response.items.reduce((total, item) => total + item.quantity, 0)
+    cartItemCount.value = totalQuantity
+  } catch (error) {
+    console.error('获取购物车数量失败:', error)
+    cartItemCount.value = 0
   }
 }
 
@@ -345,10 +327,10 @@ const scrollToTop = () => {
 
 const handleSearch = () => {
   if (searchQuery.value.trim()) {
-    const searchEvent = new CustomEvent('book-search', {
-      detail: { query: searchQuery.value.trim() }
+    router.push({
+      path: '/library',
+      query: { search: searchQuery.value.trim() }
     })
-    window.dispatchEvent(searchEvent)
   }
 }
 
@@ -387,42 +369,33 @@ const viewBookDetail = (book: Book) => {
   router.push(`/book/${book.id}`)
 }
 
-// 添加到购物车
-const addToCart = (book: Book) => {
+// 添加到购物车 - 使用真实API
+const addToCart = async (book: Book) => {
   if (!isLoggedIn.value) {
     ElMessage.warning('请先登录')
     router.push('/login')
     return
   }
 
+  const userId = getUserId()
+  if (!userId) {
+    ElMessage.warning('请先登录')
+    router.push('/login')
+    return
+  }
+
   try {
-    const cart = JSON.parse(localStorage.getItem('cart') || '[]')
+    await addToCartApi(userId, book.id, 1)
+    ElMessage.success(`《${book.title}》已添加到购物车！`)
 
-    // 检查是否已在购物车中
-    const existingItem = cart.find((item: any) => item.id === book.id)
+    // 重新加载购物车数量
+    await updateCartCount()
 
-    if (existingItem) {
-      ElMessage.info('该书籍已在购物车中')
-    } else {
-      cart.push({
-        id: book.id,
-        title: book.title,
-        author: book.author,
-        price: book.price,
-        image: book.image,
-        quantity: 1
-      })
-
-      localStorage.setItem('cart', JSON.stringify(cart))
-
-      // 触发购物车更新事件
-      const event = new CustomEvent('cart-updated', {
-        detail: { count: cart.length }
-      })
-      window.dispatchEvent(event)
-
-      ElMessage.success('已添加到购物车')
-    }
+    // 触发购物车更新事件
+    const event = new CustomEvent('cart-updated', {
+      detail: { count: cartItemCount.value }
+    })
+    window.dispatchEvent(event)
   } catch (error) {
     console.error('添加到购物车失败:', error)
     ElMessage.error('添加到购物车失败')
@@ -431,21 +404,62 @@ const addToCart = (book: Book) => {
 
 // 查看所有图书
 const viewAllBooks = () => {
-  // 滚动到图书展示区域
-  const booksSection = document.querySelector('.books-section')
-  if (booksSection) {
-    booksSection.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  router.push('/library')
+}
+
+// 立即购买 - 直接跳转到结算页面
+const buyNow = async (book: Book) => {
+  if (!isLoggedIn.value) {
+    ElMessage.warning('请先登录')
+    router.push('/login')
+    return
+  }
+
+  const userId = getUserId()
+  if (!userId) {
+    ElMessage.warning('请先登录')
+    router.push('/login')
+    return
+  }
+
+  try {
+    // 将商品信息存储到 sessionStorage，传递给订单确认页面
+    const checkoutData = {
+      items: [{
+        book_id: book.id,
+        title: book.title,
+        author: book.author,
+        price: typeof book.price === 'number' ? book.price : parseFloat(book.price.toString()),
+        quantity: 1
+      }]
+    }
+    sessionStorage.setItem('checkoutCart', JSON.stringify(checkoutData))
+
+    // 直接跳转到结算页面
+    router.push('/checkout')
+  } catch (error) {
+    console.error('购买失败:', error)
+    ElMessage.error('购买失败')
   }
 }
 
-onMounted(() => {
+onMounted(async () => {
+    // 页面加载时滚动到顶部
+  window.scrollTo(0, 0)
+
   window.addEventListener('cart-updated', updateCartCount as EventListener)
   window.addEventListener('add-to-cart', handleAddToCart as EventListener)
   window.addEventListener('scroll', handleScroll)
   window.addEventListener('login-success', handleLoginSuccess as EventListener)
+  window.addEventListener('user-logout', () => {
+    cartItemCount.value = 0
+  })
 
   checkLoginStatus()
   loadLatestBook()
+
+  // 加载购物车数量
+  await updateCartCount()
 })
 
 onUnmounted(() => {
@@ -687,6 +701,7 @@ onUnmounted(() => {
 .user-avatar-simple:hover {
   background: rgba(0, 122, 255, 0.1);
   color: #007AFF;
+  transform: scale(1.05);
 }
 
 .login-btn {

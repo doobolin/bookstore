@@ -624,9 +624,12 @@ def get_all_books():
                     b.rating,
                     b.image,
                     b.status,
-                    b.isbn
+                    b.isbn,
+                    b.created_at,
+                    b.updated_at
                 FROM books b
                 LEFT JOIN categories c ON b.category_id = c.id
+                ORDER BY b.created_at DESC
             """))
             books = []
             for row in result:
@@ -642,7 +645,9 @@ def get_all_books():
                     'rating': float(row[8]) if row[8] else 0.0,
                     'image': row[9],
                     'status': row[10],
-                    'isbn': row[11]
+                    'isbn': row[11],
+                    'created_at': row[12].strftime('%Y-%m-%d %H:%M:%S') if row[12] else None,
+                    'updated_at': row[13].strftime('%Y-%m-%d %H:%M:%S') if row[13] else None
                 })
             return make_response({'books': books}, '获取图书列表成功')
     except Exception as e:
@@ -1380,7 +1385,7 @@ def get_orders():
 
                     # 查询订单商品信息（仅获取前3个商品用于预览）
                     items_result = db.session.execute(text("""
-                        SELECT oi.book_id, b.title, b.author, b.image, oi.quantity
+                        SELECT oi.book_id, b.title, b.author, b.image, oi.quantity, b.price, oi.subtotal
                         FROM order_items oi
                         JOIN books b ON oi.book_id = b.id
                         WHERE oi.order_id = :order_id
@@ -1394,7 +1399,9 @@ def get_orders():
                             'book_title': item_row[1],
                             'book_author': item_row[2],
                             'book_image': item_row[3],
-                            'quantity': item_row[4]
+                            'quantity': item_row[4],
+                            'unit_price': float(item_row[5]),
+                            'subtotal': float(item_row[6])
                         })
 
                     # 查询订单商品总数
