@@ -1,148 +1,216 @@
 <template>
   <div class="home-container">
-    <!-- 欢迎屏幕 - 文字动画效果 -->
-    <div v-if="showWelcome" class="welcome-screen">
-      <div class="texty-container">
-        <h1 class="welcome-text" :class="{ 'fly-out': welcomeAnimating }">
-          <span
-            v-for="(char, index) in welcomeChars"
-            :key="index"
-            class="char"
-            :style="getCharStyle(index)"
-          >
-            {{ char }}
-          </span>
-        </h1>
-      </div>
+    <!-- 动态背景光球 (Mesh Gradients) -->
+    <div class="mesh-gradients">
+      <div class="gradient-blob blob-1"></div>
+      <div class="gradient-blob blob-2"></div>
+      <div class="gradient-blob blob-3"></div>
     </div>
 
-    <!-- 动态粒子背景 -->
-    <div class="dynamic-bg">
-      <div ref="canvasContainer" class="canvas-container"></div>
-    </div>
-
-    <!-- 导航栏 -->
-    <nav class="navbar" :class="{ 'fade-in': !showWelcome, 'fade-in-delay-1': !showWelcome, 'navbar-fixed': isNavbarFixed, 'navbar-slide-down': showNavbarAnimation }">
+    <!-- 磨砂玻璃导航栏 -->
+    <nav class="glass-navbar" :class="{ 'navbar-fixed': isNavbarFixed }">
       <div class="nav-content">
         <div class="logo" @click="refreshPage">
-          <span class="logo-text">科技书城</span>
+          <span class="logo-icon">
+            <i class="ri-book-3-fill"></i>
+          </span>
+          <span class="logo-text">线上书店</span>
         </div>
-        <div class="nav-search">
-          <el-input
-            v-model="searchQuery"
-            placeholder="搜索书籍、作者、关键字..."
-            class="search-input"
-            prefix-icon="Search"
-            @keyup.enter="handleSearch"
-            clearable
-          />
-          <el-button class="search-btn" @click="handleSearch" type="primary">
-            <el-icon><Search /></el-icon>
-            搜索
-          </el-button>
+
+        <div class="nav-tabs">
+          <a href="#" class="nav-tab active">探索</a>
+          <a href="#" @click.prevent="goToLibrary" class="nav-tab">书库</a>
+          <a href="#" class="nav-tab">Pro会员</a>
         </div>
+
         <div class="nav-actions">
+          <div class="cart-icon" @click="toggleCart">
+            <i class="ri-shopping-cart-line"></i>
+            <span class="cart-count" v-if="cartItemCount > 0">{{ cartItemCount }}</span>
+          </div>
+
           <div v-if="isLoggedIn" class="user-info">
             <el-dropdown @command="handleUserCommand">
-              <span class="user-dropdown">
-                <el-icon class="user-icon"><User /></el-icon>
-                <span class="username">{{ username }}</span>
-                <el-icon class="arrow-icon"><ArrowDown /></el-icon>
-              </span>
+              <div class="user-avatar-simple">
+                <i class="ri-user-line"></i>
+              </div>
               <template #dropdown>
                 <el-dropdown-menu>
                   <el-dropdown-item command="profile">
-                    <el-icon><User /></el-icon>
+                    <i class="ri-user-line"></i>
                     个人资料
                   </el-dropdown-item>
                   <el-dropdown-item command="orders">
-                    <el-icon><Tickets /></el-icon>
+                    <i class="ri-file-list-3-line"></i>
                     我的订单
                   </el-dropdown-item>
                   <el-dropdown-item command="logout" divided>
-                    <el-icon><SwitchButton /></el-icon>
+                    <i class="ri-logout-box-line"></i>
                     退出登录
                   </el-dropdown-item>
                 </el-dropdown-menu>
               </template>
             </el-dropdown>
           </div>
-          <el-button v-else type="primary" class="login-btn" @click="goToLogin">
-            登录/注册
-          </el-button>
+          <button v-else class="login-btn" @click="goToLogin">
+            登录
+          </button>
         </div>
       </div>
     </nav>
 
-    <!-- 导航栏占位符，防止内容跳动 -->
+
+    <!-- 导航栏占位符 -->
     <div v-if="isNavbarFixed" class="navbar-placeholder"></div>
 
     <!-- 主要内容 -->
-    <div class="content-wrapper" :class="{ 'fade-in': !showWelcome, 'fade-in-delay-2': !showWelcome }">
-      <!-- 英雄区域 -->
+    <div class="content-wrapper">
+
+      <!-- Hero区域 - 左右分栏 -->
       <section class="hero-section">
-        <div class="hero-content">
-          <h1 class="hero-title">
-            探索图书海洋
-            <br>
-            <span class="hero-subtitle">开启你的阅读之旅</span>
-          </h1>
-          <p class="hero-description">
-            汇聚全球优质书籍
-            <br>
-            让你尽情遨游在图书世界中
-          </p>
-          <div class="hero-stats">
-            <div class="stat-item">
-              <span class="stat-number">1000+</span>
-              <span class="stat-label">精选书籍</span>
+        <div class="hero-grid">
+          <!-- 左侧：文案 -->
+          <div class="hero-left">
+            <div class="status-badge">
+              <span class="pulse-dot"></span>
+              NEW RELEASE 2025
             </div>
-            <div class="stat-item">
-              <span class="stat-number">50+</span>
-              <span class="stat-label">包含领域</span>
+
+            <h1 class="hero-title">
+              阅读，<br>
+              <span class="hero-gradient">重塑思维</span> 的力量。
+            </h1>
+
+            <p class="hero-description">
+              TechBooks 汇集全球顶尖技术与科学著作，为您打造沉浸式的深度阅读体验。加入 10,000+ 开发者社区。
+            </p>
+
+            <!-- 搜索框 -->
+            <div class="hero-search-wrapper">
+              <div class="hero-search-glow"></div>
+              <div class="hero-search-box">
+                <i class="ri-search-line"></i>
+                <input
+                  v-model="searchQuery"
+                  type="text"
+                  placeholder="搜索书名、ISBN 或作者..."
+                  @keyup.enter="handleSearch"
+                >
+                <button @click="handleSearch">Go</button>
+              </div>
             </div>
-            <div class="stat-item">
-              <span class="stat-number">10000+</span>
-              <span class="stat-label">读者信赖</span>
+          </div>
+
+          <!-- 右侧：3D视觉展示 -->
+          <div class="hero-right">
+            <div class="featured-card-bg"></div>
+            <div class="featured-card" v-if="latestBook">
+              <div class="featured-card-header">
+                <span class="featured-badge">最新上架</span>
+                <div class="featured-stars">
+                  <i class="ri-star-fill" v-for="n in Math.floor(latestBook.rating)" :key="n"></i>
+                  <i class="ri-star-half-fill" v-if="latestBook.rating % 1 !== 0"></i>
+                </div>
+              </div>
+              <div class="featured-cover" @click="viewBookDetail(latestBook)">
+                <div class="featured-cover-placeholder">
+                </div>
+              </div>
+              <h3 class="featured-title">{{ latestBook.title }}</h3>
+              <p class="featured-desc">{{ latestBook.description?.substring(0, 30) }}...</p>
+              <button class="featured-action-btn" @click="addToCart(latestBook)">立即购买</button>
+            </div>
+            <div class="stats-mini-card">
+              <div class="stats-mini-icon">
+                <i class="ri-star-line"></i>
+              </div>
+              <div class="stats-mini-text">
+                <p class="stats-mini-value">新书上新！</p>
+              </div>
             </div>
           </div>
         </div>
       </section>
 
-      <!-- 书籍卡片区域 -->
-      <section class="books-section" :class="{ 'fade-in': !showWelcome, 'fade-in-delay-3': !showWelcome }">
+      <!-- Bento Grid统计区域 -->
+      <section class="bento-section">
+        <div class="bento-grid">
+          <!-- 大方块：主推 -->
+          <div class="bento-main" @click="viewAllBooks">
+            <div class="bento-main-bg"></div>
+            <div class="bento-main-content">
+              <h2>浏览所有书籍</h2>
+            </div>
+            <div class="bento-main-action">
+              <span>查看更多</span>
+              <i class="ri-arrow-right-line"></i>
+            </div>
+          </div>
+
+          <!-- 统计数据卡片 -->
+          <div class="bento-stat-card">
+            <div class="bento-stat-icon books">
+              <i class="ri-book-open-line"></i>
+            </div>
+            <div class="bento-stat-number">1.2万+</div>
+            <div class="bento-stat-label">精选书籍</div>
+          </div>
+
+          <div class="bento-stat-card green">
+            <div class="bento-stat-icon users">
+              <i class="ri-user-smile-line"></i>
+            </div>
+            <div class="bento-stat-number">850+</div>
+            <div class="bento-stat-label">活跃作者</div>
+          </div>
+
+          <!-- 分类入口 -->
+          <div class="bento-category" @click="viewAllBooks">
+            <div class="bento-category-content">
+              <h3>热门分类</h3>
+              <div class="category-tags">
+                <span>技术</span>
+                <span>文学</span>
+                <span>科学</span>
+              </div>
+            </div>
+            <div class="category-glow"></div>
+            <button class="category-btn">
+              <i class="ri-arrow-right-line"></i>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- 图书展示区 -->
+      <section class="books-section">
+        <div class="section-header">
+          <div class="section-title">
+            <h2>精选图书</h2>
+            <p>每周更新的优质技术读物</p>
+          </div>
+        </div>
+
+        <!-- 书籍卡片容器 -->
         <CardContainer />
       </section>
     </div>
 
-    <!-- 购物车侧边栏 -->
-    <div class="cart-sidebar" :class="{ 'cart-open': isCartOpen, 'fade-in-fixed': !showWelcome }">
-      <div class="cart-toggle" @click="toggleCart">
-        <el-icon size="20"><ShoppingCartIcon /></el-icon>
-        <span class="cart-badge" v-if="cartItemCount > 0">{{ cartItemCount }}</span>
-      </div>
-      <div class="cart-content">
-        <ShoppingCart />
-      </div>
-    </div>
 
-    <!-- 回到顶部按钮 - 赛博朋克风格 -->
+    <!-- 回到顶部按钮 -->
     <div
-      v-show="!showWelcome"
       class="back-to-top"
       :class="{ 'show': showBackToTop }"
       @click="scrollToTop"
       title="返回顶部"
     >
-      <div class="back-to-top-icon">
-        <el-icon size="24"><ArrowUp /></el-icon>
-      </div>
+      <i class="ri-arrow-up-line"></i>
     </div>
 
     <!-- 页脚 -->
     <footer class="footer">
       <div class="footer-content">
-        <p>&copy; 2025 科技书城. 让阅读更简单</p>
+        <p>Designed by doob. &copy; 2025 BookStore.</p>
       </div>
     </footer>
   </div>
@@ -151,27 +219,32 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { ShoppingCart as ShoppingCartIcon, ArrowUp, Search, User, ArrowDown, Tickets, SwitchButton } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import CardContainer from './CardContainer.vue'
-import ShoppingCart from './ShoppingCart.vue'
+import { getAllBooks, type Book } from '../api/bookApi'
 
 const router = useRouter()
-const isCartOpen = ref(false)
 const cartItemCount = ref(0)
 const showBackToTop = ref(false)
 const isNavbarFixed = ref(false)
-const showNavbarAnimation = ref(false)
 const lastScrollY = ref(0)
 const searchQuery = ref('')
 const isLoggedIn = ref(false)
 const username = ref('')
-const showWelcome = ref(true)
-const welcomeAnimating = ref(false)
-const canvasContainer = ref<HTMLDivElement | null>(null)
-const welcomeText = '欢迎来到科技书城'
-const welcomeChars = ref<string[]>([])
-const animationStarted = ref(false)
+const latestBook = ref<Book | null>(null)
+
+// 书籍颜色数组
+const bookColors = [
+  'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+  'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
+  'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
+  'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)',
+  'linear-gradient(135deg, #fa709a 0%, #fee140 100%)',
+]
+
+const getBookColor = (index: number) => {
+  return bookColors[index % bookColors.length]
+}
 
 // 检查登录状态
 const checkLoginStatus = () => {
@@ -181,7 +254,6 @@ const checkLoginStatus = () => {
   isLoggedIn.value = loginStatus === 'true'
   username.value = storedUsername || ''
 
-  // 如果已登录，触发购物车加载
   if (isLoggedIn.value) {
     const event = new CustomEvent('user-login')
     window.dispatchEvent(event)
@@ -190,6 +262,10 @@ const checkLoginStatus = () => {
 
 const goToLogin = () => {
   router.push('/login')
+}
+
+const goToLibrary = () => {
+  router.push('/library')
 }
 
 const refreshPage = () => {
@@ -205,18 +281,15 @@ const handleUserCommand = async (command: string) => {
         type: 'warning'
       })
 
-      // 清除登录信息
       localStorage.removeItem('token')
       localStorage.removeItem('user_id')
       localStorage.removeItem('username')
       localStorage.removeItem('role')
       localStorage.removeItem('isLoggedIn')
 
-      // 更新状态
       isLoggedIn.value = false
       username.value = ''
 
-      // 触发登出事件
       const event = new CustomEvent('user-logout')
       window.dispatchEvent(event)
 
@@ -232,52 +305,46 @@ const handleUserCommand = async (command: string) => {
 }
 
 const toggleCart = () => {
-  isCartOpen.value = !isCartOpen.value
+  router.push('/cart')
 }
 
 const updateCartCount = (event: CustomEvent) => {
-  // 使用事件详情中的count值，而不是从localStorage读取
   if (event.detail && typeof event.detail.count !== 'undefined') {
     cartItemCount.value = event.detail.count
   } else {
-    // 回退方案：从localStorage读取
     const cartData = JSON.parse(localStorage.getItem('cart') || '[]')
     cartItemCount.value = cartData.length
   }
 }
 
 const handleAddToCart = (event: CustomEvent) => {
-  // 不再直接增加数量，因为cart-updated事件会处理正确的数量更新
-  // cartItemCount.value++
+  // cart-updated事件会处理正确的数量更新
 }
 
 const scrollToTop = () => {
-  // 使用更高级的缓动函数实现更丝滑的滚动效果
-  const scrollDuration = 1000;
-  const startScrollTop = window.scrollY;
-  const startTime = performance.now();
+  const scrollDuration = 1000
+  const startScrollTop = window.scrollY
+  const startTime = performance.now()
 
-  // 使用easeOutCubic缓动函数
-  const easeOutCubic = (t: number) => 1 - Math.pow(1 - t, 3);
+  const easeOutCubic = (t: number) => 1 - Math.pow(1 - t, 3)
 
   const scrollAnimation = (currentTime: number) => {
-    const elapsedTime = currentTime - startTime;
-    const progress = Math.min(elapsedTime / scrollDuration, 1);
-    const easeProgress = easeOutCubic(progress);
+    const elapsedTime = currentTime - startTime
+    const progress = Math.min(elapsedTime / scrollDuration, 1)
+    const easeProgress = easeOutCubic(progress)
 
-    window.scrollTo(0, startScrollTop * (1 - easeProgress));
+    window.scrollTo(0, startScrollTop * (1 - easeProgress))
 
     if (progress < 1) {
-      requestAnimationFrame(scrollAnimation);
+      requestAnimationFrame(scrollAnimation)
     }
-  };
+  }
 
-  requestAnimationFrame(scrollAnimation);
+  requestAnimationFrame(scrollAnimation)
 }
 
 const handleSearch = () => {
   if (searchQuery.value.trim()) {
-    // 创建自定义事件，将搜索查询传递给CardContainer
     const searchEvent = new CustomEvent('book-search', {
       detail: { query: searchQuery.value.trim() }
     })
@@ -289,284 +356,99 @@ const handleScroll = () => {
   const currentScrollY = window.scrollY
   showBackToTop.value = currentScrollY > 300
 
-  // 判断滚动方向
-  const isScrollingDown = currentScrollY > lastScrollY.value
-
-  // 滚动超过100px时固定导航栏
   if (currentScrollY > 100) {
-    // 如果是从未固定状态变为固定状态，且是向下滚动，显示动画
-    if (!isNavbarFixed.value && isScrollingDown) {
-      showNavbarAnimation.value = true
-    }
     isNavbarFixed.value = true
   } else {
     isNavbarFixed.value = false
-    showNavbarAnimation.value = false
   }
 
   lastScrollY.value = currentScrollY
 }
 
-// 监听登录事件
 const handleLoginSuccess = () => {
   checkLoginStatus()
 }
 
-// 动态粒子背景相关逻辑
-let animationId: number | null = null
-let particles: Array<any> = []
-let mousePosition = { x: 0, y: 0 }
-let prevMousePosition = { x: 0, y: 0 }
-let mouseVelocity = { x: 0, y: 0 }
+// 加载最新图书
+const loadLatestBook = async () => {
+  try {
+    const books = await getAllBooks()
+    if (books && books.length > 0) {
+      // 获取最新的图书（假设按ID降序或时间排序）
+      latestBook.value = books[0]
+    }
+  } catch (error) {
+    console.error('加载最新图书失败:', error)
+  }
+}
 
-// Particle类定义 - 翠绿色主题
-class Particle {
-  x: number
-  y: number
-  size: number
-  baseSize: number
-  speedX: number
-  speedY: number
-  color: string
-  canvas: HTMLCanvasElement
-  ctx: CanvasRenderingContext2D
-  opacity: number
-  maxOpacity: number
-  minOpacity: number
-  isInteracting: boolean
-  forceFactor: number
-  maxSizeMultiplier: number
+// 查看图书详情
+const viewBookDetail = (book: Book) => {
+  router.push(`/book/${book.id}`)
+}
 
-  constructor(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D) {
-    this.canvas = canvas
-    this.ctx = ctx
-    this.x = Math.random() * canvas.width
-    this.y = Math.random() * canvas.height
-    this.size = Math.random() * 3 + 1.5
-    this.baseSize = this.size
-    this.speedX = (Math.random() - 0.5) * 0.3
-    this.speedY = (Math.random() - 0.5) * 0.3
-    // 使用翠绿色系
-    const colors = ['#10b981', '#34d399', '#6ee7b7', '#059669']
-    this.color = colors[Math.floor(Math.random() * colors.length)]
-    this.opacity = Math.random() * 0.7 + 0.3
-    this.maxOpacity = 1
-    this.minOpacity = 0.2
-    this.isInteracting = false
-    this.forceFactor = 0.02
-    this.maxSizeMultiplier = 1.8
+// 添加到购物车
+const addToCart = (book: Book) => {
+  if (!isLoggedIn.value) {
+    ElMessage.warning('请先登录')
+    router.push('/login')
+    return
   }
 
-  update() {
-    const dx = this.x - mousePosition.x
-    const dy = this.y - mousePosition.y
-    const distanceToMouse = Math.sqrt(dx * dx + dy * dy)
+  try {
+    const cart = JSON.parse(localStorage.getItem('cart') || '[]')
 
-    if (distanceToMouse < 150) {
-      this.isInteracting = true
-      this.opacity = this.maxOpacity * (1 - distanceToMouse / 150)
-      const sizeMultiplier = 1 + (this.maxSizeMultiplier - 1) * (1 - distanceToMouse / 150)
-      this.size = this.baseSize * sizeMultiplier
+    // 检查是否已在购物车中
+    const existingItem = cart.find((item: any) => item.id === book.id)
 
-      const angle = Math.atan2(dy, dx)
-      const force = (1 - distanceToMouse / 150) * this.forceFactor
-      this.speedX += Math.cos(angle) * force
-      this.speedY += Math.sin(angle) * force
-
-      if (Math.abs(mouseVelocity.x) > 0.1 || Math.abs(mouseVelocity.y) > 0.1) {
-        this.speedX += mouseVelocity.x * 0.001
-        this.speedY += mouseVelocity.y * 0.001
-      }
+    if (existingItem) {
+      ElMessage.info('该书籍已在购物车中')
     } else {
-      if (this.isInteracting) {
-        this.isInteracting = false
-      }
+      cart.push({
+        id: book.id,
+        title: book.title,
+        author: book.author,
+        price: book.price,
+        image: book.image,
+        quantity: 1
+      })
 
-      if (this.opacity > this.minOpacity) {
-        this.opacity -= 0.02
-      } else {
-        this.opacity = this.minOpacity
-      }
+      localStorage.setItem('cart', JSON.stringify(cart))
 
-      if (this.size > this.baseSize) {
-        this.size = Math.max(this.baseSize, this.size - 0.05)
-      }
+      // 触发购物车更新事件
+      const event = new CustomEvent('cart-updated', {
+        detail: { count: cart.length }
+      })
+      window.dispatchEvent(event)
+
+      ElMessage.success('已添加到购物车')
     }
-
-    const maxSpeed = 0.8
-    const speed = Math.sqrt(this.speedX * this.speedX + this.speedY * this.speedY)
-    if (speed > maxSpeed) {
-      this.speedX = (this.speedX / speed) * maxSpeed
-      this.speedY = (this.speedY / speed) * maxSpeed
-    }
-
-    this.x += this.speedX
-    this.y += this.speedY
-
-    if (this.x < 0 || this.x > this.canvas.width) {
-      this.speedX *= -0.8
-      this.x = Math.max(0, Math.min(this.canvas.width, this.x))
-    }
-    if (this.y < 0 || this.y > this.canvas.height) {
-      this.speedY *= -0.8
-      this.y = Math.max(0, Math.min(this.canvas.height, this.y))
-    }
-
-    this.draw()
-  }
-
-  draw() {
-    this.ctx.fillStyle = this.color
-    this.ctx.globalAlpha = this.opacity
-    this.ctx.beginPath()
-    this.ctx.arc(this.x, this.y, this.size / 2, 0, Math.PI * 2)
-    this.ctx.fill()
-    this.ctx.globalAlpha = 1
+  } catch (error) {
+    console.error('添加到购物车失败:', error)
+    ElMessage.error('添加到购物车失败')
   }
 }
 
-// 连接靠近的粒子，创建网格效果
-function connectParticles(ctx: CanvasRenderingContext2D) {
-  const maxDistance = 150
-
-  for (let a = 0; a < particles.length; a++) {
-    for (let b = a; b < particles.length; b++) {
-      const dx = particles[a].x - particles[b].x
-      const dy = particles[a].y - particles[b].y
-      const distance = Math.sqrt(dx * dx + dy * dy)
-
-      if (distance < maxDistance) {
-        const opacity = 1 - distance / maxDistance
-        ctx.strokeStyle = `rgba(16, 185, 129, ${opacity * 0.5})`
-        ctx.lineWidth = 0.7
-        ctx.beginPath()
-        ctx.moveTo(particles[a].x, particles[a].y)
-        ctx.lineTo(particles[b].x, particles[b].y)
-        ctx.stroke()
-      }
-    }
+// 查看所有图书
+const viewAllBooks = () => {
+  // 滚动到图书展示区域
+  const booksSection = document.querySelector('.books-section')
+  if (booksSection) {
+    booksSection.scrollIntoView({ behavior: 'smooth', block: 'start' })
   }
-}
-
-function initCanvas() {
-  if (!canvasContainer.value) return
-
-  canvasContainer.value.innerHTML = ''
-
-  const canvas = document.createElement('canvas')
-  const ctx = canvas.getContext('2d')
-  if (!ctx) return
-
-  canvas.width = window.innerWidth
-  canvas.height = window.innerHeight
-  canvas.className = 'dynamic-bg-canvas'
-  canvasContainer.value.appendChild(canvas)
-
-  canvas.addEventListener('mousemove', (e) => {
-    mouseVelocity.x = e.clientX - prevMousePosition.x
-    mouseVelocity.y = e.clientY - prevMousePosition.y
-
-    prevMousePosition.x = mousePosition.x
-    prevMousePosition.y = mousePosition.y
-    mousePosition.x = e.clientX
-    mousePosition.y = e.clientY
-  })
-
-  mousePosition.x = canvas.width / 2
-  mousePosition.y = canvas.height / 2
-
-  particles = []
-  const particleCount = Math.floor((window.innerWidth * window.innerHeight) / 5000)
-  for (let i = 0; i < particleCount; i++) {
-    particles.push(new Particle(canvas, ctx))
-  }
-
-  function animate() {
-    if (!ctx) return
-    ctx.clearRect(0, 0, canvas.width, canvas.height)
-
-    particles.forEach(particle => particle.update())
-    connectParticles(ctx)
-
-    animationId = requestAnimationFrame(animate)
-  }
-
-  animate()
-}
-
-function handleResize() {
-  if (animationId) {
-    cancelAnimationFrame(animationId)
-  }
-  initCanvas()
-}
-
-// 获取每个字符的延迟时间（类似 rc-texty 的 interval 效果）
-const getCharDelay = (index: number): number => {
-  // 每个字符间隔150ms
-  return index * 150
-}
-
-// 获取每个字符的样式（动画延迟）
-const getCharStyle = (index: number) => {
-  return {
-    animationDelay: `${getCharDelay(index)}ms`
-  }
-}
-
-// 初始化文字动画
-const initTextAnimation = () => {
-  // 将文字拆分成字符数组
-  welcomeChars.value = welcomeText.split('')
-  animationStarted.value = true
-
-  // 计算总动画时间：最后一个字符的延迟 + 动画持续时间
-  const lastCharDelay = getCharDelay(welcomeChars.value.length - 1)
-  const animationDuration = 600 // 单个字符动画持续时间
-  const totalTime = lastCharDelay + animationDuration
-
-  // 动画完成后，等待1秒再开始飞出
-  setTimeout(() => {
-    welcomeAnimating.value = true
-
-    // 1秒后隐藏欢迎屏幕
-    setTimeout(() => {
-      showWelcome.value = false
-    }, 1000)
-  }, totalTime + 1000)
 }
 
 onMounted(() => {
-  initCanvas()
-  window.addEventListener('resize', handleResize)
   window.addEventListener('cart-updated', updateCartCount as EventListener)
   window.addEventListener('add-to-cart', handleAddToCart as EventListener)
   window.addEventListener('scroll', handleScroll)
   window.addEventListener('login-success', handleLoginSuccess as EventListener)
 
-  // 初始检查登录状态
   checkLoginStatus()
-
-  // 检查是否已登录，已登录则跳过欢迎动画
-  const loginStatus = localStorage.getItem('isLoggedIn')
-  if (loginStatus === 'true') {
-    // 已登录，直接显示主页内容
-    showWelcome.value = false
-  } else {
-    // 未登录，显示文字动画
-    // 延迟500ms开始动画
-    setTimeout(() => {
-      initTextAnimation()
-    }, 500)
-  }
-
+  loadLatestBook()
 })
 
 onUnmounted(() => {
-  if (animationId) {
-    cancelAnimationFrame(animationId)
-  }
-  window.removeEventListener('resize', handleResize)
   window.removeEventListener('cart-updated', updateCartCount as EventListener)
   window.removeEventListener('add-to-cart', handleAddToCart as EventListener)
   window.removeEventListener('scroll', handleScroll)
@@ -575,525 +457,965 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
+/* 引入 Remix Icon */
+@import url('https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css');
+
 .home-container {
   min-height: 100vh;
-  background: #000000;
+  background: #F5F5F7;
   position: relative;
   overflow-x: hidden;
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
 }
 
-/* 欢迎屏幕 - 文字动画效果 */
-.welcome-screen {
+/* ========== 动态背景光球 ========== */
+.mesh-gradients {
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  background: #000000;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 9999;
-  overflow: hidden;
-}
-
-.texty-container {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  perspective: 1000px;
-}
-
-.welcome-text {
-  font-size: 48px;
-  font-weight: 700;
-  color: #10b981;
-  text-shadow: 0 0 40px rgba(16, 185, 129, 0.5);
-  display: inline-flex;
-  align-items: center;
-  white-space: nowrap;
-  letter-spacing: 4px;
-}
-
-/* 字符动画效果 */
-.welcome-text .char {
-  display: inline-block;
-  opacity: 0;
-  transform: translateY(-100%) scale(0.8) rotateX(-90deg);
-  animation: char-appear 0.6s cubic-bezier(0.22, 0.61, 0.36, 1) forwards;
-}
-
-@keyframes char-appear {
-  0% {
-    opacity: 0;
-    transform: translateY(-100%) scale(0.3) rotateX(-90deg);
-  }
-  50% {
-    opacity: 0.8;
-    transform: translateY(-20%) scale(1.1) rotateX(-20deg);
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(0) scale(1) rotateX(0);
-  }
-}
-
-
-/* 文字向上飞出动画 */
-.welcome-text.fly-out {
-  animation: fly-out-up 1s ease-in forwards;
-}
-
-@keyframes fly-out-up {
-  0% {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-  100% {
-    opacity: 0;
-    transform: translateY(-100vh) scale(0.5);
-  }
-}
-
-/* 主页内容淡入动画 */
-.fade-in {
-  animation: fade-in-content 0.8s ease-out forwards;
-  opacity: 0;
-}
-
-@keyframes fade-in-content {
-  0% {
-    opacity: 0;
-    transform: translateY(30px);
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* 依次淡入的延迟效果 */
-.fade-in-delay-1 {
-  animation-delay: 0.1s;
-}
-
-.fade-in-delay-2 {
-  animation-delay: 0.3s;
-}
-
-.fade-in-delay-3 {
-  animation-delay: 0.5s;
-}
-
-/* fixed元素的淡入动画（不使用transform以保持定位） */
-.fade-in-fixed {
-  animation: fade-in-fixed-content 0.8s ease-out 0.5s forwards;
-  opacity: 0;
-}
-
-@keyframes fade-in-fixed-content {
-  0% {
-    opacity: 0;
-  }
-  100% {
-    opacity: 1;
-  }
-}
-
-/* 动态粒子背景 */
-.dynamic-bg {
-  position: fixed;
-  top: 0;
-  left: 0;
+  inset: 0;
   width: 100%;
   height: 100%;
-  background: #000000;
+  overflow: hidden;
   z-index: 0;
-  overflow: hidden;
+  pointer-events: none;
 }
 
-.canvas-container {
-  width: 100%;
-  height: 100%;
+.gradient-blob {
+  position: absolute;
+  width: 384px;
+  height: 384px;
+  border-radius: 50%;
+  mix-blend-mode: multiply;
+  filter: blur(64px);
+  opacity: 0.3;
 }
 
-.dynamic-bg-canvas {
-  display: block;
-  width: 100%;
-  height: 100%;
+.blob-1 {
+  top: 0;
+  left: 25%;
+  background: #BFDBFE;
+  animation: blob 10s infinite;
 }
 
-/* 导航栏 */
-.navbar {
+.blob-2 {
+  top: 0;
+  right: 25%;
+  background: #BBF7D0;
+  animation: blob 10s infinite 2s;
+}
+
+.blob-3 {
+  bottom: -128px;
+  left: 33%;
+  background: #DDD6FE;
+  animation: blob 10s infinite 4s;
+}
+
+@keyframes blob {
+  0%, 100% {
+    transform: translate(0px, 0px) scale(1);
+  }
+  33% {
+    transform: translate(30px, -50px) scale(1.1);
+  }
+  66% {
+    transform: translate(-20px, 20px) scale(0.9);
+  }
+}
+
+/* ========== 磨砂玻璃导航栏 ========== */
+.glass-navbar {
   position: relative;
   z-index: 100;
-  background: rgba(0, 0, 0, 0.8);
-  backdrop-filter: blur(20px);
-  border-bottom: 1px solid rgba(16, 185, 129, 0.1);
+  background: rgba(255, 255, 255, 0.75);
+  backdrop-filter: saturate(180%) blur(24px);
+  -webkit-backdrop-filter: saturate(180%) blur(24px);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
   transition: all 0.3s ease;
 }
 
-/* 固定导航栏 */
 .navbar-fixed {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
-  background: rgba(0, 0, 0, 0.95);
-  backdrop-filter: blur(30px);
-  box-shadow: 0 4px 20px rgba(16, 185, 129, 0.2);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.04);
 }
 
-/* 导航栏下滑动画 */
-.navbar-slide-down {
-  animation: slideDown 0.3s ease forwards;
-}
-
-@keyframes slideDown {
-  from {
-    transform: translateY(-100%);
-    opacity: 0;
-  }
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
-}
-
-/* 导航栏占位符 */
 .navbar-placeholder {
-  height: 80px;
-  width: 100%;
+  height: 64px;
 }
 
 .nav-content {
-  max-width: 1200px;
+  max-width: 1400px;
   margin: 0 auto;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 1rem 2rem;
+  padding: 1rem 3rem;
 }
 
 .logo {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
   cursor: pointer;
   transition: transform 0.3s ease;
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
 }
 
 .logo:hover {
   transform: scale(1.05);
 }
 
+.logo-icon {
+  width: 32px;
+  height: 32px;
+  background: #000000;
+  color: white;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .logo-text {
-  font-size: 28px;
-  font-weight: 900;
-  color: #10b981;
-  text-shadow: 0 0 20px rgba(16, 185, 129, 0.5);
+  color: #1D1D1F;
 }
 
-.nav-search {
+.logo-light {
+  font-weight: 400;
+  color: #86868B;
+}
+
+.nav-tabs {
   display: flex;
+  gap: 2rem;
   align-items: center;
-  gap: 0.8rem;
-  flex: 1;
-  max-width: 450px;
-  margin: 0 1.5rem;
+}
+
+.nav-tab {
   position: relative;
-}
-
-.search-input {
-  flex: 1;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(16, 185, 129, 0.2);
-  border-radius: 8px;
-  padding: 0 1rem;
-  height: 38px;
-  color: #fff;
+  color: #86868B;
+  text-decoration: none;
   font-size: 14px;
-  transition: all 0.3s ease;
+  font-weight: 500;
+  padding: 0.5rem 0;
+  transition: color 0.3s ease;
 }
 
-.search-input:hover {
-  border-color: rgba(16, 185, 129, 0.4);
-  transform: translateY(-0.5px);
+.nav-tab:hover {
+  color: #1D1D1F;
 }
 
-.search-input:focus-within {
-  border-color: #10b981;
-  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.1);
-}
-
-.search-input :deep(.el-input__wrapper) {
-  background: transparent !important;
-  border: none !important;
-  box-shadow: none !important;
-  padding: 0 !important;
-}
-
-.search-input :deep(.el-input__inner) {
-  color: #fff;
-  font-size: 14px;
-  height: 100%;
-  line-height: 38px;
-}
-
-.search-input :deep(.el-input__inner::placeholder) {
-  color: rgba(255, 255, 255, 0.4);
-  font-size: 13px;
-}
-
-.search-input :deep(.el-input__prefix) {
-  color: rgba(16, 185, 129, 0.7);
-  margin-right: 0.4rem;
-  font-size: 14px;
-}
-
-.search-btn {
-  background: #10b981;
-  border: none;
-  border-radius: 8px;
-  padding: 0.5rem 1.2rem;
-  color: #fff;
+.nav-tab.active {
+  color: #1D1D1F;
   font-weight: 600;
-  font-size: 14px;
-  transition: all 0.3s ease;
 }
 
-.search-btn:hover {
-  background: #059669;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
-}
-
-.search-btn:active {
-  transform: translateY(0);
-}
-
-.login-btn {
-  background: #10b981;
-  border: none;
-  color: white;
-  font-weight: 600;
-  padding: 0.5rem 1.5rem;
-  border-radius: 8px;
-  transition: all 0.3s ease;
-}
-
-.login-btn:hover {
-  background: #059669;
-  transform: translateY(-2px);
-  box-shadow: 0 5px 15px rgba(16, 185, 129, 0.3);
-}
-
-/* 用户信息样式 */
-.user-info {
-  display: flex;
-  align-items: center;
-}
-
-.user-dropdown {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 0.5rem 1rem;
-  background: rgba(16, 185, 129, 0.1);
-  border: 1px solid rgba(16, 185, 129, 0.2);
-  border-radius: 8px;
-  color: white;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.user-dropdown:hover {
-  background: rgba(16, 185, 129, 0.2);
-  border-color: #10b981;
-  transform: translateY(-1px);
-}
-
-.user-icon {
-  color: #10b981;
-  font-size: 18px;
-}
-
-.username {
-  font-weight: 600;
-  font-size: 14px;
-  max-width: 120px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.arrow-icon {
-  color: rgba(255, 255, 255, 0.7);
-  font-size: 14px;
-  transition: transform 0.3s ease;
-}
-
-.user-dropdown:hover .arrow-icon {
-  transform: translateY(2px);
-}
-
-/* 主要内容 */
-.content-wrapper {
-  position: relative;
-  z-index: 10;
-  padding-top: 2rem;
-}
-
-/* 英雄区域 */
-.hero-section {
-  text-align: center;
-  padding: 4rem 2rem;
-  max-width: 800px;
-  margin: 0 auto;
-}
-
-.hero-title {
-  font-size: 48px;
-  font-weight: 800;
-  color: white;
-  margin: 0 0 1rem 0;
-  line-height: 1.2;
-}
-
-.hero-subtitle {
-  color: #10b981;
-}
-
-.hero-description {
-  font-size: 20px;
-  color: rgba(255, 255, 255, 0.7);
-  margin: 1.5rem 0;
-  line-height: 1.6;
-}
-
-.hero-stats {
-  display: flex;
-  justify-content: center;
-  gap: 3rem;
-  margin-top: 2rem;
-}
-
-.stat-item {
-  text-align: center;
-}
-
-.stat-number {
-  display: block;
-  font-size: 32px;
-  font-weight: 800;
-  color: #10b981;
-}
-
-.stat-label {
-  display: block;
-  font-size: 14px;
-  color: rgba(255, 255, 255, 0.6);
-  margin-top: 0.5rem;
-}
-
-/* 书籍区域 */
-.books-section {
-  padding: 2rem 0;
-}
-
-/* 购物车侧边栏 */
-.cart-sidebar {
-  position: fixed;
-  top: 50%;
-  right: -350px;
-  transform: translateY(-50%);
-  width: 350px;
-  height: 600px;
-  background: rgba(0, 0, 0, 0.95);
-  border: 1px solid rgba(16, 185, 129, 0.2);
-  border-radius: 15px 0 0 15px;
-  transition: right 0.3s ease;
-  z-index: 1000;
-}
-
-.cart-sidebar.cart-open {
+.nav-tab.active::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
   right: 0;
+  height: 2px;
+  background: #000000;
+  border-radius: 2px;
 }
 
-.cart-toggle {
-  position: absolute;
-  top: 50%;
-  left: -50px;
-  transform: translateY(-50%);
-  width: 50px;
-  height: 50px;
-  background: #10b981;
-  border: none;
-  border-radius: 15px 0 0 15px;
+.nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.cart-icon {
+  position: relative;
+  width: 40px;
+  height: 40px;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  color: white;
+  font-size: 20px;
+  color: #1D1D1F;
+  background: rgba(0, 0, 0, 0.04);
+  border-radius: 50%;
   transition: all 0.3s ease;
 }
 
-.cart-toggle:hover {
-  background: #059669;
-  transform: translateY(-50%) scale(1.05);
+.cart-icon:hover {
+  background: rgba(0, 122, 255, 0.1);
+  color: #007AFF;
+  transform: scale(1.05);
 }
 
-.cart-badge {
+.cart-count {
   position: absolute;
-  top: -5px;
-  right: -5px;
-  background: #ef4444;
+  top: -4px;
+  right: -4px;
+  background: #FF3B30;
   color: white;
   border-radius: 50%;
-  width: 20px;
-  height: 20px;
-  font-size: 12px;
+  width: 18px;
+  height: 18px;
+  font-size: 11px;
   font-weight: 700;
   display: flex;
   align-items: center;
   justify-content: center;
+  border: 2px solid white;
 }
 
-.cart-content {
-  height: 100%;
-  overflow-y: auto;
-  padding: 20px;
+.user-avatar-simple {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.04);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 20px;
+  color: #1D1D1F;
+  transition: all 0.3s ease;
 }
 
-/* 页脚 */
-.footer {
+.user-avatar-simple:hover {
+  background: rgba(0, 122, 255, 0.1);
+  color: #007AFF;
+}
+
+.login-btn {
+  background: #000000;
+  border: none;
+  color: white;
+  font-weight: 600;
+  border-radius: 20px;
+  padding: 8px 20px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.login-btn:hover {
+  background: #2c2c2e;
+  transform: translateY(-1px);
+}
+
+
+/* ========== 主要内容 ========== */
+.content-wrapper {
   position: relative;
   z-index: 10;
-  background: rgba(0, 0, 0, 0.8);
-  border-top: 1px solid rgba(16, 185, 129, 0.1);
-  margin-top: 4rem;
+  padding-top: 80px;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding-left: 3rem;
+  padding-right: 3rem;
 }
 
-.footer-content {
-  text-align: center;
+/* ========== Hero区域 ========== */
+.hero-section {
+  margin-bottom: 80px;
+}
+
+.hero-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 3rem;
+  align-items: center;
+}
+
+@media (min-width: 1024px) {
+  .hero-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .nav-links {
+    display: flex;
+  }
+}
+
+.hero-left {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: white;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #007AFF;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  width: fit-content;
+}
+
+.pulse-dot {
+  position: relative;
+  width: 8px;
+  height: 8px;
+  background: #007AFF;
+  border-radius: 50%;
+}
+
+.pulse-dot::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: #60A5FA;
+  border-radius: 50%;
+  animation: ping 1s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+
+@keyframes ping {
+  75%, 100% {
+    transform: scale(2);
+    opacity: 0;
+  }
+}
+
+.hero-title {
+  font-size: 3.5rem;
+  font-weight: 700;
+  color: #1D1D1F;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+
+.hero-gradient {
+  background: linear-gradient(135deg, #007AFF 0%, #06B6D4 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.hero-description {
+  font-size: 1.125rem;
+  color: #86868B;
+  line-height: 1.6;
+  max-width: 540px;
+}
+
+/* Hero搜索框 */
+.hero-search-wrapper {
+  position: relative;
+  max-width: 540px;
+}
+
+.hero-search-glow {
+  position: absolute;
+  inset: -4px;
+  background: linear-gradient(135deg, #DBEAFE, #D1FAE5);
+  border-radius: 16px;
+  filter: blur(8px);
+  opacity: 0.25;
+  transition: opacity 0.3s ease;
+}
+
+.hero-search-wrapper:hover .hero-search-glow {
+  opacity: 0.5;
+}
+
+.hero-search-box {
+  position: relative;
+  display: flex;
+  align-items: center;
+  background: white;
+  border: 1.5px solid #E5E5E7;
+  border-radius: 16px;
+  padding: 0.75rem;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.04);
+  transition: all 0.3s ease;
+}
+
+.hero-search-box:hover {
+  border-color: #C7C7CC;
+}
+
+.hero-search-box:focus-within {
+  border-color: #007AFF;
+  box-shadow: 0 0 0 4px rgba(0, 122, 255, 0.1);
+}
+
+.hero-search-box i {
+  font-size: 20px;
+  color: #86868B;
+  margin-right: 0.75rem;
+}
+
+.hero-search-box input {
+  flex: 1;
+  border: none;
+  outline: none;
+  font-size: 16px;
+  color: #1D1D1F;
+  background: transparent;
+  height: 44px;
+}
+
+.hero-search-box input::placeholder {
+  color: #86868B;
+  font-weight: 400;
+}
+
+.hero-search-box button {
+  background: #000000;
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  white-space: nowrap;
+}
+
+.hero-search-box button:hover {
+  background: #2c2c2e;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+}
+
+.trust-section {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding-top: 1rem;
+}
+
+.avatars-group {
+  display: flex;
+  align-items: center;
+}
+
+.avatars-group img,
+.avatar-count {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 2px solid white;
+  margin-left: -12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.avatars-group img:first-child {
+  margin-left: 0;
+}
+
+.avatar-count {
+  background: #F3F4F6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 700;
+  color: #6B7280;
+}
+
+.trust-text {
+  font-size: 14px;
+}
+
+.trust-rating {
+  font-weight: 700;
+  color: #1D1D1F;
+  margin: 0;
+}
+
+.trust-subtitle {
+  color: #86868B;
+  margin: 0;
+}
+
+/* 右侧3D展示 */
+.hero-right {
+  position: relative;
+  height: 500px;
+  display: none;
+}
+
+@media (min-width: 1024px) {
+  .hero-right {
+    display: block;
+  }
+}
+
+.featured-card-bg {
+  position: absolute;
+  top: 40px;
+  right: 40px;
+  width: 75%;
+  height: 75%;
+  background: linear-gradient(135deg, #F3F4F6, white);
+  border-radius: 40px;
+  border: 1px solid white;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.1);
+  transform: rotate(3deg);
+}
+
+.featured-card {
+  position: absolute;
+  top: 0;
+  right: 80px;
+  width: 320px;
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(24px);
+  padding: 1.5rem;
+  border-radius: 24px;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.1);
+  border: 1px solid white;
+  z-index: 10;
+  animation: float 6s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-20px);
+  }
+}
+
+.featured-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.featured-badge {
+  font-size: 11px;
+  font-weight: 700;
+  color: #86868B;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.featured-stars {
+  display: flex;
+  gap: 2px;
+  color: #FCD34D;
+  font-size: 12px;
+}
+
+.featured-cover {
+  position: relative;
+  width: 100%;
+  height: 192px;
+  border-radius: 12px;
+  margin-bottom: 1rem;
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.featured-cover-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 64px;
+  color: #007AFF;
+  transition: transform 0.5s ease;
+  background: white;
+  border: 1px solid #E5E5E7;
+  position: relative;
+}
+
+.featured-cover-placeholder::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(0, 122, 255, 0.05) 0%, rgba(52, 199, 89, 0.05) 100%);
+  z-index: 0;
+}
+
+.featured-cover:hover .featured-cover-placeholder {
+  transform: scale(1.05);
+}
+
+.play-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.play-btn {
+  width: 48px;
+  height: 48px;
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(8px);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 20px;
+}
+
+.featured-title {
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 0.25rem;
+  color: #1D1D1F;
+}
+
+.featured-desc {
+  font-size: 14px;
+  color: #6B7280;
+  margin-bottom: 1rem;
+}
+
+.featured-action-btn {
+  width: 100%;
+  padding: 0.75rem;
+  background: #000000;
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.featured-action-btn:hover {
+  background: #2c2c2e;
+}
+
+.stats-mini-card {
+  position: absolute;
+  bottom: 80px;
+  right: 0;
+  background: white;
+  padding: 1rem;
+  border-radius: 16px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+  border: 1px solid #F3F4F6;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  z-index: 20;
+  animation: float 6s ease-in-out infinite 1s;
+}
+
+.stats-mini-icon {
+  width: 40px;
+  height: 40px;
+  background: #D1FAE5;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #10B981;
+  font-size: 18px;
+}
+
+.stats-mini-text p {
+  margin: 0;
+  font-size: 12px;
+}
+
+.stats-mini-text p:first-child {
+  color: #6B7280;
+}
+
+.stats-mini-value {
+  font-weight: 700;
+  font-size: 14px;
+  color: #1D1D1F;
+}
+
+/* ========== Bento Grid区域 ========== */
+.bento-section {
+  margin-bottom: 80px;
+}
+
+.bento-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+  grid-auto-rows: 180px;
+}
+
+@media (min-width: 768px) {
+  .bento-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .bento-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.bento-main {
+  grid-column: span 1;
+  grid-row: span 2;
+  background: white;
+  border: 1px solid #E5E5E7;
+  color: #1D1D1F;
+  border-radius: 32px;
   padding: 2rem;
-  color: rgba(255, 255, 255, 0.5);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
 }
 
-/* 回到顶部按钮 */
+@media (min-width: 768px) {
+  .bento-main {
+    grid-column: span 2;
+  }
+}
+
+.bento-main:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+}
+
+.bento-main-bg {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(0, 122, 255, 0.05) 0%, rgba(52, 199, 89, 0.05) 100%);
+  z-index: 0;
+}
+
+.bento-main-content {
+  position: relative;
+  z-index: 10;
+}
+
+.bento-main-content h2 {
+  font-size: 1.875rem;
+  font-weight: 700;
+  margin: 0;
+  max-width: 320px;
+  line-height: 1.2;
+  color: #1D1D1F;
+}
+
+.bento-main-action {
+  position: relative;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 14px;
+  font-weight: 600;
+  color: #007AFF;
+}
+
+.bento-stat-card {
+  background: white;
+  border: 1px solid #E5E5E7;
+  border-radius: 32px;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+  transition: all 0.3s ease;
+}
+
+.bento-stat-card:hover {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+}
+
+.bento-stat-card.green {
+  background: #DCFCE7;
+  border-color: #BBF7D0;
+}
+
+.bento-stat-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  margin-bottom: 0.75rem;
+}
+
+.bento-stat-icon.books {
+  background: #DBEAFE;
+  color: #007AFF;
+}
+
+.bento-stat-icon.users {
+  background: white;
+  color: #10B981;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.bento-stat-number {
+  font-size: 1.875rem;
+  font-weight: 700;
+  color: #1D1D1F;
+  margin-bottom: 0.25rem;
+}
+
+.bento-stat-label {
+  font-size: 11px;
+  color: #6B7280;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.bento-category {
+  grid-column: span 1;
+  background: white;
+  border: 1px solid #E5E5E7;
+  border-radius: 32px;
+  padding: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+@media (min-width: 768px) {
+  .bento-category {
+    grid-column: span 2;
+  }
+}
+
+.bento-category:hover {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+  transform: translateY(-2px);
+}
+
+.bento-category-content {
+  position: relative;
+  z-index: 10;
+}
+
+.bento-category-content h3 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin: 0 0 0.5rem 0;
+  color: #1D1D1F;
+}
+
+.category-tags {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.category-tags span {
+  padding: 0.5rem 0.75rem;
+  background: #F3F4F6;
+  border-radius: 8px;
+  font-size: 12px;
+  color: #6B7280;
+}
+
+.category-glow {
+  position: absolute;
+  width: 96px;
+  height: 96px;
+  background: linear-gradient(135deg, #A78BFA, #60A5FA);
+  border-radius: 50%;
+  filter: blur(40px);
+  bottom: -16px;
+  right: -16px;
+  opacity: 0.5;
+}
+
+.category-btn {
+  width: 40px;
+  height: 40px;
+  background: #000000;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.category-btn:hover {
+  background: #2c2c2e;
+  transform: scale(1.05);
+}
+
+/* ========== 图书区域 ========== */
+.books-section {
+  margin-bottom: 80px;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: 2rem;
+}
+
+.section-title h2 {
+  font-size: 1.875rem;
+  font-weight: 700;
+  color: #1D1D1F;
+  margin: 0 0 0.5rem 0;
+}
+
+.section-title p {
+  color: #86868B;
+  margin: 0;
+  font-size: 14px;
+}
+
+
+/* ========== 回到顶部按钮 ========== */
 .back-to-top {
   position: fixed;
   bottom: 100px;
   right: 30px;
   width: 56px;
   height: 56px;
-  background: #10b981;
-  border: 2px solid #10b981;
+  background: #000000;
+  border: none;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  z-index: 99999;
+  z-index: 999;
   color: white;
-  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+  font-size: 24px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
   transition: all 0.3s ease;
   opacity: 0;
   transform: translateY(30px);
@@ -1107,90 +1429,55 @@ onUnmounted(() => {
 }
 
 .back-to-top:hover {
-  background: #059669;
+  background: #2c2c2e;
   transform: translateY(-8px);
-  box-shadow: 0 8px 20px rgba(16, 185, 129, 0.4);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
 }
 
-.back-to-top:active {
-  transform: translateY(-4px);
+/* ========== 页脚 ========== */
+.footer {
+  position: relative;
+  z-index: 10;
+  background: rgba(255, 255, 255, 0.5);
+  backdrop-filter: blur(12px);
+  border-top: 1px solid rgba(0, 0, 0, 0.05);
+  margin-top: 4rem;
 }
 
-.back-to-top-icon {
-  font-size: 24px;
-  color: #ffffff;
-  transition: all 0.3s ease;
+.footer-content {
+  text-align: center;
+  padding: 2rem;
+  color: #86868B;
+  font-size: 14px;
 }
 
-.back-to-top:hover .back-to-top-icon {
-  transform: translateY(-2px);
-}
-
-/* 响应式设计 */
-@media (max-width: 768px) {
-  .nav-content {
-    padding: 1rem;
-    flex-direction: column;
-    gap: 1rem;
-  }
-
-  .nav-search {
-    max-width: 100%;
-    margin: 0 0.8rem;
-    order: 2;
-    gap: 0.6rem;
-  }
-
-  .search-input {
-    font-size: 0.85rem;
-    height: 36px;
-    padding: 0 0.8rem;
-  }
-
-  .search-btn {
-    padding: 0.4rem 1rem;
-    font-size: 13px;
-  }
-
-  .search-input :deep(.el-input__inner) {
-    font-size: 14px;
-  }
-
-  .search-input :deep(.el-input__prefix) {
-    font-size: 13px;
-  }
-
+/* ========== 响应式设计 ========== */
+@media (max-width: 1024px) {
   .hero-title {
-    font-size: 36px;
+    font-size: 2.5rem;
+  }
+
+  .content-wrapper {
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
+
+  .nav-content {
+    padding: 1rem 1.5rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .hero-title {
+    font-size: 2rem;
   }
 
   .hero-description {
-    font-size: 16px;
+    font-size: 1rem;
   }
 
-  .hero-stats {
-    flex-direction: column;
-    gap: 1.5rem;
-  }
-
-  .cart-sidebar {
-    width: 100%;
-    right: -100%;
-    height: 100vh;
-    top: 0;
-    transform: none;
-    border-radius: 0;
-  }
-
-  .cart-sidebar.cart-open {
-    right: 0;
-  }
-
-  .cart-toggle {
-    left: -50px;
-    top: 20px;
-    transform: none;
-    border-radius: 15px;
+  .nav-tabs {
+    display: none;
   }
 
   .back-to-top {
@@ -1199,37 +1486,5 @@ onUnmounted(() => {
     width: 48px;
     height: 48px;
   }
-
-  .back-to-top-icon {
-    font-size: 20px;
-  }
 }
-
-@media (max-width: 480px) {
-  .hero-title {
-    font-size: 28px;
-  }
-
-  .logo-text {
-    font-size: 24px;
-  }
-
-  .back-to-top {
-    bottom: 70px;
-    right: 15px;
-    width: 44px;
-    height: 44px;
-  }
-
-  .back-to-top-icon {
-    font-size: 18px;
-  }
-
-  /* 小屏幕文字动画适配 */
-  .welcome-text {
-    font-size: 24px;
-    letter-spacing: 2px;
-  }
-}
-
 </style>
