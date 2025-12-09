@@ -1,5 +1,12 @@
 <template>
   <div class="cart-page">
+    <!-- 动态背景光球 -->
+    <div class="mesh-gradients">
+      <div class="gradient-blob blob-1"></div>
+      <div class="gradient-blob blob-2"></div>
+      <div class="gradient-blob blob-3"></div>
+    </div>
+
     <!-- 顶部导航 -->
     <nav class="glass-nav">
       <div class="nav-container">
@@ -90,7 +97,12 @@
           <div class="recommendations-grid">
             <div v-for="book in recommendedBooks" :key="book.id" class="recommendation-card">
               <div class="recommendation-cover" @click="goToBook(book.id)">
-                <img :src="book.image" :alt="book.title" class="recommendation-cover-image">
+                <div class="cover-placeholder"></div>
+                <!-- 评分标签 -->
+                <div class="rating-badge">
+                  <i class="ri-star-fill"></i>
+                  {{ book.rating?.toFixed(1) || '4.8' }}
+                </div>
               </div>
               <div class="recommendation-info">
                 <h5 class="recommendation-title" @click="goToBook(book.id)">{{ book.title }}</h5>
@@ -98,7 +110,7 @@
                 <div class="recommendation-footer">
                   <span class="recommendation-price">¥{{ typeof book.price === 'number' ? book.price.toFixed(2) : parseFloat(book.price).toFixed(2) }}</span>
                   <button @click.stop="addRecommendedToCart(book)" class="add-recommendation-btn">
-                    <i class="ri-shopping-cart-line"></i>
+                    <i class="ri-add-line"></i>
                   </button>
                 </div>
               </div>
@@ -117,14 +129,6 @@
             <div class="summary-row">
               <span class="summary-label">商品总额</span>
               <span class="summary-value">¥{{ subtotal }}</span>
-            </div>
-            <div class="summary-row">
-              <span class="summary-label">运费</span>
-              <span class="summary-value">¥0.00</span>
-            </div>
-            <div class="summary-row discount-row">
-              <span class="summary-label"><i class="ri-vip-diamond-fill"></i> 会员优惠</span>
-              <span class="summary-value">-¥{{ discount }}</span>
             </div>
           </div>
 
@@ -146,9 +150,6 @@
 
     <!-- Mobile Fixed Bottom Bar -->
     <div class="mobile-bottom-bar">
-      <div class="mobile-summary">
-        <span class="mobile-info">已选 {{ selectedCount }} 件，优惠 ¥{{ discount }}</span>
-      </div>
       <div class="mobile-actions">
         <div class="mobile-total">
           <p class="mobile-total-label">合计</p>
@@ -220,17 +221,8 @@ const subtotal = computed(() => {
   return sum.toFixed(2)
 })
 
-const discount = computed(() => {
-  // 每满100减10
-  const rawTotal = parseFloat(subtotal.value)
-  if (rawTotal > 0) {
-    return Math.floor(rawTotal / 100) * 10
-  }
-  return 0
-})
-
 const finalTotal = computed(() => {
-  return (parseFloat(subtotal.value) - discount.value).toFixed(2)
+  return subtotal.value
 })
 
 // 发送购物车更新事件
@@ -392,7 +384,8 @@ const handleCheckout = () => {
       title: item.title,
       author: item.author,
       price: typeof item.price === 'number' ? item.price : parseFloat(item.price.toString()),
-      quantity: item.quantity
+      quantity: item.quantity,
+      cover: item.image
     }))
   }
   sessionStorage.setItem('checkoutCart', JSON.stringify(checkoutData))
@@ -461,6 +454,8 @@ onUnmounted(() => {
 .cart-page {
   min-height: 100vh;
   background: #F5F5F7;
+  position: relative;
+  overflow-x: hidden;
   font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', Roboto, sans-serif;
   -webkit-font-smoothing: antialiased;
   padding-bottom: 140px;
@@ -469,6 +464,60 @@ onUnmounted(() => {
 @media (min-width: 1024px) {
   .cart-page {
     padding-bottom: 48px;
+  }
+}
+
+/* ========== 动态背景光球 ========== */
+.mesh-gradients {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.gradient-blob {
+  position: absolute;
+  width: 384px;
+  height: 384px;
+  border-radius: 50%;
+  mix-blend-mode: multiply;
+  filter: blur(64px);
+  opacity: 0.3;
+}
+
+.blob-1 {
+  top: 0;
+  left: 25%;
+  background: #BFDBFE;
+  animation: blob 10s infinite;
+}
+
+.blob-2 {
+  top: 0;
+  right: 25%;
+  background: #BBF7D0;
+  animation: blob 10s infinite 2s;
+}
+
+.blob-3 {
+  bottom: -128px;
+  left: 33%;
+  background: #DDD6FE;
+  animation: blob 10s infinite 4s;
+}
+
+@keyframes blob {
+  0%, 100% {
+    transform: translate(0px, 0px) scale(1);
+  }
+  33% {
+    transform: translate(30px, -50px) scale(1.1);
+  }
+  66% {
+    transform: translate(-20px, 20px) scale(0.9);
   }
 }
 
@@ -931,16 +980,15 @@ onUnmounted(() => {
 
 .recommendation-card {
   background: white;
-  border-radius: 12px;
+  border-radius: 16px;
   overflow: hidden;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-  border: 1px solid #F3F4F6;
   transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
 .recommendation-card:hover {
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.08);
   transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
 }
 
 .recommendation-cover {
@@ -952,32 +1000,54 @@ onUnmounted(() => {
   background: #F5F5F7;
 }
 
-.recommendation-cover-image {
+.cover-placeholder {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  background: linear-gradient(135deg, #E5E5E7 0%, #F5F5F7 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
   transition: transform 0.3s ease;
 }
 
-.recommendation-cover:hover .recommendation-cover-image {
+.recommendation-cover:hover .cover-placeholder {
   transform: scale(1.05);
 }
 
+/* 评分标签 */
+.rating-badge {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(8px);
+  color: white;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.rating-badge i {
+  color: #FCD34D;
+  font-size: 12px;
+}
+
 .recommendation-info {
-  padding: 0.75rem;
+  padding: 16px;
 }
 
 .recommendation-title {
+  font-size: 16px;
   font-weight: 700;
-  font-size: 14px;
+  margin: 0 0 4px 0;
   color: #1D1D1F;
-  margin: 0 0 0.25rem 0;
   overflow: hidden;
   text-overflow: ellipsis;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  line-height: 1.3;
+  white-space: nowrap;
   cursor: pointer;
   transition: color 0.3s ease;
 }
@@ -987,9 +1057,9 @@ onUnmounted(() => {
 }
 
 .recommendation-author {
-  font-size: 12px;
+  font-size: 13px;
   color: #86868B;
-  margin: 0 0 0.75rem 0;
+  margin: 0 0 12px 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -1002,14 +1072,14 @@ onUnmounted(() => {
 }
 
 .recommendation-price {
+  font-size: 18px;
   font-weight: 700;
-  font-size: 16px;
   color: #1D1D1F;
 }
 
 .add-recommendation-btn {
-  width: 32px;
-  height: 32px;
+  width: 36px;
+  height: 36px;
   background: #000000;
   color: white;
   border: none;
@@ -1019,7 +1089,7 @@ onUnmounted(() => {
   justify-content: center;
   cursor: pointer;
   transition: all 0.3s ease;
-  font-size: 16px;
+  font-size: 20px;
 }
 
 .add-recommendation-btn:hover {
@@ -1166,18 +1236,6 @@ onUnmounted(() => {
   .mobile-bottom-bar {
     display: none;
   }
-}
-
-.mobile-summary {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 0.75rem;
-}
-
-.mobile-info {
-  font-size: 14px;
-  color: #6B7280;
 }
 
 .mobile-actions {

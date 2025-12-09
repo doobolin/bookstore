@@ -13,28 +13,8 @@
           <span class="cart-count" v-if="cartItemCount > 0">{{ cartItemCount }}</span>
         </div>
 
-        <div v-if="isLoggedIn" class="user-info">
-          <el-dropdown @command="handleUserCommand">
-            <div class="user-avatar-simple">
-              <i class="ri-user-line"></i>
-            </div>
-            <template #dropdown>
-              <el-dropdown-menu>
-                <el-dropdown-item command="profile">
-                  <i class="ri-user-line"></i>
-                  个人资料
-                </el-dropdown-item>
-                <el-dropdown-item command="orders">
-                  <i class="ri-file-list-3-line"></i>
-                  我的订单
-                </el-dropdown-item>
-                <el-dropdown-item command="logout" divided>
-                  <i class="ri-logout-box-line"></i>
-                  退出登录
-                </el-dropdown-item>
-              </el-dropdown-menu>
-            </template>
-          </el-dropdown>
+        <div v-if="isLoggedIn" class="user-icon" @click="goToProfile">
+          <i class="ri-user-line"></i>
         </div>
         <button v-else class="login-btn" @click="goToLogin">
           登录
@@ -445,36 +425,8 @@ const goToLogin = () => {
   router.push('/login')
 }
 
-const handleUserCommand = async (command: string) => {
-  if (command === 'logout') {
-    try {
-      await ElMessageBox.confirm('确定要退出登录吗？', '提示', {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
-        type: 'warning'
-      })
-
-      localStorage.removeItem('token')
-      localStorage.removeItem('user_id')
-      localStorage.removeItem('username')
-      localStorage.removeItem('role')
-      localStorage.removeItem('isLoggedIn')
-
-      isLoggedIn.value = false
-
-      const event = new CustomEvent('user-logout')
-      window.dispatchEvent(event)
-
-      ElMessage.success('已退出登录')
-      router.push('/')
-    } catch (error) {
-      // 用户取消
-    }
-  } else if (command === 'orders') {
-    router.push('/orders')
-  } else if (command === 'profile') {
-    router.push('/profile')
-  }
+const goToProfile = () => {
+  router.push('/profile')
 }
 
 const checkLoginStatus = () => {
@@ -587,14 +539,15 @@ onUnmounted(() => {
 
 .cart-icon {
   position: relative;
-  width: 32px;
-  height: 32px;
+  width: 40px;
+  height: 40px;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  font-size: 18px;
+  font-size: 20px;
   color: #1D1D1F;
+  background: rgba(0, 0, 0, 0.04);
   border-radius: 50%;
   transition: all 0.3s ease;
 }
@@ -602,6 +555,7 @@ onUnmounted(() => {
 .cart-icon:hover {
   background: rgba(0, 122, 255, 0.1);
   color: #007AFF;
+  transform: scale(1.05);
 }
 
 .cart-count {
@@ -611,9 +565,9 @@ onUnmounted(() => {
   background: #FF3B30;
   color: white;
   border-radius: 50%;
-  width: 16px;
-  height: 16px;
-  font-size: 10px;
+  width: 18px;
+  height: 18px;
+  font-size: 11px;
   font-weight: 700;
   display: flex;
   align-items: center;
@@ -621,23 +575,24 @@ onUnmounted(() => {
   border: 2px solid white;
 }
 
-.user-avatar-simple {
-  width: 32px;
-  height: 32px;
+.user-icon {
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
   background: rgba(0, 0, 0, 0.04);
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  font-size: 18px;
+  font-size: 20px;
   color: #1D1D1F;
   transition: all 0.3s ease;
 }
 
-.user-avatar-simple:hover {
+.user-icon:hover {
   background: rgba(0, 122, 255, 0.1);
   color: #007AFF;
+  transform: scale(1.05);
 }
 
 .login-btn {
@@ -645,9 +600,9 @@ onUnmounted(() => {
   border: none;
   color: white;
   font-weight: 600;
-  border-radius: 16px;
-  padding: 6px 16px;
-  font-size: 13px;
+  border-radius: 20px;
+  padding: 8px 20px;
+  font-size: 14px;
   cursor: pointer;
   transition: all 0.3s ease;
 }
@@ -658,20 +613,22 @@ onUnmounted(() => {
 }
 
 .favorite-button {
-  width: 32px;
-  height: 32px;
+  width: 40px;
+  height: 40px;
   display: flex;
   align-items: center;
   justify-content: center;
+  background: rgba(0, 0, 0, 0.04);
   border-radius: 50%;
   cursor: pointer;
-  transition: all 0.3s;
+  transition: all 0.3s ease;
   font-size: 20px;
   color: #1D1D1F;
 }
 
 .favorite-button:hover {
-  background: rgba(0, 0, 0, 0.05);
+  background: rgba(0, 0, 0, 0.08);
+  transform: scale(1.05);
 }
 
 .favorite-button .ri-heart-fill {

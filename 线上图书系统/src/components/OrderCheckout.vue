@@ -1,153 +1,233 @@
 <template>
-  <PageContainer>
-    <div class="checkout-container">
-      <el-card class="checkout-header">
-        <h2>确认订单</h2>
-      </el-card>
+  <PageContainer :hideNavbar="true">
+    <div id="app" class="min-h-screen pb-32 lg:pb-12">
+      <!-- 动态背景光球 -->
+      <div class="mesh-gradients">
+        <div class="gradient-blob blob-1"></div>
+        <div class="gradient-blob blob-2"></div>
+        <div class="gradient-blob blob-3"></div>
+      </div>
 
-      <!-- 收货地址 -->
-      <el-card class="address-section">
-        <template #header>
-          <div class="section-header">
-            <span class="section-title">收货地址</span>
-            <el-button type="primary" size="small" @click="showAddressDialog()">
-              新增地址
-            </el-button>
+      <!-- 顶部导航 - Cart风格 -->
+      <nav class="glass-nav">
+        <div class="nav-container">
+          <div class="nav-left">
+            <a @click="goBack" class="back-button">
+              <i class="ri-arrow-left-s-line"></i>
+            </a>
+            <h1 class="nav-title">确认订单 <span class="item-count">({{ orderItems.length }})</span></h1>
           </div>
-        </template>
-
-        <div v-if="loadingAddresses" class="loading-state">
-          <el-icon class="is-loading"><Loading /></el-icon>
-          加载地址中...
         </div>
+      </nav>
 
-        <div v-else-if="addresses.length === 0" class="empty-addresses">
-          <el-empty description="暂无收货地址，请先添加地址">
-            <el-button type="primary" @click="showAddressDialog()">添加地址</el-button>
-          </el-empty>
-        </div>
+      <main class="max-w-6xl mx-auto px-4 md:px-6 pt-8 grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-8 items-start">
+        <!-- 左侧：主要信息流 -->
+        <div class="space-y-6">
+          <!-- 收货地址 -->
+          <section>
+            <div class="flex items-center justify-between mb-3 px-2">
+              <h3 class="text-sm font-bold text-gray-500 uppercase tracking-wider">收货信息</h3>
+              <button @click="showAddressDialog()" class="text-ios-blue text-sm font-medium hover:opacity-70 transition">
+                + 新增地址
+              </button>
+            </div>
 
-        <div v-else class="address-list">
-          <div
-            v-for="address in addresses"
-            :key="address.id"
-            class="address-item"
-            :class="{ selected: selectedAddressId === address.id }"
-            @click="selectAddress(address.id)"
-          >
-            <div class="address-radio">
-              <div class="radio-icon" :class="{ checked: selectedAddressId === address.id }">
-                <div v-if="selectedAddressId === address.id" class="radio-dot"></div>
+            <div v-if="loadingAddresses" class="bg-white rounded-[24px] p-12 shadow-soft text-center">
+              <i class="ri-loader-4-line text-2xl animate-spin text-gray-400"></i>
+              <p class="mt-2 text-gray-500">加载地址中...</p>
+            </div>
+
+            <div v-else-if="addresses.length === 0" class="bg-white rounded-[24px] p-12 shadow-soft text-center">
+              <i class="ri-map-pin-line text-4xl text-gray-300 mb-3"></i>
+              <p class="text-gray-500 mb-4">暂无收货地址，请先添加地址</p>
+              <button @click="showAddressDialog()" class="bg-ios-blue text-white px-6 py-2 rounded-xl hover:opacity-90 transition">
+                添加地址
+              </button>
+            </div>
+
+            <div v-else class="space-y-3">
+              <div
+                v-for="address in addresses"
+                :key="address.id"
+                @click="selectAddress(address.id)"
+                class="bg-white rounded-[24px] p-5 shadow-soft hover:shadow-float transition cursor-pointer group border-2"
+                :class="selectedAddressId === address.id ? 'border-ios-blue bg-blue-50/50' : 'border-transparent hover:border-ios-blue/20'"
+              >
+                <div class="flex items-center gap-4">
+                  <div class="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 group-hover:bg-blue-50 group-hover:text-ios-blue transition">
+                    <i class="ri-map-pin-2-fill text-xl"></i>
+                  </div>
+                  <div class="flex-1">
+                    <div class="flex items-center gap-2 mb-1">
+                      <span class="font-bold text-gray-900">{{ address.receiver_name }}</span>
+                      <span v-if="address.is_default" class="bg-gray-100 text-gray-500 text-[10px] px-2 py-0.5 rounded font-bold">默认</span>
+                    </div>
+                    <p class="text-gray-900 font-medium text-base leading-tight">
+                      {{ address.province }} {{ address.city }} {{ address.district }} {{ address.detail_address }}
+                    </p>
+                    <p class="text-gray-500 text-sm mt-1">{{ address.receiver_phone }}</p>
+                  </div>
+                  <div class="flex items-center gap-3">
+                    <button @click.stop="editAddress(address)" class="text-ios-blue text-sm hover:opacity-70 transition">
+                      编辑
+                    </button>
+                    <div class="radio-circle" :class="{'radio-selected': selectedAddressId === address.id}"></div>
+                  </div>
+                </div>
               </div>
             </div>
-            <div class="address-content">
-              <div class="address-header">
-                <span class="receiver-name">{{ address.receiver_name }}</span>
-                <span class="receiver-phone">{{ address.receiver_phone }}</span>
-                <el-tag v-if="address.is_default" type="success" size="small">默认</el-tag>
+          </section>
+
+          <!-- 商品清单 -->
+          <section>
+            <h3 class="text-sm font-bold text-gray-500 uppercase tracking-wider mb-3 px-2">商品清单 ({{ orderItems.length }})</h3>
+
+            <div v-if="orderItems.length === 0" class="bg-white rounded-[24px] p-12 shadow-soft text-center">
+              <i class="ri-shopping-cart-line text-4xl text-gray-300 mb-3"></i>
+              <p class="text-gray-500">购物车为空</p>
+            </div>
+
+            <div v-else class="bg-white rounded-[24px] p-5 shadow-soft divide-y divide-gray-100">
+              <div v-for="item in orderItems" :key="item.book_id" class="flex gap-4 py-4 first:pt-0 last:pb-0">
+                <div class="w-16 h-20 bg-gray-100 rounded-lg overflow-hidden border border-gray-100 flex-shrink-0">
+                  <img v-if="item.cover" :src="item.cover" class="w-full h-full object-cover" alt="">
+                  <div v-else class="w-full h-full flex items-center justify-center">
+                    <i class="ri-book-line text-2xl text-gray-300"></i>
+                  </div>
+                </div>
+                <div class="flex-1 min-w-0 flex flex-col justify-between py-0.5">
+                  <div>
+                    <h4 class="font-bold text-gray-900 line-clamp-1">{{ item.title }}</h4>
+                    <p class="text-xs text-gray-500 mt-0.5">{{ item.author }}</p>
+                  </div>
+                  <div class="flex justify-between items-end">
+                    <span class="text-sm font-medium">¥{{ item.price.toFixed(2) }}</span>
+                    <div class="flex items-center gap-2">
+                      <button @click="decreaseQuantity(item)" :disabled="item.quantity <= 1" class="w-6 h-6 rounded-full bg-gray-100 hover:bg-gray-200 disabled:opacity-30 flex items-center justify-center transition">
+                        <i class="ri-subtract-line text-sm"></i>
+                      </button>
+                      <span class="text-xs text-gray-600 min-w-[20px] text-center">x{{ item.quantity }}</span>
+                      <button @click="increaseQuantity(item)" class="w-6 h-6 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition">
+                        <i class="ri-add-line text-sm"></i>
+                      </button>
+                      <button @click="removeItem(item)" class="ml-2 text-red-500 hover:opacity-70 transition">
+                        <i class="ri-delete-bin-line text-base"></i>
+                      </button>
+                    </div>
+                  </div>
+                </div>
               </div>
-              <div class="address-detail">
-                {{ address.province }} {{ address.city }} {{ address.district }} {{ address.detail_address }}
+            </div>
+          </section>
+
+          <!-- 配送方式 -->
+          <section>
+            <h3 class="text-sm font-bold text-gray-500 uppercase tracking-wider mb-3 px-2">配送方式</h3>
+            <div class="bg-white rounded-[24px] overflow-hidden shadow-soft">
+              <div
+                v-for="method in deliveryMethods"
+                :key="method.id"
+                @click="selectedDelivery = method.id"
+                class="p-4 flex items-center justify-between cursor-pointer hover:bg-gray-50 transition border-b border-gray-100 last:border-0"
+              >
+                <div class="flex items-center gap-3">
+                  <i :class="method.icon" class="text-xl text-gray-400"></i>
+                  <div>
+                    <p class="font-bold text-sm text-gray-900">{{ method.name }}</p>
+                    <p class="text-xs text-gray-500">{{ method.desc }}</p>
+                  </div>
+                </div>
+                <div class="flex items-center gap-3">
+                  <span class="text-sm font-medium" :class="method.price === 0 ? 'text-ios-green' : 'text-gray-900'">
+                    {{ method.price === 0 ? '免费' : '¥' + method.price.toFixed(2) }}
+                  </span>
+                  <div class="radio-circle" :class="{'radio-selected': selectedDelivery === method.id}"></div>
+                </div>
               </div>
             </div>
-            <div class="address-actions">
-              <el-button link type="primary" @click.stop="editAddress(address)">编辑</el-button>
-            </div>
-          </div>
-        </div>
-      </el-card>
-
-      <!-- 订单信息 -->
-      <el-card class="order-section">
-        <template #header>
-          <span class="section-title">订单信息</span>
-        </template>
-
-        <div v-if="orderItems.length === 0" class="empty-order">
-          <el-empty description="购物车为空" />
+          </section>
         </div>
 
-        <div v-else class="order-items">
-          <div v-for="item in orderItems" :key="item.book_id" class="order-item">
-            <div class="item-info">
-              <div class="item-title">{{ item.title }}</div>
-              <div class="item-author">{{ item.author }}</div>
-            </div>
-            <div class="item-price">
-              <span class="unit-price">¥{{ item.price.toFixed(2) }}</span>
-            </div>
-            <div class="item-quantity">
-              <el-button
-                size="small"
-                @click="decreaseQuantity(item)"
-                :disabled="item.quantity <= 1"
-                class="quantity-btn"
+        <!-- 右侧：支付与结算 -->
+        <div class="space-y-6">
+          <!-- 支付方式 -->
+          <div class="bg-white rounded-[24px] p-5 shadow-soft">
+            <h3 class="text-lg font-bold mb-4">支付方式</h3>
+            <div class="space-y-3">
+              <div
+                v-for="pay in paymentMethods"
+                :key="pay.id"
+                @click="selectedPayment = pay.id"
+                :class="selectedPayment === pay.id ? 'border-ios-blue bg-blue-50/50' : 'border-gray-100 hover:border-gray-200'"
+                class="flex items-center justify-between p-3 rounded-xl border-2 cursor-pointer transition-all"
               >
-                <el-icon><Minus /></el-icon>
-              </el-button>
-              <span class="quantity-display">{{ item.quantity }}</span>
-              <el-button
-                size="small"
-                @click="increaseQuantity(item)"
-                class="quantity-btn"
-              >
-                <el-icon><Plus /></el-icon>
-              </el-button>
-            </div>
-            <div class="item-subtotal">¥{{ (item.price * item.quantity).toFixed(2) }}</div>
-            <div class="item-remove">
-              <el-button
-                link
-                type="danger"
-                @click="removeItem(item)"
-                size="small"
-              >
-                <el-icon><Delete /></el-icon>
-              </el-button>
+                <div class="flex items-center gap-3">
+                  <div :class="pay.bg" class="w-10 h-10 rounded-lg flex items-center justify-center text-white text-xl">
+                    <i :class="pay.icon"></i>
+                  </div>
+                  <span class="font-bold text-sm text-gray-900">{{ pay.name }}</span>
+                </div>
+                <div class="radio-circle" :class="{'radio-selected': selectedPayment === pay.id}"></div>
+              </div>
             </div>
           </div>
-        </div>
-      </el-card>
 
-      <!-- 付款详情 -->
-      <el-card class="payment-section">
-        <template #header>
-          <span class="section-title">付款详情</span>
-        </template>
+          <!-- 金额明细 -->
+          <div class="bg-white rounded-[24px] p-6 shadow-float border border-gray-100">
+            <div class="space-y-3 mb-6">
+              <div class="flex justify-between text-sm">
+                <span class="text-gray-500">商品小计</span>
+                <span class="font-medium">¥{{ subtotalAmount.toFixed(2) }}</span>
+              </div>
+              <div class="flex justify-between text-sm">
+                <span class="text-gray-500">运费</span>
+                <span class="font-medium" :class="deliveryPrice === 0 ? 'text-ios-green' : ''">
+                  {{ deliveryPrice === 0 ? '免费' : '¥' + deliveryPrice.toFixed(2) }}
+                </span>
+              </div>
+            </div>
 
-        <div class="payment-details">
-          <div class="detail-row">
-            <span class="detail-label">商品总额：</span>
-            <span class="detail-value">¥{{ totalAmount.toFixed(2) }}</span>
-          </div>
-          <div class="detail-row">
-            <span class="detail-label">运费：</span>
-            <span class="detail-value shipping-free">免运费</span>
-          </div>
-          <div class="detail-row total-row">
-            <span class="detail-label">应付总额：</span>
-            <span class="detail-total">¥{{ totalAmount.toFixed(2) }}</span>
+            <div class="border-t border-dashed border-gray-200 my-4"></div>
+
+            <div class="flex justify-between items-end mb-6">
+              <span class="text-gray-900 font-bold">应付总额</span>
+              <span class="text-3xl font-bold tracking-tight">¥{{ finalTotal.toFixed(2) }}</span>
+            </div>
+
+            <!-- 桌面端支付按钮 -->
+            <button
+              @click="submitOrder"
+              :disabled="!canSubmitOrder"
+              class="hidden lg:flex w-full bg-black hover:bg-gray-800 disabled:bg-gray-400 text-white font-bold py-4 rounded-xl shadow-lg shadow-black/20 transition items-center justify-center gap-2 group active:scale-95 duration-200"
+            >
+              <i class="ri-fingerprint-line text-2xl opacity-50 group-hover:opacity-100 transition-opacity"></i>
+              <span>{{ submitting ? '提交中...' : '确认支付' }}</span>
+            </button>
+
+            <p class="text-[10px] text-gray-400 text-center mt-3">
+              点击支付即表示您同意服务条款
+            </p>
           </div>
         </div>
-      </el-card>
+      </main>
 
-      <!-- 底部操作栏 -->
-      <div class="checkout-footer">
-        <div class="footer-summary">
-          <span class="summary-text">共 {{ totalQuantity }} 件商品，总计：</span>
-          <span class="summary-amount">¥{{ totalAmount.toFixed(2) }}</span>
-        </div>
-        <div class="footer-actions">
-          <el-button size="large" @click="goBack">返回购物车</el-button>
-          <el-button
-            type="primary"
-            size="large"
-            :disabled="!canSubmitOrder"
-            :loading="submitting"
+      <!-- 移动端底部悬浮支付栏 -->
+      <div class="lg:hidden fixed bottom-0 left-0 w-full bg-white/90 backdrop-blur-xl border-t border-gray-200 p-4 pb-8 z-50">
+        <div class="flex gap-4">
+          <div class="flex-1 flex flex-col justify-center">
+            <p class="text-xs text-gray-500">应付总额</p>
+            <div class="flex items-baseline gap-1">
+              <span class="text-sm font-bold">¥</span>
+              <span class="text-2xl font-bold text-gray-900">{{ finalTotal.toFixed(2) }}</span>
+            </div>
+          </div>
+          <button
             @click="submitOrder"
+            :disabled="!canSubmitOrder"
+            class="flex-[2] bg-black disabled:bg-gray-400 text-white font-bold py-3.5 rounded-xl shadow-lg flex items-center justify-center gap-2 active:scale-95 transition-transform"
           >
-            提交订单
-          </el-button>
+            <i class="ri-fingerprint-line text-xl"></i> {{ submitting ? '提交中...' : '确认支付' }}
+          </button>
         </div>
       </div>
 
@@ -232,14 +312,38 @@ interface OrderItem {
   author: string
   price: number
   quantity: number
+  cover?: string
 }
 
 const orderItems = ref<OrderItem[]>([])
 const submitting = ref(false)
 
+// 配送方式
+const selectedDelivery = ref('standard')
+const deliveryMethods = [
+  { id: 'express', name: '顺丰速运', desc: '预计明天送达', price: 12.00, icon: 'ri-truck-line' },
+  { id: 'standard', name: '普通快递', desc: '预计 3-5 天送达', price: 0.00, icon: 'ri-box-3-line' }
+]
+
+// 支付方式
+const selectedPayment = ref('wechat')
+const paymentMethods = [
+  { id: 'wechat', name: '微信支付', icon: 'ri-wechat-fill', bg: 'bg-green-500' },
+  { id: 'alipay', name: '支付宝', icon: 'ri-alipay-fill', bg: 'bg-blue-500' }
+]
+
 // 计算属性
-const totalAmount = computed(() => {
+const subtotalAmount = computed(() => {
   return orderItems.value.reduce((sum, item) => sum + item.price * item.quantity, 0)
+})
+
+const deliveryPrice = computed(() => {
+  const method = deliveryMethods.find(m => m.id === selectedDelivery.value)
+  return method ? method.price : 0
+})
+
+const finalTotal = computed(() => {
+  return subtotalAmount.value + deliveryPrice.value
 })
 
 const totalQuantity = computed(() => {
@@ -410,7 +514,7 @@ const submitOrder = async () => {
 
   try {
     await ElMessageBox.confirm(
-      `确认提交订单？应付金额：¥${totalAmount.value.toFixed(2)}`,
+      `确认提交订单？应付金额：¥${finalTotal.value.toFixed(2)}`,
       '确认订单',
       {
         confirmButtonText: '确认支付',
@@ -460,681 +564,199 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.checkout-container {
-  max-width: 1200px;
+/* iOS风格颜色系统 */
+.text-ios-blue { color: #007AFF; }
+.text-ios-green { color: #34C759; }
+.bg-ios-blue { background-color: #007AFF; }
+.bg-ios-green { background-color: #34C759; }
+
+/* 玻璃态导航栏 - Cart风格 */
+.glass-nav {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: saturate(180%) blur(20px);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  height: 64px;
+}
+
+.nav-container {
+  max-width: 1400px;
   margin: 0 auto;
-  padding-bottom: 100px;
-  background: #f5f5f7;
-  padding: 20px;
-  border-radius: 20px;
-  position: relative;
-  overflow: hidden;
-}
-
-/* 渐变波纹背景 */
-.checkout-container::before {
-  content: '';
-  position: fixed;
-  width: 200%;
-  height: 200%;
-  left: -50%;
-  top: -50%;
-  background:
-    radial-gradient(circle at 30% 40%, rgba(100, 240, 255, 1) 0%, rgba(100, 240, 255, 0.6) 20%, transparent 45%),
-    radial-gradient(circle at 70% 30%, rgba(150, 100, 255, 0.9) 0%, rgba(255, 100, 220, 0.5) 25%, transparent 50%),
-    radial-gradient(circle at 50% 70%, rgba(50, 120, 220, 0.95) 0%, rgba(100, 20, 150, 0.6) 22%, transparent 48%);
-  background-size: 100% 100%;
-  animation: flowingWave1 8s ease-in-out infinite;
-  filter: blur(40px);
-  opacity: 0.3;
-  z-index: 0;
-  pointer-events: none;
-}
-
-.checkout-container::after {
-  content: '';
-  position: fixed;
-  width: 200%;
-  height: 200%;
-  left: -50%;
-  top: -50%;
-  background:
-    radial-gradient(circle at 20% 60%, rgba(255, 100, 200, 1) 0%, rgba(255, 150, 180, 0.7) 18%, transparent 42%),
-    radial-gradient(circle at 80% 50%, rgba(200, 30, 200, 0.9) 0%, rgba(220, 50, 180, 0.6) 20%, transparent 46%),
-    radial-gradient(circle at 45% 25%, rgba(255, 150, 100, 0.85) 0%, rgba(180, 70, 50, 0.5) 24%, transparent 50%);
-  background-size: 100% 100%;
-  animation: flowingWave2 10s ease-in-out infinite;
-  filter: blur(50px);
-  opacity: 0.25;
-  z-index: 0;
-  pointer-events: none;
-}
-
-@keyframes flowingWave1 {
-  0% {
-    transform: translate(0%, 0%) rotate(0deg) scale(1);
-  }
-  25% {
-    transform: translate(-15%, 10%) rotate(90deg) scale(1.1);
-  }
-  50% {
-    transform: translate(-10%, -15%) rotate(180deg) scale(1.05);
-  }
-  75% {
-    transform: translate(15%, -8%) rotate(270deg) scale(1.12);
-  }
-  100% {
-    transform: translate(0%, 0%) rotate(360deg) scale(1);
-  }
-}
-
-@keyframes flowingWave2 {
-  0% {
-    transform: translate(0%, 0%) rotate(0deg) scale(1);
-  }
-  20% {
-    transform: translate(12%, -10%) rotate(-72deg) scale(1.08);
-  }
-  40% {
-    transform: translate(-8%, -12%) rotate(-144deg) scale(1.15);
-  }
-  60% {
-    transform: translate(-15%, 8%) rotate(-216deg) scale(1.06);
-  }
-  80% {
-    transform: translate(10%, 15%) rotate(-288deg) scale(1.12);
-  }
-  100% {
-    transform: translate(0%, 0%) rotate(-360deg) scale(1);
-  }
-}
-
-/* 确保内容在波纹之上 */
-.checkout-container > * {
-  position: relative;
-  z-index: 1;
-}
-
-/* 头部 - 增强毛玻璃 */
-.checkout-header {
-  margin-bottom: 20px;
-  border-radius: 20px;
-  border: 0.5px solid rgba(255, 255, 255, 0.3);
-  background: rgba(255, 255, 255, 0.5);
-  backdrop-filter: saturate(180%) blur(30px);
-  -webkit-backdrop-filter: saturate(180%) blur(30px);
-  box-shadow:
-    0 8px 32px rgba(0, 0, 0, 0.08),
-    0 2px 8px rgba(0, 0, 0, 0.04),
-    inset 0 1px 1px rgba(255, 255, 255, 0.9);
-}
-
-.checkout-header :deep(.el-card__body) {
-  padding: 28px;
-}
-
-.checkout-header h2 {
-  margin: 0;
-  font-size: 28px;
-  font-weight: 600;
-  color: #1d1d1f;
-  letter-spacing: -0.5px;
-}
-
-/* 区块标题 */
-.section-header {
+  height: 100%;
+  padding: 0 1.5rem;
   display: flex;
+  align-items: center;
   justify-content: space-between;
-  align-items: center;
 }
 
-.section-title {
-  font-size: 17px;
-  font-weight: 600;
-  color: #1d1d1f;
-  letter-spacing: -0.3px;
-}
-
-/* 收货地址部分 - 增强毛玻璃 */
-.address-section {
-  margin-bottom: 20px;
-  border-radius: 20px;
-  border: 0.5px solid rgba(255, 255, 255, 0.3);
-  background: rgba(255, 255, 255, 0.45);
-  backdrop-filter: saturate(180%) blur(30px);
-  -webkit-backdrop-filter: saturate(180%) blur(30px);
-  box-shadow:
-    0 8px 32px rgba(0, 0, 0, 0.08),
-    0 2px 8px rgba(0, 0, 0, 0.04),
-    inset 0 1px 1px rgba(255, 255, 255, 0.8);
-}
-
-.address-section :deep(.el-card__header) {
-  background: rgba(247, 247, 247, 0.6);
-  border-bottom: 0.5px solid rgba(0, 0, 0, 0.06);
-  padding: 18px 24px;
-}
-
-.address-section :deep(.el-card__body) {
-  padding: 24px;
-}
-
-.loading-state {
+.nav-left {
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 8px;
-  padding: 40px;
-  color: #6e6e73;
+  gap: 1rem;
 }
 
-.empty-addresses {
-  padding: 20px 0;
-}
-
-.address-list {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.address-item {
-  display: flex;
-  gap: 12px;
-  padding: 16px;
-  border: 1.5px solid rgba(0, 0, 0, 0.08);
-  border-radius: 16px;
-  cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  background: rgba(255, 255, 255, 0.5);
-}
-
-.address-item:hover {
-  border-color: rgba(0, 122, 255, 0.3);
-  background: rgba(0, 122, 255, 0.05);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-}
-
-.address-item.selected {
-  border-color: #007aff;
-  background: rgba(0, 122, 255, 0.08);
-  box-shadow: 0 2px 8px rgba(0, 122, 255, 0.15);
-}
-
-.address-radio {
-  display: flex;
-  align-items: flex-start;
-  padding-top: 2px;
-}
-
-.radio-icon {
-  width: 18px;
-  height: 18px;
-  border: 2px solid rgba(0, 0, 0, 0.2);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.radio-icon.checked {
-  border-color: #007aff;
-}
-
-.radio-dot {
-  width: 10px;
-  height: 10px;
-  background: #007aff;
-  border-radius: 50%;
-}
-
-.address-content {
-  flex: 1;
-}
-
-.address-header {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 8px;
-}
-
-.receiver-name {
-  font-size: 16px;
-  font-weight: 600;
-  color: #1d1d1f;
-  letter-spacing: -0.3px;
-}
-
-.receiver-phone {
-  color: #6e6e73;
-  font-size: 14px;
-}
-
-.address-detail {
-  color: #6e6e73;
-  line-height: 1.6;
-  font-size: 14px;
-}
-
-.address-actions {
-  display: flex;
-  align-items: center;
-}
-
-/* 订单信息部分 - 增强毛玻璃 */
-.order-section {
-  margin-bottom: 20px;
-  border-radius: 20px;
-  border: 0.5px solid rgba(255, 255, 255, 0.3);
-  background: rgba(255, 255, 255, 0.45);
-  backdrop-filter: saturate(180%) blur(30px);
-  -webkit-backdrop-filter: saturate(180%) blur(30px);
-  box-shadow:
-    0 8px 32px rgba(0, 0, 0, 0.08),
-    0 2px 8px rgba(0, 0, 0, 0.04),
-    inset 0 1px 1px rgba(255, 255, 255, 0.8);
-}
-
-.order-section :deep(.el-card__header) {
-  background: rgba(247, 247, 247, 0.6);
-  border-bottom: 0.5px solid rgba(0, 0, 0, 0.06);
-  padding: 18px 24px;
-}
-
-.order-section :deep(.el-card__body) {
-  padding: 24px;
-}
-
-.empty-order {
-  padding: 20px 0;
-}
-
-.order-items {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.order-item {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  padding: 16px;
-  background: rgba(0, 0, 0, 0.02);
-  border-radius: 14px;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.order-item:hover {
-  background: rgba(0, 0, 0, 0.04);
-}
-
-.item-info {
-  flex: 1;
-  min-width: 0;
-}
-
-.item-title {
-  font-size: 16px;
-  font-weight: 600;
-  color: #1d1d1f;
-  margin-bottom: 4px;
-  letter-spacing: -0.3px;
-}
-
-.item-author {
-  font-size: 13px;
-  color: #6e6e73;
-}
-
-.item-price {
-  display: flex;
-  align-items: center;
-  min-width: 100px;
-  justify-content: flex-end;
-}
-
-.unit-price {
-  color: #1d1d1f;
-  font-size: 15px;
-  font-weight: 600;
-}
-
-.item-quantity {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  min-width: 120px;
-  justify-content: center;
-}
-
-.quantity-btn {
+.back-button {
   width: 32px;
   height: 32px;
-  padding: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 10px;
-  border: 0.5px solid rgba(0, 0, 0, 0.1);
-  background: rgba(255, 255, 255, 0.7);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: 50%;
+  cursor: pointer;
+  transition: background 0.3s;
+  font-size: 20px;
+  color: #1D1D1F;
 }
 
-.quantity-btn:hover:not(:disabled) {
-  background: rgba(0, 122, 255, 0.1);
-  border-color: rgba(0, 122, 255, 0.3);
-  transform: scale(1.05);
+.back-button:hover {
+  background: rgba(0, 0, 0, 0.05);
 }
 
-.quantity-display {
-  min-width: 32px;
-  text-align: center;
-  font-size: 15px;
-  font-weight: 600;
-  color: #1d1d1f;
+.nav-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #1D1D1F;
+  letter-spacing: -0.02em;
+  margin: 0;
 }
 
-.item-subtotal {
-  min-width: 100px;
-  text-align: right;
-  font-size: 17px;
-  font-weight: 600;
-  color: #ff3b30;
-  letter-spacing: -0.3px;
+.item-count {
+  color: #86868B;
+  font-weight: 400;
+  font-size: 1rem;
 }
 
-.item-remove {
-  display: flex;
-  align-items: center;
-  min-width: 40px;
-  justify-content: center;
+/* 自定义单选框样式 */
+.radio-circle {
+  width: 20px;
+  height: 20px;
+  border: 2px solid #D1D1D6;
+  border-radius: 50%;
+  position: relative;
+  transition: all 0.2s;
+  flex-shrink: 0;
 }
 
-/* 付款详情部分 - 增强毛玻璃 */
-.payment-section {
-  margin-bottom: 100px;
+.radio-selected {
+  border-color: #007AFF;
+  background-color: #007AFF;
+}
+
+.radio-selected::after {
+  content: '';
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  background: white;
+  border-radius: 50%;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+/* 卡片阴影 */
+.shadow-soft {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+}
+
+.shadow-float {
+  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.08);
+}
+
+/* 对话框样式 */
+:deep(.el-dialog) {
   border-radius: 20px;
-  border: 0.5px solid rgba(255, 255, 255, 0.3);
-  background: rgba(255, 255, 255, 0.45);
-  backdrop-filter: saturate(180%) blur(30px);
-  -webkit-backdrop-filter: saturate(180%) blur(30px);
-  box-shadow:
-    0 8px 32px rgba(0, 0, 0, 0.08),
-    0 2px 8px rgba(0, 0, 0, 0.04),
-    inset 0 1px 1px rgba(255, 255, 255, 0.8);
 }
 
-.payment-section :deep(.el-card__header) {
-  background: rgba(247, 247, 247, 0.6);
-  border-bottom: 0.5px solid rgba(0, 0, 0, 0.06);
-  padding: 18px 24px;
-}
-
-.payment-section :deep(.el-card__body) {
-  padding: 24px;
-}
-
-.payment-details {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.detail-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 8px 0;
-}
-
-.detail-label {
-  color: #6e6e73;
-  font-size: 15px;
-  font-weight: 500;
-}
-
-.detail-value {
-  color: #1d1d1f;
-  font-weight: 600;
-}
-
-.shipping-free {
-  color: #34c759;
-}
-
-.total-row {
-  border-top: 0.5px dashed rgba(0, 0, 0, 0.1);
-  padding-top: 16px;
-  margin-top: 8px;
-  background: rgba(0, 122, 255, 0.05);
+/* 表单样式 */
+:deep(.el-input__wrapper),
+:deep(.el-textarea__inner) {
   border-radius: 12px;
-  padding: 16px;
 }
 
-.total-row .detail-label {
-  font-size: 17px;
-  font-weight: 600;
-  color: #1d1d1f;
-  letter-spacing: -0.3px;
-}
-
-.detail-total {
-  font-size: 26px;
-  font-weight: 600;
-  color: #ff3b30;
-  letter-spacing: -0.5px;
-}
-
-/* 底部操作栏 - 增强毛玻璃 */
-.checkout-footer {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  background: rgba(255, 255, 255, 0.6);
-  backdrop-filter: saturate(180%) blur(30px);
-  -webkit-backdrop-filter: saturate(180%) blur(30px);
-  border-top: 0.5px solid rgba(255, 255, 255, 0.5);
-  padding: 16px 20px;
-  box-shadow:
-    0 -8px 32px rgba(0, 0, 0, 0.08),
-    0 -2px 8px rgba(0, 0, 0, 0.04),
-    inset 0 1px 1px rgba(255, 255, 255, 0.9);
-  z-index: 100;
-}
-
-.checkout-footer > div {
-  max-width: 1200px;
-  margin: 0 auto;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.footer-summary {
-  display: flex;
-  align-items: baseline;
-  gap: 12px;
-}
-
-.summary-text {
-  color: #6e6e73;
-  font-size: 14px;
-  font-weight: 500;
-}
-
-.summary-amount {
-  font-size: 26px;
-  font-weight: 600;
-  color: #ff3b30;
-  letter-spacing: -0.5px;
-}
-
-.footer-actions {
-  display: flex;
-  gap: 12px;
-}
-
-/* 按钮样式 - iOS风格 */
 :deep(.el-button) {
   border-radius: 12px;
-  padding: 10px 20px;
-  font-weight: 500;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.2s;
 }
 
 :deep(.el-button--primary) {
   background: #007aff;
-  border: none;
-  color: #fff;
-  box-shadow: 0 2px 8px rgba(0, 122, 255, 0.25);
+  border-color: #007aff;
 }
 
 :deep(.el-button--primary:hover) {
   background: #0051d5;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(0, 122, 255, 0.3);
+  border-color: #0051d5;
 }
 
-:deep(.el-button--primary:disabled) {
-  background: rgba(0, 122, 255, 0.4);
-  transform: none;
+/* 背景色 */
+#app {
+  background: #F5F5F7;
+  position: relative;
+  overflow-x: hidden;
 }
 
-:deep(.el-button:not(.el-button--primary)) {
-  background: rgba(255, 255, 255, 0.7);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border: 0.5px solid rgba(0, 0, 0, 0.1);
-  color: #1d1d1f;
+/* ========== 动态背景光球 ========== */
+.mesh-gradients {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  z-index: 0;
+  pointer-events: none;
 }
 
-:deep(.el-button:not(.el-button--primary):hover) {
-  background: rgba(255, 255, 255, 0.9);
-  border-color: rgba(0, 122, 255, 0.3);
-  color: #007aff;
-  transform: translateY(-1px);
+.gradient-blob {
+  position: absolute;
+  width: 384px;
+  height: 384px;
+  border-radius: 50%;
+  mix-blend-mode: multiply;
+  filter: blur(64px);
+  opacity: 0.3;
 }
 
-:deep(.el-button--large) {
-  padding: 12px 24px;
-  font-size: 15px;
-  border-radius: 14px;
+.blob-1 {
+  top: 0;
+  left: 25%;
+  background: #BFDBFE;
+  animation: blob 10s infinite;
 }
 
-:deep(.el-button--small) {
-  padding: 6px 14px;
-  font-size: 13px;
-  border-radius: 10px;
+.blob-2 {
+  top: 0;
+  right: 25%;
+  background: #BBF7D0;
+  animation: blob 10s infinite 2s;
 }
 
-/* 对话框 - iOS风格 */
-:deep(.el-dialog) {
-  border-radius: 20px;
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 0.5px solid rgba(0, 0, 0, 0.06);
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+.blob-3 {
+  bottom: -128px;
+  left: 33%;
+  background: #DDD6FE;
+  animation: blob 10s infinite 4s;
 }
 
-:deep(.el-dialog__header) {
-  padding: 24px 24px 16px;
-  border-bottom: 0.5px solid rgba(0, 0, 0, 0.08);
-}
-
-:deep(.el-dialog__title) {
-  font-size: 20px;
-  font-weight: 600;
-  color: #1d1d1f;
-  letter-spacing: -0.3px;
-}
-
-:deep(.el-dialog__body) {
-  padding: 24px;
-}
-
-:deep(.el-dialog__footer) {
-  padding: 16px 24px 24px;
-  border-top: 0.5px solid rgba(0, 0, 0, 0.08);
-}
-
-/* 表单样式 - iOS风格 */
-:deep(.el-input__wrapper) {
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.7);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border: 0.5px solid rgba(0, 0, 0, 0.1);
-  box-shadow: none;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-:deep(.el-input__wrapper:hover) {
-  border-color: rgba(0, 122, 255, 0.3);
-  background: rgba(255, 255, 255, 0.9);
-}
-
-:deep(.el-input__wrapper.is-focus) {
-  border-color: #007aff;
-  box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.1);
-}
-
-:deep(.el-textarea__inner) {
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.7);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border: 0.5px solid rgba(0, 0, 0, 0.1);
-}
-
-:deep(.el-textarea__inner:hover) {
-  border-color: rgba(0, 122, 255, 0.3);
-  background: rgba(255, 255, 255, 0.9);
-}
-
-:deep(.el-textarea__inner:focus) {
-  border-color: #007aff;
-  box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.1);
-}
-
-/* 响应式 */
-@media (max-width: 768px) {
-  .order-item {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 12px;
+@keyframes blob {
+  0%, 100% {
+    transform: translate(0px, 0px) scale(1);
   }
-
-  .item-info {
-    width: 100%;
+  33% {
+    transform: translate(30px, -50px) scale(1.1);
   }
-
-  .item-price,
-  .item-quantity,
-  .item-subtotal {
-    width: 100%;
-    justify-content: space-between;
+  66% {
+    transform: translate(-20px, 20px) scale(0.9);
   }
+}
 
-  .item-remove {
-    width: 100%;
-    justify-content: flex-end;
-  }
-
-  .checkout-footer > div {
-    flex-direction: column;
-    gap: 12px;
-  }
-
-  .footer-summary,
-  .footer-actions {
-    width: 100%;
-    justify-content: space-between;
-  }
+/* 覆盖PageContainer的样式，让背景延伸到页面两侧 */
+:deep(.page-content) {
+  max-width: none;
+  padding: 0;
+  margin: 0;
 }
 </style>
