@@ -529,6 +529,7 @@ const submitOrder = async () => {
     // 创建订单
     const orderData = {
       user_id: userId,
+      address_id: selectedAddressId.value,
       items: orderItems.value.map(item => ({
         book_id: item.book_id,
         quantity: item.quantity

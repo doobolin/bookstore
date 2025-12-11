@@ -26,11 +26,20 @@ export interface Order {
   items?: OrderItem[]
   total_items?: number
   username?: string
+  receiver_name?: string
+  receiver_phone?: string
+  province?: string
+  city?: string
+  district?: string
+  detail_address?: string
+  postal_code?: string
+  full_address?: string
 }
 
 // 定义创建订单请求接口
 export interface CreateOrderRequest {
   user_id: number
+  address_id?: number
   items: Array<{
     book_id: number
     quantity: number

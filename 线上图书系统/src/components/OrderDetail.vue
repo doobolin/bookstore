@@ -227,11 +227,6 @@
               </button>
             </div>
           </div>
-
-          <!-- 客服入口 -->
-          <div class="customer-service">
-            <i class="ri-customer-service-2-line"></i> 联系客服
-          </div>
         </div>
       </div>
     </main>
@@ -1117,21 +1112,6 @@ onMounted(() => {
 
 .pay-btn:hover {
   background: #2c2c2e;
-}
-
-.customer-service {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  font-size: 14px;
-  color: #86868B;
-  cursor: pointer;
-  transition: color 0.3s;
-}
-
-.customer-service:hover {
-  color: #007AFF;
 }
 
 /* ========== 响应式设计 ========== */
