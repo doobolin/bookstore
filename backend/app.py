@@ -1292,13 +1292,15 @@ def create_order():
                 })
 
             # 创建订单
+            address_id = data.get('address_id')
             db.session.execute(text("""
-                INSERT INTO orders (order_number, user_id, total_amount)
-                VALUES (:order_number, :user_id, :total_amount)
+                INSERT INTO orders (order_number, user_id, total_amount, shipping_address_id)
+                VALUES (:order_number, :user_id, :total_amount, :shipping_address_id)
             """), {
                 'order_number': order_number,
                 'user_id': user_id,
-                'total_amount': total_amount
+                'total_amount': total_amount,
+                'shipping_address_id': address_id
             })
 
             # 获取订单ID
@@ -1437,11 +1439,13 @@ def get_orders():
 def get_order_detail(order_id):
     try:
         with app.app_context():
-            # 获取订单基本信息（关联users表获取用户名）
+            # 获取订单基本信息（关联users表获取用户名，关联地址表获取配送信息）
             order = db.session.execute(text("""
-                SELECT o.id, o.order_number, o.user_id, o.total_amount, o.status, o.created_at, u.username
+                SELECT o.id, o.order_number, o.user_id, o.total_amount, o.status, o.created_at, u.username,
+                       sa.receiver_name, sa.receiver_phone, sa.province, sa.city, sa.district, sa.detail_address, sa.postal_code
                 FROM orders o
                 LEFT JOIN users u ON o.user_id = u.id
+                LEFT JOIN shipping_addresses sa ON o.shipping_address_id = sa.id
                 WHERE o.id = :order_id
             """), {'order_id': order_id}).fetchone()
 
@@ -1471,6 +1475,11 @@ def get_order_detail(order_id):
                     'subtotal': float(item[7])
                 })
 
+            # 构建完整地址
+            full_address = None
+            if order[9] and order[10] and order[11] and order[12]:  # province, city, district, detail_address
+                full_address = f"{order[9]} {order[10]} {order[11]} {order[12]}"
+
             order_data = {
                 'id': order[0],
                 'order_number': order[1],
@@ -1479,6 +1488,14 @@ def get_order_detail(order_id):
                 'total_amount': float(order[3]),
                 'status': order[4],  # 订单状态
                 'created_at': order[5].strftime('%Y-%m-%d %H:%M:%S') if order[5] else None,
+                'receiver_name': order[7],  # 收货人姓名
+                'receiver_phone': order[8],  # 收货人电话
+                'province': order[9],  # 省份
+                'city': order[10],  # 城市
+                'district': order[11],  # 区/县
+                'detail_address': order[12],  # 详细地址
+                'postal_code': order[13],  # 邮政编码
+                'full_address': full_address,  # 完整地址
                 'items': order_items
             }
 

@@ -11,7 +11,7 @@
     <nav :class="['glass-navbar', { 'navbar-fixed': isNavbarFixed }]">
       <div class="nav-content">
         <div class="logo" @click="goToHome">
-          <span class="logo-icon">
+          <span class="logo-icon logo-icon-pulse">
             <i class="ri-book-3-fill"></i>
           </span>
           <span class="logo-text">线上书店</span>
@@ -499,14 +499,41 @@ onUnmounted(() => {
 }
 
 .logo-icon {
-  width: 32px;
-  height: 32px;
-  background: #000000;
+  width: 40px;
+  height: 40px;
+  background: #007AFF;
   color: white;
-  border-radius: 8px;
+  border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
+  font-size: 22px;
+  position: relative;
+}
+
+.logo-icon-pulse::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: #007AFF;
+  border-radius: 10px;
+  animation: logo-pulse 2s cubic-bezier(0, 0, 0.2, 1) infinite;
+  z-index: -1;
+}
+
+@keyframes logo-pulse {
+  0% {
+    transform: scale(1);
+    opacity: 0.8;
+  }
+  50% {
+    transform: scale(1.15);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 0;
+  }
 }
 
 .logo-text {
