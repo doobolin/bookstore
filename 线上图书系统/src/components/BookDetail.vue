@@ -418,6 +418,11 @@ const buyNow = async () => {
 }
 
 const toggleCart = () => {
+  if (!isLoggedIn.value) {
+    ElMessage.warning('请先登录')
+    router.push('/login')
+    return
+  }
   router.push('/cart')
 }
 
@@ -426,6 +431,11 @@ const goToLogin = () => {
 }
 
 const goToProfile = () => {
+  if (!isLoggedIn.value) {
+    ElMessage.warning('请先登录')
+    router.push('/login')
+    return
+  }
   router.push('/profile')
 }
 

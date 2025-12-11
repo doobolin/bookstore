@@ -2,8 +2,12 @@
   <div class="card-container">
     <!-- 加载状态 -->
     <div v-if="loading" class="loading-state">
-      <div class="loading-spinner"></div>
-      <p>正在加载图书数据...</p>
+      <div class="loading-container">
+        <div class="loading-spinner-ios">
+          <div class="spinner-blade" v-for="n in 12" :key="n"></div>
+        </div>
+        <p class="loading-text">正在加载图书数据</p>
+      </div>
     </div>
 
     <div v-else-if="books.length === 0" class="empty-state">
@@ -46,7 +50,6 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { ShoppingCart, View, Star, User } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import { getAllBooks, getAllCategories, searchBooks, type Book, type SearchBooksParams } from '../api/bookApi'
 import { getCart, addToCart as addToCartApi } from '../api/cartApi'
@@ -57,6 +60,7 @@ const categories = ref<string[]>(['全部'])
 const selectedCategory = ref('全部')
 const searchQuery = ref('')
 const loading = ref(false)
+const isLoggedIn = ref(false)
 
 const books = ref<Book[]>([])
 
@@ -140,15 +144,26 @@ const performSearch = async () => {
   }
 }
 
+// 检查登录状态
+const checkLoginStatus = () => {
+  const loginStatus = localStorage.getItem('isLoggedIn')
+  isLoggedIn.value = loginStatus === 'true'
+}
+
 // 页面加载时获取分类和图书
 onMounted(() => {
+  checkLoginStatus()
   loadCategories()
   loadBooks()
-  window.addEventListener('book-search', handleSearch as EventListener)
+  window.addEventListener('book-search', handleSearch as any)
+  window.addEventListener('login-success', checkLoginStatus)
+  window.addEventListener('user-logout', checkLoginStatus)
 })
 
 onUnmounted(() => {
-  window.removeEventListener('book-search', handleSearch as EventListener)
+  window.removeEventListener('book-search', handleSearch as any)
+  window.removeEventListener('login-success', checkLoginStatus)
+  window.removeEventListener('user-logout', checkLoginStatus)
 })
 
 // 随机选择10本书进行展示
@@ -208,6 +223,11 @@ const checkUserLogin = (): boolean => {
 }
 
 const handleCardClick = (book: Book) => {
+  if (!isLoggedIn.value) {
+    ElMessage.warning('请先登录')
+    router.push('/login')
+    return
+  }
   // 跳转到图书详情页
   router.push({ name: 'bookDetail', params: { id: book.id } })
 }
@@ -261,32 +281,127 @@ const getBookColor = (index: number) => {
   padding: 0;
 }
 
-/* 加载状态样式 */
+/* 加载状态样式 - iOS 风格 */
 .loading-state {
-  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
   padding: 100px 20px;
-  color: rgba(255, 255, 255, 0.8);
 }
 
-.loading-spinner {
-  width: 60px;
-  height: 60px;
-  border: 5px solid rgba(16, 185, 129, 0.2);
-  border-top-color: #10b981;
-  border-radius: 50%;
-  margin: 0 auto 25px;
-  animation: spin 1s linear infinite;
+.loading-container {
+  text-align: center;
 }
 
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+/* iOS 风格加载动画 */
+.loading-spinner-ios {
+  position: relative;
+  width: 40px;
+  height: 40px;
+  margin: 0 auto 20px;
 }
 
-.loading-state p {
-  font-size: 18px;
-  font-weight: 500;
-  color: #10b981;
+.spinner-blade {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  width: 3px;
+  height: 12px;
+  margin-left: -1.5px;
+  background: #8E8E93;
+  border-radius: 3px;
+  transform-origin: 50% 20px;
+  opacity: 0.25;
+}
+
+.spinner-blade:nth-child(1) {
+  transform: rotate(0deg);
+  animation: ios-spinner-fade 1s linear infinite;
+  animation-delay: 0s;
+}
+
+.spinner-blade:nth-child(2) {
+  transform: rotate(30deg);
+  animation: ios-spinner-fade 1s linear infinite;
+  animation-delay: 0.083s;
+}
+
+.spinner-blade:nth-child(3) {
+  transform: rotate(60deg);
+  animation: ios-spinner-fade 1s linear infinite;
+  animation-delay: 0.166s;
+}
+
+.spinner-blade:nth-child(4) {
+  transform: rotate(90deg);
+  animation: ios-spinner-fade 1s linear infinite;
+  animation-delay: 0.249s;
+}
+
+.spinner-blade:nth-child(5) {
+  transform: rotate(120deg);
+  animation: ios-spinner-fade 1s linear infinite;
+  animation-delay: 0.332s;
+}
+
+.spinner-blade:nth-child(6) {
+  transform: rotate(150deg);
+  animation: ios-spinner-fade 1s linear infinite;
+  animation-delay: 0.415s;
+}
+
+.spinner-blade:nth-child(7) {
+  transform: rotate(180deg);
+  animation: ios-spinner-fade 1s linear infinite;
+  animation-delay: 0.498s;
+}
+
+.spinner-blade:nth-child(8) {
+  transform: rotate(210deg);
+  animation: ios-spinner-fade 1s linear infinite;
+  animation-delay: 0.581s;
+}
+
+.spinner-blade:nth-child(9) {
+  transform: rotate(240deg);
+  animation: ios-spinner-fade 1s linear infinite;
+  animation-delay: 0.664s;
+}
+
+.spinner-blade:nth-child(10) {
+  transform: rotate(270deg);
+  animation: ios-spinner-fade 1s linear infinite;
+  animation-delay: 0.747s;
+}
+
+.spinner-blade:nth-child(11) {
+  transform: rotate(300deg);
+  animation: ios-spinner-fade 1s linear infinite;
+  animation-delay: 0.830s;
+}
+
+.spinner-blade:nth-child(12) {
+  transform: rotate(330deg);
+  animation: ios-spinner-fade 1s linear infinite;
+  animation-delay: 0.913s;
+}
+
+@keyframes ios-spinner-fade {
+  0% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.25;
+  }
+}
+
+.loading-text {
+  font-size: 17px;
+  font-weight: 400;
+  color: #86868B;
+  margin: 0;
+  letter-spacing: -0.01em;
 }
 
 /* 空状态样式 */

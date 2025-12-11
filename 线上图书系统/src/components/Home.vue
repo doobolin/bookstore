@@ -11,7 +11,7 @@
     <nav class="glass-navbar" :class="{ 'navbar-fixed': isNavbarFixed }">
       <div class="nav-content">
         <div class="logo" @click="refreshPage">
-          <span class="logo-icon">
+          <span class="logo-icon logo-icon-pulse">
             <i class="ri-book-3-fill"></i>
           </span>
           <span class="logo-text">线上书店</span>
@@ -60,7 +60,7 @@
 
             <h1 class="hero-title">
               阅读，<br>
-              <span class="hero-gradient">重塑思维</span> 的力量。
+              <span class="hero-gradient rotating-text" ref="textElement" :key="currentIndex">{{ currentText }}</span>
             </h1>
 
             <p class="hero-description">
@@ -199,12 +199,13 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, onMounted, onUnmounted, watch, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import CardContainer from './CardContainer.vue'
 import { getAllBooks, type Book } from '../api/bookApi'
 import { getCart, addToCart as addToCartApi } from '../api/cartApi'
+import gsap from 'gsap'
 
 const router = useRouter()
 const cartItemCount = ref(0)
@@ -215,6 +216,38 @@ const searchQuery = ref('')
 const isLoggedIn = ref(false)
 const username = ref('')
 const latestBook = ref<Book | null>(null)
+
+// 轮播文本
+const textList = [
+  '重塑思维 的力量。',
+  '让读书成为习惯，让积累成就辉煌',
+  '为好书找读者，为读者找好书'
+]
+const currentText = ref(textList[0])
+const currentIndex = ref(0)
+let textInterval: number | null = null
+const textElement = ref<HTMLElement | null>(null)
+
+// GSAP 动画 - 监听文字变化
+watch(currentText, async () => {
+  await nextTick()
+  if (textElement.value) {
+    gsap.fromTo(textElement.value,
+      {
+        opacity: 0,
+        y: 30,
+        scale: 0.95
+      },
+      {
+        opacity: 1,
+        y: 0,
+        scale: 1,
+        duration: 0.8,
+        ease: 'back.out(1.7)'
+      }
+    )
+  }
+})
 
 // 书籍颜色数组
 const bookColors = [
@@ -248,6 +281,11 @@ const goToLogin = () => {
 }
 
 const goToLibrary = () => {
+  if (!isLoggedIn.value) {
+    ElMessage.warning('请先登录')
+    router.push('/login')
+    return
+  }
   router.push('/library')
 }
 
@@ -256,6 +294,11 @@ const refreshPage = () => {
 }
 
 const goToProfile = () => {
+  if (!isLoggedIn.value) {
+    ElMessage.warning('请先登录')
+    router.push('/login')
+    return
+  }
   router.push('/profile')
 }
 
@@ -272,6 +315,11 @@ const checkUserLogin = (): boolean => {
 }
 
 const toggleCart = () => {
+  if (!isLoggedIn.value) {
+    ElMessage.warning('请先登录')
+    router.push('/login')
+    return
+  }
   router.push('/cart')
 }
 
@@ -326,6 +374,11 @@ const scrollToTop = () => {
 }
 
 const handleSearch = () => {
+  if (!isLoggedIn.value) {
+    ElMessage.warning('请先登录')
+    router.push('/login')
+    return
+  }
   if (searchQuery.value.trim()) {
     router.push({
       path: '/library',
@@ -366,6 +419,11 @@ const loadLatestBook = async () => {
 
 // 查看图书详情
 const viewBookDetail = (book: Book) => {
+  if (!isLoggedIn.value) {
+    ElMessage.warning('请先登录')
+    router.push('/login')
+    return
+  }
   router.push(`/book/${book.id}`)
 }
 
@@ -404,6 +462,11 @@ const addToCart = async (book: Book) => {
 
 // 查看所有图书
 const viewAllBooks = () => {
+  if (!isLoggedIn.value) {
+    ElMessage.warning('请先登录')
+    router.push('/login')
+    return
+  }
   router.push('/library')
 }
 
@@ -443,14 +506,22 @@ const buyNow = async (book: Book) => {
   }
 }
 
+// 启动文本轮播
+const startTextRotation = () => {
+  textInterval = window.setInterval(() => {
+    currentIndex.value = (currentIndex.value + 1) % textList.length
+    currentText.value = textList[currentIndex.value]
+  }, 3000) // 每3秒切换一次
+}
+
 onMounted(async () => {
     // 页面加载时滚动到顶部
   window.scrollTo(0, 0)
 
-  window.addEventListener('cart-updated', updateCartCount as EventListener)
-  window.addEventListener('add-to-cart', handleAddToCart as EventListener)
+  window.addEventListener('cart-updated', updateCartCount as any)
+  window.addEventListener('add-to-cart', handleAddToCart as any)
   window.addEventListener('scroll', handleScroll)
-  window.addEventListener('login-success', handleLoginSuccess as EventListener)
+  window.addEventListener('login-success', handleLoginSuccess)
   window.addEventListener('user-logout', () => {
     cartItemCount.value = 0
   })
@@ -460,13 +531,21 @@ onMounted(async () => {
 
   // 加载购物车数量
   await updateCartCount()
+  
+  // 启动文本轮播
+  startTextRotation()
 })
 
 onUnmounted(() => {
-  window.removeEventListener('cart-updated', updateCartCount as EventListener)
-  window.removeEventListener('add-to-cart', handleAddToCart as EventListener)
+  window.removeEventListener('cart-updated', updateCartCount as any)
+  window.removeEventListener('add-to-cart', handleAddToCart as any)
   window.removeEventListener('scroll', handleScroll)
-  window.removeEventListener('login-success', handleLoginSuccess as EventListener)
+  window.removeEventListener('login-success', handleLoginSuccess)
+  
+  // 清除文本轮播定时器
+  if (textInterval) {
+    clearInterval(textInterval)
+  }
 })
 </script>
 
@@ -585,14 +664,41 @@ onUnmounted(() => {
 }
 
 .logo-icon {
-  width: 32px;
-  height: 32px;
-  background: #000000;
+  width: 40px;
+  height: 40px;
+  background: #007AFF;
   color: white;
-  border-radius: 8px;
+  border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
+  font-size: 22px;
+  position: relative;
+}
+
+.logo-icon-pulse::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: #007AFF;
+  border-radius: 10px;
+  animation: logo-pulse 2s cubic-bezier(0, 0, 0.2, 1) infinite;
+  z-index: -1;
+}
+
+@keyframes logo-pulse {
+  0% {
+    transform: scale(1);
+    opacity: 0.8;
+  }
+  50% {
+    transform: scale(1.15);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 0;
+  }
 }
 
 .logo-text {
@@ -815,6 +921,12 @@ onUnmounted(() => {
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+  display: inline-block;
+  min-height: 1.1em;
+}
+
+.rotating-text {
+  display: inline-block;
 }
 
 .hero-description {

@@ -75,8 +75,12 @@
 
       <!-- 加载状态 -->
       <div v-if="loading" class="loading-state">
-        <div class="loading-spinner"></div>
-        <p>正在加载图书数据...</p>
+        <div class="loading-container">
+          <div class="loading-spinner-ios">
+            <div class="spinner-blade" v-for="n in 12" :key="n"></div>
+          </div>
+          <p class="loading-text">正在加载图书数据</p>
+        </div>
       </div>
 
       <!-- 空状态 -->
@@ -228,6 +232,11 @@ const checkUserLogin = (): boolean => {
 }
 
 const handleCardClick = (book: Book) => {
+  if (!isLoggedIn.value) {
+    ElMessage.warning('请先登录')
+    router.push('/login')
+    return
+  }
   router.push(`/book/${book.id}`)
 }
 
@@ -273,10 +282,20 @@ const goToLogin = () => {
 }
 
 const toggleCart = () => {
+  if (!isLoggedIn.value) {
+    ElMessage.warning('请先登录')
+    router.push('/login')
+    return
+  }
   router.push('/cart')
 }
 
 const goToProfile = () => {
+  if (!isLoggedIn.value) {
+    ElMessage.warning('请先登录')
+    router.push('/login')
+    return
+  }
   router.push('/profile')
 }
 
@@ -343,7 +362,7 @@ const checkLoginStatus = () => {
 
 onMounted(async () => {
   window.addEventListener('scroll', handleScroll)
-  window.addEventListener('cart-updated', updateCartCount as EventListener)
+  window.addEventListener('cart-updated', updateCartCount as any)
   window.addEventListener('user-logout', () => {
     cartItemCount.value = 0
   })
@@ -364,7 +383,7 @@ onMounted(async () => {
 
 onUnmounted(() => {
   window.removeEventListener('scroll', handleScroll)
-  window.removeEventListener('cart-updated', updateCartCount as EventListener)
+  window.removeEventListener('cart-updated', updateCartCount as any)
 })
 </script>
 
@@ -721,29 +740,125 @@ onUnmounted(() => {
 
 /* ========== 加载和空状态 ========== */
 .loading-state {
-  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
   padding: 100px 20px;
+}
+
+.loading-container {
+  text-align: center;
+}
+
+/* iOS 风格加载动画 */
+.loading-spinner-ios {
+  position: relative;
+  width: 40px;
+  height: 40px;
+  margin: 0 auto 20px;
+}
+
+.spinner-blade {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  width: 3px;
+  height: 12px;
+  margin-left: -1.5px;
+  background: #8E8E93;
+  border-radius: 3px;
+  transform-origin: 50% 20px;
+  opacity: 0.25;
+}
+
+.spinner-blade:nth-child(1) {
+  transform: rotate(0deg);
+  animation: ios-spinner-fade 1s linear infinite;
+  animation-delay: 0s;
+}
+
+.spinner-blade:nth-child(2) {
+  transform: rotate(30deg);
+  animation: ios-spinner-fade 1s linear infinite;
+  animation-delay: 0.083s;
+}
+
+.spinner-blade:nth-child(3) {
+  transform: rotate(60deg);
+  animation: ios-spinner-fade 1s linear infinite;
+  animation-delay: 0.166s;
+}
+
+.spinner-blade:nth-child(4) {
+  transform: rotate(90deg);
+  animation: ios-spinner-fade 1s linear infinite;
+  animation-delay: 0.249s;
+}
+
+.spinner-blade:nth-child(5) {
+  transform: rotate(120deg);
+  animation: ios-spinner-fade 1s linear infinite;
+  animation-delay: 0.332s;
+}
+
+.spinner-blade:nth-child(6) {
+  transform: rotate(150deg);
+  animation: ios-spinner-fade 1s linear infinite;
+  animation-delay: 0.415s;
+}
+
+.spinner-blade:nth-child(7) {
+  transform: rotate(180deg);
+  animation: ios-spinner-fade 1s linear infinite;
+  animation-delay: 0.498s;
+}
+
+.spinner-blade:nth-child(8) {
+  transform: rotate(210deg);
+  animation: ios-spinner-fade 1s linear infinite;
+  animation-delay: 0.581s;
+}
+
+.spinner-blade:nth-child(9) {
+  transform: rotate(240deg);
+  animation: ios-spinner-fade 1s linear infinite;
+  animation-delay: 0.664s;
+}
+
+.spinner-blade:nth-child(10) {
+  transform: rotate(270deg);
+  animation: ios-spinner-fade 1s linear infinite;
+  animation-delay: 0.747s;
+}
+
+.spinner-blade:nth-child(11) {
+  transform: rotate(300deg);
+  animation: ios-spinner-fade 1s linear infinite;
+  animation-delay: 0.830s;
+}
+
+.spinner-blade:nth-child(12) {
+  transform: rotate(330deg);
+  animation: ios-spinner-fade 1s linear infinite;
+  animation-delay: 0.913s;
+}
+
+@keyframes ios-spinner-fade {
+  0% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.25;
+  }
+}
+
+.loading-text {
+  font-size: 17px;
+  font-weight: 400;
   color: #86868B;
-}
-
-.loading-spinner {
-  width: 60px;
-  height: 60px;
-  border: 5px solid rgba(0, 122, 255, 0.2);
-  border-top-color: #007AFF;
-  border-radius: 50%;
-  margin: 0 auto 25px;
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
-.loading-state p {
-  font-size: 18px;
-  font-weight: 500;
+  margin: 0;
+  letter-spacing: -0.01em;
 }
 
 .empty-state {

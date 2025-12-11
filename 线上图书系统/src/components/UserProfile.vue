@@ -425,7 +425,7 @@ const navItems = [
 // 订单筛选标签
 const orderTabs = [
   { id: 'all', label: '全部' },
-  { id: 'pending', label: '待付款' },
+  { id: 'pending', label: '待处理' },
   { id: 'shipping', label: '运输中' },
   { id: 'completed', label: '已完成' },
 ]
@@ -705,7 +705,7 @@ const deleteAddress = async (addressId: number) => {
 // 获取状态文本
 const getStatusText = (status?: OrderStatus): string => {
   const statusMap: Record<OrderStatus, string> = {
-    pending: '待付款',
+    pending: '待处理',
     processing: '处理中',
     shipping: '运输中',
     delivered: '已完成',
