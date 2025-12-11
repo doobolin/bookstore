@@ -1088,35 +1088,36 @@ onMounted(() => {
   font-size: 16px;
 }
 
-/* 回到首页按钮 */
+/* 回到首页按钮 - 全新设计 */
 .back-home-btn {
-  background: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border-radius: 24px;
-  padding: 12px 16px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-  border: 1px solid rgba(255, 255, 255, 0.8);
+  background: #000000;
+  border-radius: 16px;
+  padding: 14px 24px;
+  border: none;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: 10px;
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   width: 100%;
-  color: #007AFF;
-  font-size: 14px;
-  font-weight: 500;
+  color: white;
+  font-size: 15px;
+  font-weight: 600;
+  position: relative;
 }
 
 .back-home-btn:hover {
-  background: rgba(0, 122, 255, 0.1);
+  background: #1a1a1a;
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 122, 255, 0.15);
+}
+
+.back-home-btn:active {
+  transform: translateY(0);
 }
 
 .back-home-btn i {
-  font-size: 18px;
+  font-size: 20px;
 }
 
 /* ========== 主内容区 ========== */

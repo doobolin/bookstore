@@ -2,9 +2,14 @@
   <div class="book-detail-page">
     <!-- 顶部导航 -->
     <nav class="glass-nav">
-      <a @click="goBack" class="back-button">
-        <i class="ri-arrow-left-s-line"></i>
-      </a>
+      <div class="nav-left">
+        <a @click="goBack" class="back-button">
+          <i class="ri-arrow-left-s-line"></i>
+        </a>
+        <a @click="goToHome" class="home-button">
+          <i class="ri-home-4-line"></i>
+        </a>
+      </div>
       <span class="nav-title">{{ book?.title }}</span>
 
       <div class="nav-actions">
@@ -275,6 +280,10 @@ const goBack = () => {
   router.back()
 }
 
+const goToHome = () => {
+  router.push('/')
+}
+
 // 检查是否已收藏
 const checkFavoriteStatus = () => {
   if (!book.value) return
@@ -518,7 +527,14 @@ onUnmounted(() => {
   z-index: 100;
 }
 
-.back-button {
+.nav-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.back-button,
+.home-button {
   width: 32px;
   height: 32px;
   display: flex;
@@ -531,7 +547,8 @@ onUnmounted(() => {
   color: #1D1D1F;
 }
 
-.back-button:hover {
+.back-button:hover,
+.home-button:hover {
   background: rgba(0, 0, 0, 0.05);
 }
 
