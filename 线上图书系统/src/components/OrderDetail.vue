@@ -135,24 +135,6 @@
             </div>
           </div>
 
-          <!-- C. 配送信息 -->
-          <div class="shipping-card">
-            <h3>配送信息</h3>
-            <div class="shipping-info">
-              <div class="shipping-icon">
-                <i class="ri-map-pin-user-line"></i>
-              </div>
-              <div class="shipping-details">
-                <p class="receiver-info">
-                  {{ order.receiver_name || '未填写收货人' }}
-                  <span class="phone">{{ order.receiver_phone || '未填写电话' }}</span>
-                </p>
-                <p class="address">
-                  {{ order.full_address || order.shipping_address || '暂无配送地址' }}
-                </p>
-              </div>
-            </div>
-          </div>
         </div>
 
         <!-- 右侧:信息汇总 & 操作 -->
@@ -870,64 +852,6 @@ onMounted(() => {
   font-size: 18px;
   font-weight: 700;
   color: #1D1D1F;
-}
-
-/* ========== 配送信息卡片 ========== */
-.shipping-card {
-  background: white;
-  border-radius: 24px;
-  padding: 1.5rem;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.03);
-}
-
-.shipping-card h3 {
-  font-size: 16px;
-  font-weight: 700;
-  color: #1D1D1F;
-  margin: 0 0 1rem 0;
-}
-
-.shipping-info {
-  display: flex;
-  gap: 1rem;
-  align-items: start;
-}
-
-.shipping-icon {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background: #F5F5F7;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #86868B;
-  font-size: 18px;
-  flex-shrink: 0;
-}
-
-.shipping-details {
-  flex: 1;
-}
-
-.receiver-info {
-  font-size: 14px;
-  font-weight: 700;
-  color: #1D1D1F;
-  margin: 0 0 8px 0;
-}
-
-.phone {
-  color: #86868B;
-  font-weight: 400;
-  margin-left: 8px;
-}
-
-.address {
-  font-size: 14px;
-  color: #86868B;
-  margin: 0;
-  line-height: 1.6;
 }
 
 /* ========== 订单信息卡片 ========== */

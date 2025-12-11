@@ -208,7 +208,8 @@ const filteredBooks = computed(() => {
     )
   }
 
-  return result
+  // 按ID排序，确保顺序一致
+  return result.sort((a, b) => a.id - b.id)
 })
 
 const selectCategory = (category: string) => {

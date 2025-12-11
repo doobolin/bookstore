@@ -467,6 +467,8 @@ const viewAllBooks = () => {
     router.push('/login')
     return
   }
+  // 跳转前立即设置滚动位置为顶部
+  window.scrollTo(0, 0)
   router.push('/library')
 }
 
