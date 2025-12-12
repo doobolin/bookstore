@@ -2,6 +2,6 @@
   "dependencies": {
     "animate.css": "^4.1.1",
     "axios": "^1.12.2",
-    "gsap": "^3.14.1",
+    "gsap": "^3.14.1"
   }
 }
