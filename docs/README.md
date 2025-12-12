@@ -259,5 +259,10 @@ gunicorn -w 4 -b 0.0.0.0:5000 app:app
 - 圆角: `20px` (卡片), `12px` (按钮)
 - 毛玻璃效果: `backdrop-filter: blur(20px)`
 
+<img width="1892" height="990" alt="image" src="https://github.com/user-attachments/assets/d08f7ea5-86ee-4491-accf-05fae931f1a3" />
+<img width="1763" height="991" alt="image" src="https://github.com/user-attachments/assets/93dcf013-e306-44ae-a96f-01869207d27f" />
+<img width="1509" height="979" alt="image" src="https://github.com/user-attachments/assets/c629856e-5d2c-4f30-9075-c3ab80bb2a07" />
+<img width="1392" height="792" alt="image" src="https://github.com/user-attachments/assets/68f0f2eb-6404-4e81-ac9b-e60583bc29f4" />
+<img width="1861" height="972" alt="image" src="https://github.com/user-attachments/assets/0688ab49-ed73-46f9-89af-2c95d0ff486f" />
 
 
